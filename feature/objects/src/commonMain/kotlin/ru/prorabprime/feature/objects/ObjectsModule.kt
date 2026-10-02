@@ -41,7 +41,7 @@ val objectsModule = module {
             notifier = get(),
         )
     }
-    factory { ObjectDetailsActions(get(), get(), get(), get(), get(), get(), get(), get()) }
+    factory { ObjectDetailsActions(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { (objectId: ObjectId) ->
         val stateHolder: IObjectDetailsStateHolder = ObjectDetailsStateHolder()
         ObjectDetailsViewModel(

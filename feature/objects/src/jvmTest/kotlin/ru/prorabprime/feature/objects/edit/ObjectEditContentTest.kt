@@ -46,7 +46,7 @@ class ObjectEditContentTest {
     fun `a status chip selects that status`() = runComposeUiTest {
         setContent { show(content) }
 
-        onNodeWithText("Сдан").performClick()
+        onNodeWithText("Завершён").performClick()
 
         assertThat(events).containsExactly(ObjectEditEvent.StatusChanged(ObjectStatus.DONE))
     }

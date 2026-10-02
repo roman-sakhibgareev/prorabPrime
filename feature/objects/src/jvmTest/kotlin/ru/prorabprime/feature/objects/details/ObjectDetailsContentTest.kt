@@ -42,6 +42,17 @@ class ObjectDetailsContentTest {
     }
 
     @Test
+    fun `tapping the status opens the sheet and picking one changes it`() = runComposeUiTest {
+        setContent { show(ObjectDetailsState(status = ObjectDetailsStatus.Content, details = details)) }
+
+        onNodeWithText("На паузе").performClick()
+        onNodeWithText("Статус объекта").assertIsDisplayed()
+        onNodeWithText("Завершён").performClick()
+
+        assertThat(events).containsExactly(ObjectDetailsEvent.StatusPicked(ObjectStatus.DONE))
+    }
+
+    @Test
     fun `the toolbar edits and asks to delete`() = runComposeUiTest {
         setContent { show(ObjectDetailsState(status = ObjectDetailsStatus.Content, details = details)) }
 

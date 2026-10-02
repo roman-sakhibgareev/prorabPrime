@@ -141,6 +141,10 @@ internal sealed interface ObjectDetailsEvent {
         val photoId: String,
     ) : ObjectDetailsEvent
 
+    data class StatusPicked(
+        val status: ObjectStatus,
+    ) : ObjectDetailsEvent
+
     data class DeletePhotoClicked(
         val photoId: String,
     ) : ObjectDetailsEvent

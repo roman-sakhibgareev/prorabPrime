@@ -4,8 +4,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -14,6 +16,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -54,6 +57,7 @@ import ru.prorabprime.domain.model.AttachmentKind
 import ru.prorabprime.domain.model.ObjectId
 import ru.prorabprime.domain.model.ObjectStatus
 import ru.prorabprime.feature.objects.components.StatusChip
+import ru.prorabprime.feature.objects.components.label
 import ru.prorabprime.feature.objects.photos.PhotoCarousel
 import ru.prorabprime.feature.objects.photos.rememberPhotoSources
 import ru.prorabprime.feature.objects.resources.Res
@@ -71,6 +75,7 @@ import ru.prorabprime.feature.objects.resources.objectdetails_phone
 import ru.prorabprime.feature.objects.resources.objectdetails_photos
 import ru.prorabprime.feature.objects.resources.objectdetails_pick_photos
 import ru.prorabprime.feature.objects.resources.objectdetails_receipts
+import ru.prorabprime.feature.objects.resources.objectdetails_status_title
 import ru.prorabprime.feature.objects.resources.objectdetails_take_photo
 import ru.prorabprime.ui.resolve
 
@@ -149,22 +154,27 @@ internal fun ObjectDetailsContent(
     onTakePhoto: (AttachmentKind) -> Unit = {},
     onPickPhotos: (AttachmentKind) -> Unit = {},
 ) {
-    val sections = ObjectSections(onOpenFinance, onOpenMaterials)
+    var choosingStatus by remember { mutableStateOf(false) }
+    val sections = ObjectSections(onOpenFinance, onOpenMaterials, onEditStatus = { choosingStatus = true })
     // Whether the "camera or gallery" sheet is open is view state, like a menu.
     var choosingSourceFor by remember { mutableStateOf<AttachmentKind?>(null) }
     BusyScreen(state.isDeleting, modifier) {
         Scaffold(
-            modifier = Modifier,
             topBar = { DetailsTopBar(state, onEvent, onEdit, onBack) },
         ) { padding ->
             Column(Modifier.padding(padding).fillMaxSize()) {
                 if (state.isDeleting) LinearProgressIndicator(Modifier.fillMaxWidth())
                 when (val status = state.status) {
                     ObjectDetailsStatus.Content -> state.details?.let { details ->
-                        DetailsBody(details, state, onEvent, onOpenPhoto, onOpenGallery, sections, onAdd = {
-                            choosingSourceFor =
-                                it
-                        })
+                        DetailsBody(
+                            details,
+                            state,
+                            onEvent,
+                            onOpenPhoto,
+                            onOpenGallery,
+                            sections,
+                            onAdd = { choosingSourceFor = it },
+                        )
                     }
 
                     ObjectDetailsStatus.Loading -> LoadingBox()
@@ -182,6 +192,16 @@ internal fun ObjectDetailsContent(
         onDismiss = { onEvent(ObjectDetailsEvent.DialogDismissed) },
     )
     state.contactEditor?.let { ContactEditorDialog(it, onEvent) }
+    if (choosingStatus) {
+        StatusSheet(
+            current = state.details?.status,
+            onPick = {
+                choosingStatus = false
+                onEvent(ObjectDetailsEvent.StatusPicked(it))
+            },
+            onDismiss = { choosingStatus = false },
+        )
+    }
     choosingSourceFor?.let { kind ->
         PhotoSourceSheet(
             onTakePhoto = {
@@ -193,27 +213,6 @@ internal fun ObjectDetailsContent(
                 onPickPhotos(kind)
             },
             onDismiss = { choosingSourceFor = null },
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun PhotoSourceSheet(
-    onTakePhoto: () -> Unit,
-    onPickPhotos: () -> Unit,
-    onDismiss: () -> Unit,
-) {
-    ModalBottomSheet(onDismissRequest = onDismiss) {
-        ListItem(
-            headlineContent = { Text(stringResource(Res.string.objectdetails_take_photo)) },
-            leadingContent = { Icon(Icons.Default.Add, contentDescription = null) },
-            modifier = Modifier.clickable(onClick = onTakePhoto),
-        )
-        ListItem(
-            headlineContent = { Text(stringResource(Res.string.objectdetails_pick_photos)) },
-            leadingContent = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = null) },
-            modifier = Modifier.clickable(onClick = onPickPhotos).padding(bottom = Spacing.l),
         )
     }
 }
@@ -288,7 +287,7 @@ private fun DetailsBody(
             canMakeCover = false,
             addLabel = Res.string.objectdetails_add_receipt,
         )
-        DetailsFields(details)
+        DetailsFields(details, sections.onEditStatus)
         SectionButtons(sections)
         ContactsSection(
             contacts = details.contacts,
@@ -298,10 +297,11 @@ private fun DetailsBody(
     }
 }
 
-/** Where the card leads besides itself: the object's finance and its materials checklist. */
+/** Where the card leads besides itself: the object's finance and its materials checklist; and the status sheet. */
 internal data class ObjectSections(
     val onOpenFinance: () -> Unit,
     val onOpenMaterials: () -> Unit,
+    val onEditStatus: () -> Unit,
 )
 
 @Composable
@@ -327,13 +327,13 @@ private fun FolderTitle(title: StringResource, onClick: () -> Unit) {
 }
 
 @Composable
-private fun DetailsFields(details: ObjectDetailsUi) {
+private fun DetailsFields(details: ObjectDetailsUi, onEditStatus: () -> Unit) {
     val uriHandler = LocalUriHandler.current
     Column(
         modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.m),
         verticalArrangement = Arrangement.spacedBy(Spacing.m),
     ) {
-        StatusChip(details.status)
+        StatusChip(details.status, onClick = onEditStatus)
         details.address?.let { Field(stringResource(Res.string.objectdetails_address), it) }
         details.clientName?.let { Field(stringResource(Res.string.objectdetails_client), it) }
         details.clientPhone?.let { phone ->

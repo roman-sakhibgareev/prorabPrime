@@ -37,6 +37,7 @@
 
     <!-- objectdetails -->
     <string name="objectdetails_back">Назад</string>
+    <string name="objectdetails_status_title">Статус объекта</string>
     <string name="objectdetails_edit">Редактировать</string>
     <string name="objectdetails_delete">Удалить объект</string>
     <string name="objectdetails_address">Адрес</string>
@@ -135,7 +136,8 @@
     <!-- common: object statuses, shared by the list and the details -->
     <string name="objects_status_planned">Запланирован</string>
     <string name="objects_status_in_progress">В работе</string>
-    <string name="objects_status_done">Сдан</string>
+    <string name="objects_status_done">Завершён</string>
+    <string name="objects_status_change">Изменить статус</string>
     <string name="objects_status_paused">На паузе</string>
     <string name="objectedit_created">Объект создан</string>
     <string name="objectedit_saved">Изменения сохранены</string>

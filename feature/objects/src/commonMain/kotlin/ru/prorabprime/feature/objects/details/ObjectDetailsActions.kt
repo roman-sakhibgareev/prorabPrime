@@ -1,5 +1,6 @@
 package ru.prorabprime.feature.objects.details
 
+import ru.prorabprime.domain.usecase.ChangeObjectStatusUseCase
 import ru.prorabprime.domain.usecase.DeleteContactUseCase
 import ru.prorabprime.domain.usecase.DeleteObjectUseCase
 import ru.prorabprime.domain.usecase.DeletePhotoUseCase
@@ -19,4 +20,5 @@ internal class ObjectDetailsActions(
     val setCoverPhoto: SetCoverPhotoUseCase,
     val saveContact: SaveContactUseCase,
     val deleteContact: DeleteContactUseCase,
+    val changeStatus: ChangeObjectStatusUseCase,
 )
