@@ -16,6 +16,11 @@
     <string name="finance_paid_crew">Выплачено</string>
     <string name="finance_remaining">Осталось</string>
     <string name="finance_overpaid">Переплата</string>
+    <string name="finance_contract_sum">Сумма по договору</string>
+    <string name="finance_extras_sum">Сумма допов</string>
+    <string name="finance_received_contract">Получено по договору</string>
+    <string name="finance_received_extras">Получено по допам</string>
+    <string name="finance_total_remaining">Итого осталось</string>
     <string name="finance_not_set">не указана</string>
     <string name="finance_edit_totals">Изменить суммы</string>
 
@@ -27,6 +32,9 @@
     <string name="finance_payment_date">Дата передачи *</string>
     <string name="finance_payment_method">Способ</string>
     <string name="finance_payment_note">Заметка</string>
+    <string name="finance_payment_purpose">За что</string>
+    <string name="finance_purpose_contract">Договор</string>
+    <string name="finance_purpose_extras">Допы</string>
     <string name="finance_method_cash">Наличные</string>
     <string name="finance_method_transfer">Перевод</string>
     <string name="finance_method_card">Карта</string>

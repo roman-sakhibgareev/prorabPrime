@@ -37,6 +37,8 @@ import ru.prorabprime.domain.model.FieldProblem
 import ru.prorabprime.domain.model.LocalDay
 import ru.prorabprime.domain.model.ObjectField
 import ru.prorabprime.domain.model.PaymentMethod
+import ru.prorabprime.domain.model.PaymentPurpose
+import ru.prorabprime.domain.model.PaymentSide
 import ru.prorabprime.feature.finance.resources.Res
 import ru.prorabprime.feature.finance.resources.finance_add_extra
 import ru.prorabprime.feature.finance.resources.finance_add_payment
@@ -51,6 +53,7 @@ import ru.prorabprime.feature.finance.resources.finance_payment_amount
 import ru.prorabprime.feature.finance.resources.finance_payment_date
 import ru.prorabprime.feature.finance.resources.finance_payment_method
 import ru.prorabprime.feature.finance.resources.finance_payment_note
+import ru.prorabprime.feature.finance.resources.finance_payment_purpose
 import ru.prorabprime.feature.finance.resources.finance_pick_date
 import ru.prorabprime.feature.finance.resources.finance_save
 import ru.prorabprime.feature.finance.resources.finance_total_client
@@ -85,6 +88,18 @@ private fun PaymentDialog(editor: FinanceEditorUi.Payment, onEvent: (FinanceEven
             onChange = { onEvent(PaymentEvent.AmountChanged(it)) },
         )
         DateField(editor.day, editor.errors[ObjectField.PAYMENT_DATE]) { onEvent(PaymentEvent.DayChanged(it)) }
+        if (editor.side == PaymentSide.CLIENT) {
+            Label(Res.string.finance_payment_purpose)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
+                PaymentPurpose.entries.forEach { purpose ->
+                    FilterChip(
+                        selected = purpose == editor.purpose,
+                        onClick = { onEvent(PaymentEvent.PurposeChanged(purpose)) },
+                        label = { Text(stringResource(purpose.label)) },
+                    )
+                }
+            }
+        }
         Label(Res.string.finance_payment_method)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
             PaymentMethod.entries.forEach { method ->

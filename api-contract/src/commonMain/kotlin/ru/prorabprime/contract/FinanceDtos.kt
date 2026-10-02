@@ -13,6 +13,13 @@ enum class PaymentSideDto {
     CREW,
 }
 
+/** What a client's payment went towards: the contract itself, or the extra works agreed on later. */
+@Serializable
+enum class PaymentPurposeDto {
+    CONTRACT,
+    EXTRAS,
+}
+
 @Serializable
 enum class PaymentMethodDto {
     CASH,
@@ -36,6 +43,7 @@ data class PaymentDto(
     val method: PaymentMethodDto,
     val paidOn: String,
     val note: String? = null,
+    val purpose: PaymentPurposeDto = PaymentPurposeDto.CONTRACT,
 )
 
 /** Body of `POST /api/objects/{id}/payments` and `PUT /api/payments/{id}`. */
@@ -46,6 +54,7 @@ data class PaymentRequestDto(
     val method: PaymentMethodDto,
     val paidOn: String,
     val note: String? = null,
+    val purpose: PaymentPurposeDto = PaymentPurposeDto.CONTRACT,
     /** Chosen by the client on create (a UUID), so a retry of the same create finds the record it made. */
     val id: String? = null,
 )
@@ -113,6 +122,7 @@ data class PaymentRevisionDto(
     val paidOn: String,
     val note: String? = null,
     val at: Instant,
+    val purpose: PaymentPurposeDto = PaymentPurposeDto.CONTRACT,
 )
 
 @Serializable

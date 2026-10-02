@@ -12,6 +12,7 @@ import ru.prorabprime.domain.model.LocalDay
 import ru.prorabprime.domain.model.ObjectField
 import ru.prorabprime.domain.model.Payment
 import ru.prorabprime.domain.model.PaymentMethod
+import ru.prorabprime.domain.model.PaymentPurpose
 import ru.prorabprime.domain.model.PaymentSide
 import ru.prorabprime.domain.model.RevisionAction
 import ru.prorabprime.ui.DialogModel
@@ -29,6 +30,15 @@ internal sealed interface FinanceStatus {
     ) : FinanceStatus
 }
 
+/** The client's money told apart: what the contract and the extras come to, and what came in for each. */
+@Immutable
+internal data class BreakdownUi(
+    val contract: String?,
+    val extras: String,
+    val receivedContract: String,
+    val receivedExtras: String,
+)
+
 /** One side's card, every amount already formatted. */
 @Immutable
 internal data class SideCardUi(
@@ -36,6 +46,8 @@ internal data class SideCardUi(
     val paid: String,
     val remaining: String?,
     val isOverpaid: Boolean,
+    /** Set on the client's card, which shows the contract and the extras on lines of their own. */
+    val breakdown: BreakdownUi? = null,
 )
 
 /** A payment with its amount and day already formatted; the model stays for opening the form. */
@@ -93,6 +105,7 @@ internal sealed interface FinanceEditorUi {
         val method: PaymentMethod = PaymentMethod.CASH,
         val day: LocalDay? = null,
         val note: String = "",
+        val purpose: PaymentPurpose = PaymentPurpose.CONTRACT,
         override val errors: ImmutableMap<ObjectField, FieldProblem> = persistentMapOf(),
         override val isSaving: Boolean = false,
     ) : FinanceEditorUi
@@ -164,6 +177,10 @@ internal sealed interface PaymentEvent : FinanceEvent {
 
     data class MethodChanged(
         val method: PaymentMethod,
+    ) : PaymentEvent
+
+    data class PurposeChanged(
+        val purpose: PaymentPurpose,
     ) : PaymentEvent
 
     data class DayChanged(

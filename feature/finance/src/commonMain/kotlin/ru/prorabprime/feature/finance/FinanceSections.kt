@@ -23,19 +23,25 @@ import org.jetbrains.compose.resources.stringResource
 import ru.prorabprime.designsystem.components.OutlinedButton
 import ru.prorabprime.designsystem.components.PendingTitle
 import ru.prorabprime.designsystem.theme.Spacing
+import ru.prorabprime.domain.model.PaymentPurpose
 import ru.prorabprime.feature.finance.resources.Res
 import ru.prorabprime.feature.finance.resources.finance_add_extra
 import ru.prorabprime.feature.finance.resources.finance_add_payment
 import ru.prorabprime.feature.finance.resources.finance_agreed
+import ru.prorabprime.feature.finance.resources.finance_contract_sum
 import ru.prorabprime.feature.finance.resources.finance_edit_totals
 import ru.prorabprime.feature.finance.resources.finance_extras
+import ru.prorabprime.feature.finance.resources.finance_extras_sum
 import ru.prorabprime.feature.finance.resources.finance_extras_total_agreed
 import ru.prorabprime.feature.finance.resources.finance_extras_total_pending
 import ru.prorabprime.feature.finance.resources.finance_no_extras
 import ru.prorabprime.feature.finance.resources.finance_no_payments
 import ru.prorabprime.feature.finance.resources.finance_not_set
 import ru.prorabprime.feature.finance.resources.finance_overpaid
+import ru.prorabprime.feature.finance.resources.finance_received_contract
+import ru.prorabprime.feature.finance.resources.finance_received_extras
 import ru.prorabprime.feature.finance.resources.finance_remaining
+import ru.prorabprime.feature.finance.resources.finance_total_remaining
 
 /** One side of the books: the agreed amount, what moved, what is left, and its payments. */
 @Composable
@@ -53,15 +59,7 @@ internal fun SideSection(
         Text(stringResource(title), style = MaterialTheme.typography.titleMedium)
         Card(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(Spacing.m), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-                AmountLine(Res.string.finance_agreed, card.agreed ?: stringResource(Res.string.finance_not_set))
-                AmountLine(paidLabel, card.paid)
-                card.remaining?.let {
-                    AmountLine(
-                        if (card.isOverpaid) Res.string.finance_overpaid else Res.string.finance_remaining,
-                        it,
-                        emphasized = true,
-                    )
-                }
+                CardLines(card, paidLabel)
                 OutlinedButton(onClick = onEditTotals) { Text(stringResource(Res.string.finance_edit_totals)) }
             }
         }
@@ -79,6 +77,8 @@ internal fun SideSection(
                     Text(
                         listOfNotNull(
                             payment.date,
+                            payment.payment.purpose.takeIf { it == PaymentPurpose.EXTRAS }
+                                ?.let { stringResource(it.label) },
                             stringResource(payment.payment.method.label),
                             payment.payment.note,
                         ).joinToString(" · "),
@@ -91,6 +91,28 @@ internal fun SideSection(
             Icon(Icons.Default.Add, contentDescription = null)
             Text(stringResource(Res.string.finance_add_payment))
         }
+    }
+}
+
+@Composable
+private fun CardLines(card: SideCardUi, paidLabel: StringResource) {
+    val breakdown = card.breakdown
+    if (breakdown == null) {
+        AmountLine(Res.string.finance_agreed, card.agreed ?: stringResource(Res.string.finance_not_set))
+        AmountLine(paidLabel, card.paid)
+    } else {
+        AmountLine(Res.string.finance_contract_sum, breakdown.contract ?: stringResource(Res.string.finance_not_set))
+        AmountLine(Res.string.finance_extras_sum, breakdown.extras)
+        AmountLine(Res.string.finance_received_contract, breakdown.receivedContract)
+        AmountLine(Res.string.finance_received_extras, breakdown.receivedExtras)
+    }
+    card.remaining?.let {
+        val label = when {
+            card.isOverpaid -> Res.string.finance_overpaid
+            breakdown != null -> Res.string.finance_total_remaining
+            else -> Res.string.finance_remaining
+        }
+        AmountLine(label, it, emphasized = true)
     }
 }
 

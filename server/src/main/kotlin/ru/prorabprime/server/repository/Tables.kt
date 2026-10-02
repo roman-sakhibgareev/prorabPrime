@@ -80,6 +80,7 @@ object PaymentsTable : Table("payments") {
     val method = varchar("method", 10)
     val paidOn = date("paid_on")
     val note = varchar("note", 500).nullable()
+    val purpose = varchar("purpose", 10)
     val createdAt = timestamp("created_at")
 
     override val primaryKey = PrimaryKey(id)
@@ -95,6 +96,7 @@ object PaymentHistoryTable : Table("payment_history") {
     val method = varchar("method", 10)
     val paidOn = date("paid_on")
     val note = varchar("note", 500).nullable()
+    val purpose = varchar("purpose", 10)
     val at = timestamp("at")
 
     override val primaryKey = PrimaryKey(id)

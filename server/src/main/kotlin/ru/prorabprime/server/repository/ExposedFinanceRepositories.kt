@@ -15,6 +15,7 @@ import org.jetbrains.exposed.v1.jdbc.update
 import org.jetbrains.exposed.v1.jdbc.upsert
 import ru.prorabprime.contract.ExtraWorkStatusDto
 import ru.prorabprime.contract.PaymentMethodDto
+import ru.prorabprime.contract.PaymentPurposeDto
 import ru.prorabprime.contract.PaymentSideDto
 import ru.prorabprime.contract.RevisionActionDto
 import ru.prorabprime.server.db.DbExecutor
@@ -76,6 +77,7 @@ class ExposedPaymentRepository(
                 it[method] = payment.fields.method.name
                 it[paidOn] = payment.fields.paidOn
                 it[note] = payment.fields.note
+                it[purpose] = payment.fields.purpose.name
                 it[createdAt] = payment.createdAt.toJavaInstant()
             }
         }
@@ -92,6 +94,7 @@ class ExposedPaymentRepository(
             it[method] = fields.method.name
             it[paidOn] = fields.paidOn
             it[note] = fields.note
+            it[purpose] = fields.purpose.name
         } > 0
     }
 
@@ -111,6 +114,7 @@ class ExposedPaymentRepository(
                 it[method] = revision.fields.method.name
                 it[paidOn] = revision.fields.paidOn
                 it[note] = revision.fields.note
+                it[purpose] = revision.fields.purpose.name
                 it[at] = revision.at.toJavaInstant()
             }
         }
@@ -182,6 +186,7 @@ private fun ResultRow.toPaymentRecord() = PaymentRecord(
         method = PaymentMethodDto.valueOf(this[PaymentsTable.method]),
         paidOn = this[PaymentsTable.paidOn],
         note = this[PaymentsTable.note],
+        purpose = PaymentPurposeDto.valueOf(this[PaymentsTable.purpose]),
     ),
     createdAt = this[PaymentsTable.createdAt].toKotlinInstant(),
 )
@@ -197,6 +202,7 @@ private fun ResultRow.toRevisionRecord() = PaymentRevisionRecord(
         method = PaymentMethodDto.valueOf(this[PaymentHistoryTable.method]),
         paidOn = this[PaymentHistoryTable.paidOn],
         note = this[PaymentHistoryTable.note],
+        purpose = PaymentPurposeDto.valueOf(this[PaymentHistoryTable.purpose]),
     ),
     at = this[PaymentHistoryTable.at].toKotlinInstant(),
 )
