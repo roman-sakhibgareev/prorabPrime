@@ -1,17 +1,15 @@
 package ru.prorabprime.feature.map
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material3.Icon
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -119,30 +117,34 @@ private fun Pin(
     val half = with(LocalDensity.current) { (pinSize / 2).roundToPx() }
     val full = with(LocalDensity.current) { pinSize.roundToPx() }
     // The icon's tip, not its middle, is the point on the map.
-    Column(
+    MapPin(
+        size = pinSize,
+        selected = selected,
+        description = marker.title,
         modifier = Modifier.offset { IntOffset(x - half, y - full) }.clickable { onClick(marker.id) },
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Icon(
-            Icons.Default.LocationOn,
-            contentDescription = marker.title,
-            tint = if (selected) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(pinSize),
-        )
-    }
+    )
     if (selected || viewport.zoom >= LABEL_ZOOM) {
-        Surface(
-            color = MaterialTheme.colorScheme.surface.copy(alpha = LABEL_ALPHA),
-            shape = MaterialTheme.shapes.small,
-            modifier = Modifier.offset { IntOffset(x - LABEL_HALF_WIDTH_PX, y + LABEL_GAP_PX) },
+        val labelHalf = with(LocalDensity.current) { (LABEL_WIDTH / 2).roundToPx() }
+        Box(
+            modifier = Modifier.offset { IntOffset(x - labelHalf, y + LABEL_GAP_PX) }.width(LABEL_WIDTH),
+            contentAlignment = Alignment.TopCenter,
         ) {
-            Text(
-                marker.title,
-                style = MaterialTheme.typography.labelSmall,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.size(width = LABEL_WIDTH, height = LABEL_HEIGHT).clickable { onClick(marker.id) },
-            )
+            Surface(
+                color = MapColors.Surface,
+                contentColor = MapColors.Ink,
+                shape = MaterialTheme.shapes.small,
+                shadowElevation = 4.dp,
+                border = BorderStroke(1.dp, MapColors.Outline),
+                modifier = Modifier.clickable { onClick(marker.id) },
+            ) {
+                Text(
+                    marker.title,
+                    style = MaterialTheme.typography.labelMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                )
+            }
         }
     }
 }
@@ -157,10 +159,7 @@ private fun isFarOffScreen(
 
 private val PIN = 36.dp
 private val SELECTED_PIN = 48.dp
-private val LABEL_WIDTH = 96.dp
-private val LABEL_HEIGHT = 18.dp
+private val LABEL_WIDTH = 140.dp
 private const val OFF_SCREEN_PX = 200
 private const val LABEL_ZOOM = 13f
-private const val LABEL_ALPHA = 0.85f
-private const val LABEL_HALF_WIDTH_PX = 120
-private const val LABEL_GAP_PX = 4
+private const val LABEL_GAP_PX = 6
