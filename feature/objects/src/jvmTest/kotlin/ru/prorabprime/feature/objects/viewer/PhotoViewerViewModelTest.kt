@@ -13,6 +13,7 @@ import ru.prorabprime.domain.model.ServerFilePath
 import ru.prorabprime.domain.usecase.ObserveObjectUseCase
 import ru.prorabprime.domain.usecase.RotatePhotoUseCase
 import ru.prorabprime.domain.usecase.SetPhotoNoteUseCase
+import ru.prorabprime.domain.usecase.SetReceiptPaidUseCase
 import ru.prorabprime.domain.usecase.SetReceiptUseCase
 import ru.prorabprime.testing.FakeObjectsRepository
 import ru.prorabprime.testing.FakePhotosRepository
@@ -121,6 +122,17 @@ class PhotoViewerViewModelTest {
     }
 
     @Test
+    fun `a receipt can be marked paid, and shows whether it is`() {
+        withReceipt()
+        val viewModel = viewModel("p1")
+        assertThat(viewModel.state.value.photos.single().isReceiptPaid).isFalse()
+
+        viewModel.setPaid("p1", true)
+
+        assertThat(photos.paid).containsExactly(PhotoId("p1") to true)
+    }
+
+    @Test
     fun `a receipt can be given a sum and a day, and a plain photo is not a receipt`() {
         withReceipt()
         val viewModel = viewModel("p1")
@@ -193,6 +205,7 @@ class PhotoViewerViewModelTest {
         RotatePhotoUseCase(photos),
         SetPhotoNoteUseCase(photos),
         SetReceiptUseCase(photos),
+        SetReceiptPaidUseCase(photos),
         notifier,
     )
 }

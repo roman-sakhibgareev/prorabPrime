@@ -19,6 +19,7 @@ import ru.prorabprime.domain.model.asAppError
 import ru.prorabprime.domain.usecase.ObserveObjectUseCase
 import ru.prorabprime.domain.usecase.RotatePhotoUseCase
 import ru.prorabprime.domain.usecase.SetPhotoNoteUseCase
+import ru.prorabprime.domain.usecase.SetReceiptPaidUseCase
 import ru.prorabprime.domain.usecase.SetReceiptUseCase
 import ru.prorabprime.feature.objects.photos.ReceiptInput
 import ru.prorabprime.feature.objects.photos.amountInput
@@ -43,6 +44,7 @@ internal class PhotoViewerViewModel(
     private val rotatePhoto: RotatePhotoUseCase,
     private val setPhotoNote: SetPhotoNoteUseCase,
     private val setReceipt: SetReceiptUseCase,
+    private val setReceiptPaid: SetReceiptPaidUseCase,
     private val notifier: SnackbarNotifier,
 ) : ViewModel(),
     StateOwner<PhotoViewerState> {
@@ -92,6 +94,12 @@ internal class PhotoViewerViewModel(
         }
     }
 
+    fun setPaid(photoId: String, paid: Boolean) {
+        viewModelScope.launch {
+            setReceiptPaid(PhotoId(photoId), paid).onFailure { notifier.showError(it.asAppError().toUiText()) }
+        }
+    }
+
     private fun reject(message: StringResource) {
         viewModelScope.launch { notifier.showError(UiText.Resource(message)) }
     }
@@ -119,4 +127,5 @@ private fun Photo.toViewer() = ViewerPhoto(
     amountInput = receipt?.amountInput().orEmpty(),
     dateInput = receipt?.dateInput().orEmpty(),
     receipt = receipt,
+    isReceiptPaid = isReceiptPaid,
 )

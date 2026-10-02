@@ -264,6 +264,16 @@ class FakePhotoRepository : PhotoRepository {
         return true
     }
 
+    override suspend fun setReceiptPaid(
+        owner: OwnerId,
+        id: UUID,
+        paid: Boolean,
+    ): Boolean {
+        val record = mine(owner, id) ?: return false
+        records[id] = record.copy(receiptPaid = paid)
+        return true
+    }
+
     override suspend fun setReceipt(
         owner: OwnerId,
         id: UUID,

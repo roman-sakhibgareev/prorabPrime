@@ -19,6 +19,7 @@ class FakePhotosRepository : PhotosRepository {
     val uploadedKinds = mutableListOf<AttachmentKind>()
     val uploadedNotes = mutableListOf<String?>()
     val receipts = mutableListOf<Pair<PhotoId, ReceiptInfo?>>()
+    val paid = mutableListOf<Pair<PhotoId, Boolean>>()
     val notes = mutableListOf<Pair<PhotoId, String?>>()
     val deleted = mutableListOf<PhotoId>()
     val rotated = mutableListOf<PhotoId>()
@@ -46,6 +47,12 @@ class FakePhotosRepository : PhotosRepository {
     override suspend fun setReceipt(id: PhotoId, receipt: ReceiptInfo?): Result<Unit> {
         error?.let { return it.asFailure() }
         receipts += id to receipt
+        return Result.success(Unit)
+    }
+
+    override suspend fun setReceiptPaid(id: PhotoId, paid: Boolean): Result<Unit> {
+        error?.let { return it.asFailure() }
+        this.paid += id to paid
         return Result.success(Unit)
     }
 

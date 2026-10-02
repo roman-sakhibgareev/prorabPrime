@@ -70,6 +70,28 @@ class ReceiptServiceTest {
     }
 
     @Test
+    fun `a receipt is marked paid and unpaid apart from its sum`() = runTest {
+        val photo = receipt(withCode = true)
+
+        service.setPaid(TEST_OWNER, photo.id, true).getOrThrow()
+        assertThat(photos.records.getValue(photo.id).receiptPaid).isTrue()
+        assertThat(photos.records.getValue(photo.id).receipt?.amountKopecks).isEqualTo(1L)
+
+        service.setPaid(TEST_OWNER, photo.id, false).getOrThrow()
+        assertThat(photos.records.getValue(photo.id).receiptPaid).isFalse()
+    }
+
+    @Test
+    fun `only a receipt that exists can be marked paid`() = runTest {
+        val plain = aPhotoRecord(objectId).also { photos.records[it.id] = it }
+
+        assertThat(service.setPaid(TEST_OWNER, plain.id, true).serviceError())
+            .isInstanceOf(ServiceError.Validation::class.java)
+        assertThat(service.setPaid(TEST_OWNER, UUID.randomUUID(), true).serviceError())
+            .isInstanceOf(ServiceError.NotFound::class.java)
+    }
+
+    @Test
     fun `no sum clears what is known`() = runTest {
         val photo = receipt(withCode = true)
 

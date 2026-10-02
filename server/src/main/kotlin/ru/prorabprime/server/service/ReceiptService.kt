@@ -38,6 +38,23 @@ class ReceiptService(
         }
         return Result.success(Unit)
     }
+
+    /** Whether the receipt has been paid for; independent of its sum. */
+    suspend fun setPaid(
+        owner: OwnerId,
+        photoId: UUID,
+        paid: Boolean,
+    ): Result<Unit> {
+        val photo = photos.find(owner, photoId) ?: return ServiceError.NotFound("No photo $photoId").asFailure()
+        if (photo.kind != AttachmentKindDto.RECEIPT) {
+            return ServiceError.Validation("Photo $photoId is not a receipt").asFailure()
+        }
+        transactor.inTransaction {
+            photos.setReceiptPaid(owner, photoId, paid)
+            objects.touch(owner, photo.objectId, clock.now())
+        }
+        return Result.success(Unit)
+    }
 }
 
 private fun receiptOf(request: ReceiptRequestDto, qr: String): Result<ReceiptData?> {

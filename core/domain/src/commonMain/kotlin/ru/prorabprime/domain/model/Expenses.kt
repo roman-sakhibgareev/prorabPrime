@@ -19,6 +19,8 @@ data class ExpenseItem(
     /** The photo of a receipt. */
     val photoId: PhotoId? = null,
     val note: String? = null,
+    /** A receipt not yet paid for is false; a payment to the crew is paid by being made. */
+    val isPaid: Boolean = true,
 )
 
 /** Every expense of every object, newest first. */
@@ -45,6 +47,8 @@ data class ExpenseStats(
     val thisMonthKopecks: Long,
     val receiptsKopecks: Long,
     val crewKopecks: Long,
+    /** Receipts counted in the total that are not yet paid for. */
+    val unpaidKopecks: Long,
     /** Most spent first. */
     val byObject: List<ObjectTotal>,
     /** Newest month first, at most the last [MONTHS_SHOWN] that have any. */
@@ -63,6 +67,7 @@ fun Expenses.stats(today: LocalDay): ExpenseStats {
             .sumOf { it.amountKopecks ?: 0L },
         receiptsKopecks = counted.filter { it.kind == ExpenseKind.RECEIPT }.sumOf { it.amountKopecks ?: 0L },
         crewKopecks = counted.filter { it.kind == ExpenseKind.CREW }.sumOf { it.amountKopecks ?: 0L },
+        unpaidKopecks = counted.filter { !it.isPaid }.sumOf { it.amountKopecks ?: 0L },
         byObject = counted.groupBy { it.objectId }.map { (id, rows) ->
             ObjectTotal(id, rows.first().objectTitle, rows.sumOf { it.amountKopecks ?: 0L }, rows.size)
         }.sortedWith(compareByDescending<ObjectTotal> { it.kopecks }.thenBy { it.title }),

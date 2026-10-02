@@ -4,10 +4,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.v2.runComposeUiTest
 import com.google.common.truth.Truth.assertThat
 import kotlinx.collections.immutable.persistentListOf
@@ -74,6 +76,7 @@ class ExpensesContentTest {
         setContent { show(state) }
 
         onNodeWithText("Плитка").performClick()
+        onNode(hasScrollAction()).performScrollToNode(hasText("Выплата бригаде", substring = true))
         onNodeWithText("Выплата бригаде", substring = true).performClick()
 
         assertThat(receipts).containsExactly("o1" to "p1")

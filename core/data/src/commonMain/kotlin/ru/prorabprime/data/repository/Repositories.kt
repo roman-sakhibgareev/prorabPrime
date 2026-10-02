@@ -253,6 +253,14 @@ internal class PhotosRepositoryImpl(
         return Result.success(Unit)
     }
 
+    override suspend fun setReceiptPaid(id: PhotoId, paid: Boolean): Result<Unit> {
+        val row = db.photos.rows.value[id.value] ?: return AppError.NotFound.asFailure()
+        if (row.kind != AttachmentKindDto.RECEIPT) return AppError.NotFound.asFailure()
+        db.outbox.enqueue(Operation.SetReceiptPaid(id.value, paid))
+        db.photos.upsert(row.copy(receiptPaid = paid))
+        return Result.success(Unit)
+    }
+
     override suspend fun setNote(id: PhotoId, note: String?): Result<Unit> {
         val row = db.photos.rows.value[id.value] ?: return AppError.NotFound.asFailure()
         val text = note?.trim()?.takeIf { it.isNotEmpty() }

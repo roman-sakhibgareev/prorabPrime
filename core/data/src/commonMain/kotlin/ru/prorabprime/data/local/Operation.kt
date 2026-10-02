@@ -96,6 +96,14 @@ internal sealed interface Operation {
         override val touched get() = listOf(Keys.photo(photoId))
     }
 
+    @Serializable
+    data class SetReceiptPaid(
+        val photoId: String,
+        val paid: Boolean,
+    ) : Operation {
+        override val touched get() = listOf(Keys.photo(photoId))
+    }
+
     /** An empty [note] clears it. */
     @Serializable
     data class SetPhotoNote(

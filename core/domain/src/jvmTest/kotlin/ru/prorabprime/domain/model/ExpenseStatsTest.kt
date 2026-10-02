@@ -42,6 +42,19 @@ class ExpenseStatsTest {
     }
 
     @Test
+    fun `receipts not paid for are counted apart, and a payment to the crew is always paid`() {
+        val stats = expenses(
+            item("a", "1", LocalDay.of(2026, 10, 3), 79_000).copy(isPaid = false),
+            item("b", "1", LocalDay.of(2026, 10, 4), 21_000),
+            item("c", "1", LocalDay.of(2026, 10, 5), 10_000, ExpenseKind.CREW),
+            item("d", "1", LocalDay.of(2026, 10, 6), null).copy(isPaid = false),
+        ).stats(today)
+
+        assertThat(stats.unpaidKopecks).isEqualTo(79_000L)
+        assertThat(stats.totalKopecks).isEqualTo(110_000L)
+    }
+
+    @Test
     fun `objects are listed by what was spent on them, most first, with how many items`() {
         val stats = expenses(
             item("a", "1", LocalDay.of(2026, 10, 3), 79_000),

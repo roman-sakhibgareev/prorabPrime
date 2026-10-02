@@ -26,6 +26,7 @@ import ru.prorabprime.domain.usecase.SaveContactUseCase
 import ru.prorabprime.domain.usecase.SaveObjectSortUseCase
 import ru.prorabprime.domain.usecase.SetCoverPhotoUseCase
 import ru.prorabprime.domain.usecase.SetPhotoNoteUseCase
+import ru.prorabprime.domain.usecase.SetReceiptPaidUseCase
 import ru.prorabprime.domain.usecase.SetReceiptUseCase
 import ru.prorabprime.domain.usecase.UpdateObjectUseCase
 import ru.prorabprime.domain.usecase.UploadPhotoUseCase
@@ -74,6 +75,7 @@ class ObjectsModuleTest {
         factory { RotatePhotoUseCase(get()) }
         factory { SetPhotoNoteUseCase(get()) }
         factory { SetReceiptUseCase(get()) }
+        factory { SetReceiptPaidUseCase(get()) }
         // What the ViewModel store supplies at runtime.
         factory { SavedStateHandle() }
         single<SnackbarNotifier> { FakeSnackbarNotifier() }

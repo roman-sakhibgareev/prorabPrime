@@ -48,6 +48,7 @@ internal class ExpensesRepositoryImpl(
         amountKopecks = photo.receiptAmountKopecks,
         photoId = PhotoId(photo.id),
         note = photo.note,
+        isPaid = photo.receiptPaid,
     )
 
     private fun crewItem(payment: PaymentRow, obj: ObjectRow): ExpenseItem? {

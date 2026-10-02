@@ -155,6 +155,13 @@ interface PhotoRepository {
         receipt: ReceiptData?,
     ): Boolean
 
+    /** Returns false when there is no such photo. */
+    suspend fun setReceiptPaid(
+        owner: OwnerId,
+        id: UUID,
+        paid: Boolean,
+    ): Boolean
+
     /** Points the photo at its new files (after a turn); everything else about it stays. */
     suspend fun replaceFiles(owner: OwnerId, photo: PhotoRecord)
 

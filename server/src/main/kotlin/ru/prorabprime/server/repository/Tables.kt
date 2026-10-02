@@ -44,6 +44,7 @@ object PhotosTable : Table("photos") {
     val receiptAmountKopecks = long("receipt_amount_kopecks").nullable()
     val receiptAt = varchar("receipt_at", 20).nullable()
     val receiptQr = text("receipt_qr").nullable()
+    val receiptPaid = bool("receipt_paid")
     val createdAt = timestamp("created_at")
 
     /** Set while the photo waits in the trash. */

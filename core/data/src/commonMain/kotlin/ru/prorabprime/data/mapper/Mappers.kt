@@ -74,6 +74,7 @@ internal fun PhotoDto.toDomain() = Photo(
     kind = kind.toDomain(),
     note = note,
     receipt = receipt?.let { ReceiptInfo(it.amountKopecks, it.purchasedAt) },
+    isReceiptPaid = receiptPaid,
 )
 
 internal fun ObjectDraft.toRequestDto() = ObjectRequestDto(

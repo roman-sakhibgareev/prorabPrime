@@ -66,6 +66,8 @@ data class PhotoDto(
     val note: String? = null,
     /** Read from the QR code of a receipt; absent for a photo and for a receipt without a readable code. */
     val receipt: ReceiptDto? = null,
+    /** Whether the receipt has been paid for; kept apart from the sum, so it can be set before the sum is known. */
+    val receiptPaid: Boolean = false,
 )
 
 /**
@@ -76,6 +78,12 @@ data class PhotoDto(
 data class ReceiptRequestDto(
     val amountKopecks: Long? = null,
     val purchasedAt: String? = null,
+)
+
+/** Body of `PUT /api/photos/{id}/receipt-paid`. */
+@Serializable
+data class ReceiptPaidRequestDto(
+    val paid: Boolean,
 )
 
 @Serializable

@@ -88,6 +88,8 @@ data class Photo(
     val note: String? = null,
     /** What the QR code on a receipt said; null for a photo and for a receipt with no readable code. */
     val receipt: ReceiptInfo? = null,
+    /** Whether a receipt has been paid for; independent of its sum. */
+    val isReceiptPaid: Boolean = false,
 )
 
 /** The sum and the time of a purchase, read from a receipt. */

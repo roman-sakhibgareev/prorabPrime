@@ -27,6 +27,7 @@ object ApiPaths {
     const val PHOTO_ROTATE = "/api/photos/{id}/rotate"
     const val PHOTO_NOTE = "/api/photos/{id}/note"
     const val PHOTO_RECEIPT = "/api/photos/{id}/receipt"
+    const val PHOTO_RECEIPT_PAID = "/api/photos/{id}/receipt-paid"
     const val ACCOUNT = "/api/account"
     const val TRASH = "/api/trash"
     const val TRASH_OBJECT = "/api/trash/objects/{id}"

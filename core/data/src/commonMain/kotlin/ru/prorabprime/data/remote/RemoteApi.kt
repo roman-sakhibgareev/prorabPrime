@@ -33,6 +33,7 @@ import ru.prorabprime.contract.ObjectSummaryDto
 import ru.prorabprime.contract.PaymentRequestDto
 import ru.prorabprime.contract.PaymentRevisionDto
 import ru.prorabprime.contract.PhotoNoteRequestDto
+import ru.prorabprime.contract.ReceiptPaidRequestDto
 import ru.prorabprime.contract.ReceiptRequestDto
 import ru.prorabprime.contract.RotatePhotoRequestDto
 import ru.prorabprime.contract.SetCoverRequestDto
@@ -122,6 +123,9 @@ internal class RemoteApi(
         amountKopecks: Long?,
         purchasedAt: String?,
     ): Result<Unit> = put(url(ApiPaths.PHOTO_RECEIPT, id), ReceiptRequestDto(amountKopecks, purchasedAt))
+
+    suspend fun setReceiptPaid(id: String, paid: Boolean): Result<Unit> =
+        put(url(ApiPaths.PHOTO_RECEIPT_PAID, id), ReceiptPaidRequestDto(paid))
 
     suspend fun setPhotoNote(id: String, note: String?): Result<Unit> =
         put(url(ApiPaths.PHOTO_NOTE, id), PhotoNoteRequestDto(note))
