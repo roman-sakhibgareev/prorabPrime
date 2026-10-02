@@ -4,6 +4,7 @@ import org.jetbrains.compose.resources.StringResource
 import ru.prorabprime.domain.model.ExtraWorkStatus
 import ru.prorabprime.domain.model.FieldProblem
 import ru.prorabprime.domain.model.PaymentMethod
+import ru.prorabprime.domain.model.PaymentPurpose
 import ru.prorabprime.domain.model.RevisionAction
 import ru.prorabprime.feature.finance.resources.Res
 import ru.prorabprime.feature.finance.resources.finance_error_invalid
@@ -16,6 +17,8 @@ import ru.prorabprime.feature.finance.resources.finance_method_card
 import ru.prorabprime.feature.finance.resources.finance_method_cash
 import ru.prorabprime.feature.finance.resources.finance_method_other
 import ru.prorabprime.feature.finance.resources.finance_method_transfer
+import ru.prorabprime.feature.finance.resources.finance_purpose_contract
+import ru.prorabprime.feature.finance.resources.finance_purpose_extras
 import ru.prorabprime.feature.finance.resources.finance_status_agreed
 import ru.prorabprime.feature.finance.resources.finance_status_not_agreed
 
@@ -25,6 +28,12 @@ internal val PaymentMethod.label: StringResource
         PaymentMethod.TRANSFER -> Res.string.finance_method_transfer
         PaymentMethod.CARD -> Res.string.finance_method_card
         PaymentMethod.OTHER -> Res.string.finance_method_other
+    }
+
+internal val PaymentPurpose.label: StringResource
+    get() = when (this) {
+        PaymentPurpose.CONTRACT -> Res.string.finance_purpose_contract
+        PaymentPurpose.EXTRAS -> Res.string.finance_purpose_extras
     }
 
 internal val ExtraWorkStatus.label: StringResource

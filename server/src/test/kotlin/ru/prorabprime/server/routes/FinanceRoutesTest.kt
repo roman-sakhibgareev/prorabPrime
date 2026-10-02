@@ -25,6 +25,7 @@ import ru.prorabprime.contract.IdDto
 import ru.prorabprime.contract.ObjectFieldDto
 import ru.prorabprime.contract.ObjectStatusDto
 import ru.prorabprime.contract.PaymentMethodDto
+import ru.prorabprime.contract.PaymentPurposeDto
 import ru.prorabprime.contract.PaymentRequestDto
 import ru.prorabprime.contract.PaymentRevisionDto
 import ru.prorabprime.contract.PaymentSideDto
@@ -107,6 +108,21 @@ class FinanceRoutesTest {
         assertThat(overview.client.remainingKopecks).isEqualTo(800_000)
         assertThat(overview.payments.single().paidOn).isEqualTo("2026-09-25")
         assertThat(overview.extraWorks.single().status).isEqualTo(ExtraWorkStatusDto.AGREED)
+    }
+
+    @Test
+    fun `a payment keeps what it was for, and a payment without it is for the contract`() = server { client ->
+        suspend fun add(request: PaymentRequestDto) = client.post("/api/objects/$objectId/payments") {
+            bearerAuth(TEST_TOKEN)
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }
+        add(payment.copy(purpose = PaymentPurposeDto.EXTRAS))
+        add(payment)
+
+        val purposes = client.finance().payments.map { it.purpose }
+
+        assertThat(purposes).containsExactly(PaymentPurposeDto.CONTRACT, PaymentPurposeDto.EXTRAS)
     }
 
     @Test

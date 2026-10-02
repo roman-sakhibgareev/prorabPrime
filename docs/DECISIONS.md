@@ -809,3 +809,34 @@ below what an account holds refuses its uploads but takes nothing away.
 **Review when:** accounts need different limits, or the thumbnails or the web client's files become a real share
 of the disk.
 
+
+---
+
+## ADR-0023
+
+### A client's payment says whether it was for the contract or for the extras
+
+**Accepted** · 2026-10-02
+
+**Context.** The finance screen added the agreed extras to the contract sum and showed one total, so the client
+could not see what the contract came to, what the extras came to, and what had been paid towards each.
+
+**Decision.**
+- A payment has a `purpose`: `CONTRACT` or `EXTRAS`, stored with it (`payments.purpose`, default `CONTRACT`,
+  also on the history rows). It is only meaningful for the client's side; a payment to the crew is normalized to
+  `CONTRACT`.
+- The server's overview is unchanged: the client's agreed sum is still the contract plus the agreed extras, and
+  `paid` is still everything received. The split is made on the phone from the payments list, so the contract
+  and the offline path stay as they were.
+- The card shows the contract sum, the extras sum, what was received for each, and the total left.
+
+**Alternatives rejected.**
+- *Paying the contract first and the rest to the extras, worked out.* No new field, but it states a fact nobody
+  entered: a client who pays an extra early would show as paying down the contract.
+- *Linking each payment to one extra work.* More exact, but an advance rarely names a work; a two-way choice is
+  what the foreman can answer when the money is handed over.
+
+**Consequences.** Old payments read as for the contract. A DTO without the field decodes as `CONTRACT`, so an
+older app keeps working against this server and the other way round.
+
+**Review when:** payments need to be tied to a single extra work, or a third kind of payment appears.

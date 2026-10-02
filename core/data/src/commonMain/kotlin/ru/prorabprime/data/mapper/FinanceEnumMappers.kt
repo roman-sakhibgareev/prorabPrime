@@ -2,10 +2,12 @@ package ru.prorabprime.data.mapper
 
 import ru.prorabprime.contract.ExtraWorkStatusDto
 import ru.prorabprime.contract.PaymentMethodDto
+import ru.prorabprime.contract.PaymentPurposeDto
 import ru.prorabprime.contract.PaymentSideDto
 import ru.prorabprime.contract.RevisionActionDto
 import ru.prorabprime.domain.model.ExtraWorkStatus
 import ru.prorabprime.domain.model.PaymentMethod
+import ru.prorabprime.domain.model.PaymentPurpose
 import ru.prorabprime.domain.model.PaymentSide
 import ru.prorabprime.domain.model.RevisionAction
 
@@ -17,6 +19,16 @@ internal fun PaymentSideDto.toDomain() = when (this) {
 internal fun PaymentSide.toDto() = when (this) {
     PaymentSide.CLIENT -> PaymentSideDto.CLIENT
     PaymentSide.CREW -> PaymentSideDto.CREW
+}
+
+internal fun PaymentPurposeDto.toDomain() = when (this) {
+    PaymentPurposeDto.CONTRACT -> PaymentPurpose.CONTRACT
+    PaymentPurposeDto.EXTRAS -> PaymentPurpose.EXTRAS
+}
+
+internal fun PaymentPurpose.toDto() = when (this) {
+    PaymentPurpose.CONTRACT -> PaymentPurposeDto.CONTRACT
+    PaymentPurpose.EXTRAS -> PaymentPurposeDto.EXTRAS
 }
 
 internal fun PaymentMethodDto.toDomain() = when (this) {

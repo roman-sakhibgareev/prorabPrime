@@ -31,6 +31,7 @@ fun PaymentRecord.toDto() = PaymentDto(
     method = fields.method,
     paidOn = fields.paidOn.toString(),
     note = fields.note,
+    purpose = fields.purpose,
 )
 
 fun PaymentRevisionRecord.toDto() = PaymentRevisionDto(
@@ -43,6 +44,7 @@ fun PaymentRevisionRecord.toDto() = PaymentRevisionDto(
     paidOn = fields.paidOn.toString(),
     note = fields.note,
     at = at,
+    purpose = fields.purpose,
 )
 
 fun ExtraWorkRecord.toDto() = ExtraWorkDto(

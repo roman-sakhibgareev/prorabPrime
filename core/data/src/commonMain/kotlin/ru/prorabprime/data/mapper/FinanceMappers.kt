@@ -50,6 +50,7 @@ internal fun PaymentDto.toDomain() = Payment(
     // The server sends what it stored; a day it cannot have written reads as the epoch.
     paidOn = LocalDay.parseIso(paidOn) ?: LocalDay(0),
     note = note,
+    purpose = purpose.toDomain(),
 )
 
 internal fun ExtraWorkDto.toDomain() = ExtraWork(ExtraWorkId(id), title, amountKopecks, status.toDomain())
@@ -64,6 +65,7 @@ internal fun PaymentRevisionDto.toDomain() = PaymentRevision(
     paidOn = LocalDay.parseIso(paidOn) ?: LocalDay(0),
     note = note,
     at = at,
+    purpose = purpose.toDomain(),
 )
 
 /** The draft has been validated by now, so a missing amount or day cannot reach here. */
@@ -73,6 +75,7 @@ internal fun PaymentDraft.toRequestDto() = PaymentRequestDto(
     method = method.toDto(),
     paidOn = requireNotNull(paidOn).toIso(),
     note = note,
+    purpose = purpose.toDto(),
 )
 
 internal fun ExtraWorkDraft.toRequestDto() = ExtraWorkRequestDto(
