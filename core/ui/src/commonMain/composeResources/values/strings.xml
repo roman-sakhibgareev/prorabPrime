@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- common: errors, in the order of AppError -->
-    <string name="common_error_network">Сервер не отвечает. Проверьте Wi‑Fi и адрес сервера в настройках.</string>
+    <string name="common_error_network">Сервер не отвечает. Проверьте подключение к интернету и адрес сервера в настройках.</string>
     <string name="common_error_unauthorized">Сервер не принял токен. Проверьте его в настройках.</string>
     <string name="common_error_not_found">Объект не найден — возможно, он уже удалён.</string>
     <string name="common_error_validation">Сервер не принял данные. Проверьте поля.</string>
