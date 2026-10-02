@@ -48,6 +48,7 @@ import ru.prorabprime.domain.repository.SyncRepository
 import ru.prorabprime.domain.repository.TasksRepository
 import ru.prorabprime.domain.repository.TrashRepository
 import ru.prorabprime.domain.usecase.AddDefaultMaterialsUseCase
+import ru.prorabprime.domain.usecase.ChangeObjectStatusUseCase
 import ru.prorabprime.domain.usecase.CheckConnectionUseCase
 import ru.prorabprime.domain.usecase.CreateObjectUseCase
 import ru.prorabprime.domain.usecase.DeleteContactUseCase
@@ -138,6 +139,7 @@ val dataModule: Module = module {
     factory { RefreshObjectsUseCase(get()) }
     factory { CreateObjectUseCase(get()) }
     factory { UpdateObjectUseCase(get()) }
+    factory { ChangeObjectStatusUseCase(get()) }
     factory { DeleteObjectUseCase(get()) }
     factory { UploadPhotoUseCase(get(), get()) }
     factory { DeletePhotoUseCase(get()) }

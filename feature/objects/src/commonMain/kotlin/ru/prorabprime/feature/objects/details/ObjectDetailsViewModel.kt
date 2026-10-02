@@ -10,6 +10,7 @@ import ru.prorabprime.domain.model.AttachmentKind
 import ru.prorabprime.domain.model.LocalImageRef
 import ru.prorabprime.domain.model.ObjectDetails
 import ru.prorabprime.domain.model.ObjectId
+import ru.prorabprime.domain.model.ObjectStatus
 import ru.prorabprime.domain.model.Photo
 import ru.prorabprime.domain.model.PhotoId
 import ru.prorabprime.domain.model.asAppError
@@ -74,6 +75,8 @@ internal class ObjectDetailsViewModel(
 
             is ObjectDetailsEvent.MakeCoverClicked -> makeCover(event.photoId)
 
+            is ObjectDetailsEvent.StatusPicked -> changeStatus(event.status)
+
             is ObjectDetailsEvent.DeletePhotoClicked ->
                 stateHolder.askToConfirm(DELETE_PHOTO_DIALOG, ObjectDetailsAction.DeletePhoto(event.photoId))
 
@@ -118,6 +121,12 @@ internal class ObjectDetailsViewModel(
             actions.setCoverPhoto(objectId, PhotoId(photoId))
                 .onSuccess { notifier.showSuccess(COVER_SET) }
                 .onFailure { errorHandler.onActionFailure(it.asAppError()) }
+        }
+    }
+
+    private fun changeStatus(status: ObjectStatus) {
+        launchCatching(onFailure = { errorHandler.onActionFailure(it.asAppError()) }) {
+            actions.changeStatus(objectId, status).onFailure { errorHandler.onActionFailure(it.asAppError()) }
         }
     }
 

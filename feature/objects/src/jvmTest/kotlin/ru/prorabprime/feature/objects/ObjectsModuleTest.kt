@@ -13,6 +13,7 @@ import ru.prorabprime.domain.repository.ContactsRepository
 import ru.prorabprime.domain.repository.ObjectsRepository
 import ru.prorabprime.domain.repository.PhotosRepository
 import ru.prorabprime.domain.repository.SettingsRepository
+import ru.prorabprime.domain.usecase.ChangeObjectStatusUseCase
 import ru.prorabprime.domain.usecase.CreateObjectUseCase
 import ru.prorabprime.domain.usecase.DeleteContactUseCase
 import ru.prorabprime.domain.usecase.DeleteObjectUseCase
@@ -63,6 +64,7 @@ class ObjectsModuleTest {
         factory { DeleteObjectUseCase(get()) }
         factory { CreateObjectUseCase(get()) }
         factory { UpdateObjectUseCase(get()) }
+        factory { ChangeObjectStatusUseCase(get()) }
         single<PhotosRepository> { FakePhotosRepository() }
         single<ContactsRepository> { FakeContactsRepository() }
         single { PickedPlaceStore() }
