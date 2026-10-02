@@ -1,6 +1,5 @@
 package ru.prorabprime.feature.map
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,7 +10,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AssistChip
@@ -30,8 +28,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
@@ -39,7 +35,6 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import ru.prorabprime.designsystem.components.EmptyMessage
 import ru.prorabprime.designsystem.components.ErrorMessage
-import ru.prorabprime.designsystem.components.FilledIconButton
 import ru.prorabprime.designsystem.components.LoadingBox
 import ru.prorabprime.designsystem.components.OutlinedButton
 import ru.prorabprime.designsystem.components.TextButton
@@ -57,8 +52,6 @@ import ru.prorabprime.feature.map.resources.map_title
 import ru.prorabprime.feature.map.resources.map_unlocated
 import ru.prorabprime.feature.map.resources.map_unlocated_hint
 import ru.prorabprime.feature.map.resources.map_unlocated_title
-import ru.prorabprime.feature.map.resources.map_zoom_in
-import ru.prorabprime.feature.map.resources.map_zoom_out
 import ru.prorabprime.ui.UiText
 
 /** [onOpenObject] gets the object's id, for its card. */
@@ -149,22 +142,8 @@ private fun MapBody(
 
 @Composable
 private fun Controls(viewport: MapViewport, modifier: Modifier) {
-    Column(modifier.padding(Spacing.s), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-        FilledIconButton(onClick = { viewport.zoomBy(1f) }) {
-            Icon(Icons.Default.Add, stringResource(Res.string.map_zoom_in))
-        }
-        val zoomOut = stringResource(Res.string.map_zoom_out)
-        FilledIconButton(onClick = { viewport.zoomBy(-1f) }) {
-            // The core icon set has a plus but no minus.
-            Text(
-                "−",
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.semantics {
-                    contentDescription = zoomOut
-                },
-            )
-        }
-        FilledIconButton(onClick = viewport::requestFit) {
+    ZoomControls(viewport, modifier) {
+        MapControlButton(onClick = viewport::requestFit) {
             Icon(Icons.Default.Refresh, stringResource(Res.string.map_fit))
         }
     }
