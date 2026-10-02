@@ -11,7 +11,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 
 /**
- * The bar of every screen: dark pine with light text by day, a raised dark surface by night, so the
+ * The bar of every screen: the brand's green with white text and icons, by day and by night, so the
  * screen's title is always the strongest line on it.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -25,9 +25,8 @@ fun TopAppBar(
     containerColor: Color? = null,
     contentColor: Color? = null,
 ) {
-    val colors = MaterialTheme.colorScheme
     val container = containerColor ?: topBarColor()
-    val content = contentColor ?: if (isDarkSurface()) colors.onSurface else Color.White
+    val content = contentColor ?: Color.White
     MaterialTopAppBar(
         title = title,
         modifier = modifier,
@@ -46,10 +45,7 @@ fun TopAppBar(
 /** The bar's own color, for what has to continue it, such as the strip beside a centered column. */
 @Composable
 fun topBarColor(): Color = MaterialTheme.colorScheme.let {
-    if (isDarkSurface()) it.surfaceContainerHigh else it.primary
+    if (it.background.luminance() < DARK_LUMINANCE) it.primaryContainer else it.primary
 }
-
-@Composable
-private fun isDarkSurface(): Boolean = MaterialTheme.colorScheme.background.luminance() < DARK_LUMINANCE
 
 private const val DARK_LUMINANCE = 0.5f
