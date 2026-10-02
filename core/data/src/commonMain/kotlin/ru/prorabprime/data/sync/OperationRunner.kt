@@ -27,6 +27,8 @@ internal class OperationRunner(
         is Operation.SetReceipt ->
             remote.setReceipt(operation.photoId, operation.amountKopecks, operation.purchasedAt).goneIsDone()
 
+        is Operation.SetReceiptPaid -> remote.setReceiptPaid(operation.photoId, operation.paid).goneIsDone()
+
         is Operation.SetPhotoNote -> remote.setPhotoNote(operation.photoId, operation.note).goneIsDone()
 
         is Operation.RotatePhoto ->

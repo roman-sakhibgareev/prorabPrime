@@ -103,6 +103,8 @@
     <string name="photoviewer_back">Назад</string>
     <string name="photoviewer_position">%1$d из %2$d</string>
     <string name="photoviewer_rotate">Повернуть</string>
+    <string name="photoviewer_receipt_paid">Чек оплачен</string>
+    <string name="photoviewer_receipt_unpaid">Чек не оплачен</string>
     <string name="photoviewer_receipt_add">Указать сумму и дату</string>
     <string name="photoviewer_receipt_title">Сумма чека</string>
     <string name="photoviewer_receipt_amount">Сумма, ₽</string>

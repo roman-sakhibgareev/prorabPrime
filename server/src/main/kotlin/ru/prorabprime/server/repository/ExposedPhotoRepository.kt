@@ -115,6 +115,7 @@ class ExposedPhotoRepository(
                 it[receiptAmountKopecks] = photo.receipt?.amountKopecks
                 it[receiptAt] = photo.receipt?.purchasedAt
                 it[receiptQr] = photo.receipt?.qr
+                it[receiptPaid] = photo.receiptPaid
                 it[createdAt] = photo.createdAt.toJavaInstant()
             }
         }
@@ -171,6 +172,14 @@ class ExposedPhotoRepository(
         } > 0
     }
 
+    override suspend fun setReceiptPaid(
+        owner: OwnerId,
+        id: UUID,
+        paid: Boolean,
+    ): Boolean = db.query {
+        PhotosTable.update({ mine(owner, id) }) { it[receiptPaid] = paid } > 0
+    }
+
     override suspend fun usedBytes(owner: OwnerId): Long = db.query {
         val total = PhotosTable.sizeBytes.sum()
         PhotosTable.select(total).where { PhotosTable.objectId.ownedBy(owner) }.single()[total] ?: 0L
@@ -198,5 +207,6 @@ internal fun ResultRow.toPhotoRecord() = PhotoRecord(
     receipt = this[PhotosTable.receiptAmountKopecks]?.let {
         ReceiptData(it, this[PhotosTable.receiptAt], this[PhotosTable.receiptQr].orEmpty())
     },
+    receiptPaid = this[PhotosTable.receiptPaid],
     createdAt = this[PhotosTable.createdAt].toKotlinInstant(),
 )

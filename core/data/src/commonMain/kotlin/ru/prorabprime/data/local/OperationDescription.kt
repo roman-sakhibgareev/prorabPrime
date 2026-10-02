@@ -28,6 +28,8 @@ internal fun QueuedOperation.describe(): FailedChange {
 
         is Operation.SetReceipt -> Triple(ChangeKind.PHOTO, ChangeAction.UPDATE, null)
 
+        is Operation.SetReceiptPaid -> Triple(ChangeKind.PHOTO, ChangeAction.UPDATE, null)
+
         is Operation.SetPhotoNote -> Triple(ChangeKind.PHOTO, ChangeAction.UPDATE, null)
 
         is Operation.RotatePhoto -> Triple(ChangeKind.PHOTO, ChangeAction.UPDATE, null)

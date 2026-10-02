@@ -21,6 +21,9 @@ interface PhotosRepository {
     /** Sets the sum and day of a receipt by hand; null clears them. A photo that is not a receipt is refused. */
     suspend fun setReceipt(id: PhotoId, receipt: ReceiptInfo?): Result<Unit>
 
+    /** Marks a receipt paid or not paid. A photo that is not a receipt is refused. */
+    suspend fun setReceiptPaid(id: PhotoId, paid: Boolean): Result<Unit>
+
     /** An empty note clears it. */
     suspend fun setNote(id: PhotoId, note: String?): Result<Unit>
 

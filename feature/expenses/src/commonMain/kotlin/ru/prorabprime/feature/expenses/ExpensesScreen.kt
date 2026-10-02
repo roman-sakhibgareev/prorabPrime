@@ -60,9 +60,12 @@ import ru.prorabprime.feature.expenses.resources.expenses_kind_crew
 import ru.prorabprime.feature.expenses.resources.expenses_kind_receipt
 import ru.prorabprime.feature.expenses.resources.expenses_materials
 import ru.prorabprime.feature.expenses.resources.expenses_no_amount
+import ru.prorabprime.feature.expenses.resources.expenses_paid
+import ru.prorabprime.feature.expenses.resources.expenses_receipt_unpaid
 import ru.prorabprime.feature.expenses.resources.expenses_this_month
 import ru.prorabprime.feature.expenses.resources.expenses_title
 import ru.prorabprime.feature.expenses.resources.expenses_total
+import ru.prorabprime.feature.expenses.resources.expenses_unpaid
 import ru.prorabprime.feature.expenses.resources.expenses_without_amount
 import ru.prorabprime.ui.UiText
 
@@ -173,6 +176,10 @@ private fun Summary(summary: SummaryUi) {
         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
             StatCard(Res.string.expenses_materials, summary.materials, Modifier.weight(1f))
             StatCard(Res.string.expenses_crew, summary.crew, Modifier.weight(1f))
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
+            StatCard(Res.string.expenses_paid, summary.paid, Modifier.weight(1f))
+            StatCard(Res.string.expenses_unpaid, summary.unpaid, Modifier.weight(1f))
         }
         if (summary.withoutAmount > 0) {
             Text(
@@ -287,6 +294,13 @@ private fun ExpenseRow(row: ExpenseRowUi, onClick: () -> Unit) {
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            if (row.isUnpaid) {
+                Text(
+                    stringResource(Res.string.expenses_receipt_unpaid),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
             row.note?.let {
                 Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }

@@ -10,3 +10,10 @@ class SetReceiptUseCase(
 ) {
     suspend operator fun invoke(id: PhotoId, receipt: ReceiptInfo?): Result<Unit> = repository.setReceipt(id, receipt)
 }
+
+/** Marks a receipt paid or not paid. */
+class SetReceiptPaidUseCase(
+    private val repository: PhotosRepository,
+) {
+    suspend operator fun invoke(id: PhotoId, paid: Boolean): Result<Unit> = repository.setReceiptPaid(id, paid)
+}

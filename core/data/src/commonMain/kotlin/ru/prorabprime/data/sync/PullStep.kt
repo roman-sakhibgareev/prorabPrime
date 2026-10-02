@@ -176,4 +176,5 @@ private fun ru.prorabprime.contract.PhotoDto.toRow(objectId: String, order: Long
     note = note,
     receiptAmountKopecks = receipt?.amountKopecks,
     receiptAt = receipt?.purchasedAt,
+    receiptPaid = receiptPaid,
 )

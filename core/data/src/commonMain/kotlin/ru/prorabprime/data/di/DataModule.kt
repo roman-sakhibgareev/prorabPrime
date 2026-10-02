@@ -92,6 +92,7 @@ import ru.prorabprime.domain.usecase.SaveServerSettingsUseCase
 import ru.prorabprime.domain.usecase.SaveTaskUseCase
 import ru.prorabprime.domain.usecase.SetCoverPhotoUseCase
 import ru.prorabprime.domain.usecase.SetPhotoNoteUseCase
+import ru.prorabprime.domain.usecase.SetReceiptPaidUseCase
 import ru.prorabprime.domain.usecase.SetReceiptUseCase
 import ru.prorabprime.domain.usecase.SyncNowUseCase
 import ru.prorabprime.domain.usecase.UpdateObjectUseCase
@@ -147,6 +148,7 @@ val dataModule: Module = module {
     factory { RotatePhotoUseCase(get()) }
     factory { SetPhotoNoteUseCase(get()) }
     factory { SetReceiptUseCase(get()) }
+    factory { SetReceiptPaidUseCase(get()) }
     factory { SaveContactUseCase(get()) }
     factory { DeleteContactUseCase(get()) }
     factory { GeocodeObjectUseCase(get()) }

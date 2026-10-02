@@ -26,6 +26,7 @@ import ru.prorabprime.contract.ApiQuery
 import ru.prorabprime.contract.AttachmentKindDto
 import ru.prorabprime.contract.PhotoLimits
 import ru.prorabprime.contract.PhotoNoteRequestDto
+import ru.prorabprime.contract.ReceiptPaidRequestDto
 import ru.prorabprime.contract.ReceiptRequestDto
 import ru.prorabprime.contract.RotatePhotoRequestDto
 import ru.prorabprime.contract.SetCoverRequestDto
@@ -65,6 +66,11 @@ fun Route.photoRoutes() {
     }
     put(ApiPaths.PHOTO_RECEIPT) {
         receipts.set(call.owner, call.uuidParam(ApiParams.ID), call.receive<ReceiptRequestDto>()).getOrThrow()
+        call.respond(HttpStatusCode.NoContent)
+    }
+    put(ApiPaths.PHOTO_RECEIPT_PAID) {
+        receipts.setPaid(call.owner, call.uuidParam(ApiParams.ID), call.receive<ReceiptPaidRequestDto>().paid)
+            .getOrThrow()
         call.respond(HttpStatusCode.NoContent)
     }
     post(ApiPaths.PHOTO_ROTATE) {

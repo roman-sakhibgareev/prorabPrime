@@ -94,6 +94,7 @@ data class PhotoRecord(
     val kind: AttachmentKindDto = AttachmentKindDto.PHOTO,
     val note: String? = null,
     val receipt: ReceiptData? = null,
+    val receiptPaid: Boolean = false,
 )
 
 /** What a receipt's fiscal QR code says. */
