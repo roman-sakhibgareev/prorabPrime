@@ -224,7 +224,7 @@ private fun ListTopBar(
                 }
             }
             IconButton(onClick = onOpenTasks) {
-                Icon(ProrabIcons.Tasks, contentDescription = stringResource(Res.string.objectslist_tasks))
+                Icon(ProrabIcons.CalendarMonth, contentDescription = stringResource(Res.string.objectslist_tasks))
             }
             onOpenExpenses?.let { open ->
                 IconButton(onClick = open) {
@@ -235,7 +235,7 @@ private fun ListTopBar(
                 }
             }
             IconButton(onClick = onOpenMap) {
-                Icon(ProrabIcons.Map, contentDescription = stringResource(Res.string.objectslist_map))
+                Icon(ProrabIcons.Pin, contentDescription = stringResource(Res.string.objectslist_map))
             }
             IconButton(onClick = onCreateObject) {
                 Icon(Icons.Default.Add, contentDescription = stringResource(Res.string.objectslist_add))
