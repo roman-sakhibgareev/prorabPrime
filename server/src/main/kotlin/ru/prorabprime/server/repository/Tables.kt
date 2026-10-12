@@ -132,6 +132,7 @@ object TasksTable : Table("tasks") {
     val day = date("day")
     val remindAtMinutes = integer("remind_at_minutes").nullable()
     val done = bool("done")
+    val objectId = javaUUID("object_id").nullable()
     val createdAt = timestamp("created_at")
 
     override val primaryKey = PrimaryKey(id)

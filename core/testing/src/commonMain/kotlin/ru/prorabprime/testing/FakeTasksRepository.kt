@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import ru.prorabprime.domain.model.AppError
 import ru.prorabprime.domain.model.LocalDay
+import ru.prorabprime.domain.model.ObjectId
 import ru.prorabprime.domain.model.Reminder
 import ru.prorabprime.domain.model.Task
 import ru.prorabprime.domain.model.TaskDraft
@@ -40,6 +41,9 @@ class FakeTasksRepository : TasksRepository {
 
     override fun observeOpenFrom(from: LocalDay): Flow<Result<ImmutableList<Task>>> =
         observe { it.day >= from && !it.done }
+
+    override fun observeByObject(objectId: ObjectId): Flow<Result<ImmutableList<Task>>> =
+        observe { it.objectId == objectId }
 
     override suspend fun add(draft: TaskDraft) = write { added += draft }
 
@@ -81,6 +85,7 @@ fun aTask(
     day: LocalDay = TEST_DAY,
     remindAtMinutes: Int? = null,
     done: Boolean = false,
-) = Task(TaskId(id), title, day, remindAtMinutes, done)
+    objectId: ObjectId? = null,
+) = Task(TaskId(id), title, day, remindAtMinutes, done, objectId)
 
 fun noTasks(): ImmutableList<Task> = persistentListOf()

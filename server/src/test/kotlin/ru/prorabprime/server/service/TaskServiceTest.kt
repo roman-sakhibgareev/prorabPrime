@@ -8,12 +8,17 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import ru.prorabprime.contract.FieldProblemDto
 import ru.prorabprime.contract.ObjectFieldDto
+import ru.prorabprime.contract.ObjectRequestDto
+import ru.prorabprime.contract.ObjectStatusDto
 import ru.prorabprime.contract.TaskLimits
 import ru.prorabprime.contract.TaskRequestDto
 import ru.prorabprime.server.TEST_OWNER
 import ru.prorabprime.server.error.ServiceError
 import ru.prorabprime.server.error.ServiceException
 import ru.prorabprime.server.fakes.FIXED_NOW
+import ru.prorabprime.server.fakes.FakeContactRepository
+import ru.prorabprime.server.fakes.FakeObjectRepository
+import ru.prorabprime.server.fakes.FakePhotoRepository
 import ru.prorabprime.server.fakes.FakeTaskRepository
 import ru.prorabprime.server.fakes.FixedClock
 import ru.prorabprime.server.model.TaskQuery
@@ -22,7 +27,12 @@ class TaskServiceTest {
 
     private val repository = FakeTaskRepository()
     private val clock = FixedClock()
-    private val service = TaskService(repository, clock)
+    private val objects = FakeObjectRepository(FakePhotoRepository())
+    private val service = TaskService(repository, objects, clock)
+
+    private suspend fun anObject(): UUID = ObjectService(objects, FakePhotoRepository(), FakeContactRepository(), clock)
+        .create(TEST_OWNER, ObjectRequestDto(address = "Тверская, 5", status = ObjectStatusDto.IN_PROGRESS))
+        .getOrThrow().id
 
     private fun Result<*>.problems() =
         ((exceptionOrNull() as? ServiceException)?.error as? ServiceError.Validation)?.fieldErrors
@@ -33,7 +43,8 @@ class TaskServiceTest {
         day: String = "2026-09-25",
         minutes: Int? = null,
         done: Boolean = false,
-    ) = TaskRequestDto(title, day, minutes, done)
+        objectId: String? = null,
+    ) = TaskRequestDto(title, day, minutes, done, objectId)
 
     @Test
     fun `a task is trimmed and stored with its day and time`() = runTest {
@@ -136,5 +147,34 @@ class TaskServiceTest {
             .isInstanceOf(ServiceError.NotFound::class.java)
         assertThat((service.delete(TEST_OWNER, missing).exceptionOrNull() as ServiceException).error)
             .isInstanceOf(ServiceError.NotFound::class.java)
+    }
+
+    @Test
+    fun `a task can belong to an object and moves with an update`() = runTest {
+        val first = anObject()
+        val second = anObject()
+
+        val task = service.create(TEST_OWNER, request(objectId = first.toString())).getOrThrow()
+        assertThat(task.fields.objectId).isEqualTo(first)
+
+        service.update(TEST_OWNER, task.id, request(objectId = second.toString())).getOrThrow()
+        assertThat(repository.records.getValue(task.id).fields.objectId).isEqualTo(second)
+
+        service.update(TEST_OWNER, task.id, request()).getOrThrow()
+        assertThat(repository.records.getValue(task.id).fields.objectId).isNull()
+    }
+
+    @Test
+    fun `a task cannot name an object that is not the owner's`() = runTest {
+        val elsewhere = UUID.randomUUID()
+
+        val unknown = service.create(TEST_OWNER, request(objectId = elsewhere.toString()))
+        val malformed = service.create(TEST_OWNER, request(objectId = "не-uuid"))
+
+        assertThat((unknown.exceptionOrNull() as ServiceException).error)
+            .isInstanceOf(ServiceError.NotFound::class.java)
+        assertThat((malformed.exceptionOrNull() as ServiceException).error)
+            .isInstanceOf(ServiceError.Validation::class.java)
+        assertThat(repository.records).isEmpty()
     }
 }

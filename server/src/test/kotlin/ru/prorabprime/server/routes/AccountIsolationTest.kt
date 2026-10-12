@@ -417,6 +417,22 @@ class AccountIsolationTest {
     }
 
     @Test
+    fun `a task cannot be hung on an object of another account`() = twoAccounts { client ->
+        val world = client.makeWorld()
+        val before = client.snapshot(world)
+
+        val create = client.create(
+            bobToken,
+            "/api/tasks",
+            TaskRequestDto(title = "Чужому", day = "2026-09-25", objectId = world.objectId),
+        )
+
+        assertThat(create.status).isEqualTo(HttpStatusCode.NotFound)
+        assertThat(client.get(bobToken, "/api/tasks").body<List<TaskDto>>()).isEmpty()
+        assertThat(client.snapshot(world)).isEqualTo(before)
+    }
+
+    @Test
     fun `each account has its own objects and tasks side by side`() = twoAccounts { client ->
         val world = client.makeWorld()
         val bobsObject = client.create(

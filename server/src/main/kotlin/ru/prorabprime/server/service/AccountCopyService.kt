@@ -91,17 +91,22 @@ class AccountCopyService(
         private val written: MutableList<Pair<UUID, String>>,
     ) {
         private var photoCount = 0
+        private val objectIds = mutableMapOf<UUID, UUID>()
 
         suspend fun run(): CopyReport {
             val sources = objects.list(from, ObjectListQuery(sort = SortFieldDto.CREATED, order = SortOrderDto.ASC))
             sources.forEach { copyObject(it.record) }
             val sourceTasks = tasks.list(from, TaskQuery())
-            sourceTasks.forEach { tasks.insert(TaskRecord(newId(), to, it.fields, it.createdAt)) }
+            sourceTasks.forEach {
+                val fields = it.fields.copy(objectId = it.fields.objectId?.let(objectIds::get))
+                tasks.insert(TaskRecord(newId(), to, fields, it.createdAt))
+            }
             return CopyReport(sources.size, photoCount, sourceTasks.size)
         }
 
         private suspend fun copyObject(source: ObjectRecord) {
             val id = newId()
+            objectIds[source.id] = id
             // The cover points at a photo, which does not exist yet: it is set once the photos are copied.
             objects.insert(source.copy(id = id, ownerId = to, coverPhotoId = null))
             source.coordinates?.let { objects.setCoordinates(to, id, it) }

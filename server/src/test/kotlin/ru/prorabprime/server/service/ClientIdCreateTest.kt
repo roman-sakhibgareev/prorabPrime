@@ -43,7 +43,7 @@ class ClientIdCreateTest {
     private val materials = MaterialService(objects, materialRepo, clock)
     private val payments = PaymentService(objects, paymentRepo, ImmediateTransactor, clock)
     private val extras = ExtraWorkService(objects, extraRepo, clock)
-    private val tasks = TaskService(taskRepo, clock)
+    private val tasks = TaskService(taskRepo, objects, clock)
 
     private fun objectRequest(id: String? = null) =
         ObjectRequestDto(id = id, address = "Тверская, 5", status = ObjectStatusDto.IN_PROGRESS)

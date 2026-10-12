@@ -267,6 +267,25 @@ class AccountCopyServiceTest {
     }
 
     @Test
+    fun `a task of an object points at the copy of that object`() = runTest {
+        anObject(kitchen, "Кухня")
+        tasks.insert(
+            TaskRecord(
+                UUID.randomUUID(),
+                TEST_OWNER,
+                TaskFields("Заказать плитку", LocalDate.of(2026, 9, 25), null, false, objectId = kitchen),
+                FIXED_NOW,
+            ),
+        )
+
+        service.copy("owner", "Заказчик").getOrThrow()
+
+        val copiedObject = objects.list(theirs(), ObjectListQuery()).single().record.id
+        assertThat(copiedObject).isNotEqualTo(kitchen)
+        assertThat(tasks.list(theirs(), TaskQuery()).single().fields.objectId).isEqualTo(copiedObject)
+    }
+
+    @Test
     fun `another account's things are not taken`() = runTest {
         anObject(kitchen, "Кухня")
         anObject(bath, "Чужая", owner = OTHER_OWNER.value)

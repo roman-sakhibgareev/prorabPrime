@@ -91,7 +91,7 @@ val serviceModule: Module = module {
     single { PaymentService(get(), get(), get(), get()) }
     single { ExtraWorkService(get(), get(), get()) }
     single { MaterialService(get(), get(), get()) }
-    single { TaskService(get(), get()) }
+    single { TaskService(get(), get(), get()) }
     single {
         PhotoService(get(), get(), get(), get(), get(), get(), get(), quotaBytes = get<AppConfig>().accountQuotaBytes)
     }

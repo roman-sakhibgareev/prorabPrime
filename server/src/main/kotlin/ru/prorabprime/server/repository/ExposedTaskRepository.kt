@@ -59,6 +59,7 @@ class ExposedTaskRepository(
                 it[day] = task.fields.day
                 it[remindAtMinutes] = task.fields.remindAtMinutes
                 it[done] = task.fields.done
+                it[objectId] = task.fields.objectId
                 it[createdAt] = task.createdAt.toJavaInstant()
             }
         }
@@ -74,6 +75,7 @@ class ExposedTaskRepository(
             it[day] = fields.day
             it[remindAtMinutes] = fields.remindAtMinutes
             it[done] = fields.done
+            it[objectId] = fields.objectId
         } > 0
     }
 
@@ -90,6 +92,7 @@ private fun ResultRow.toTaskRecord() = TaskRecord(
         day = this[TasksTable.day],
         remindAtMinutes = this[TasksTable.remindAtMinutes],
         done = this[TasksTable.done],
+        objectId = this[TasksTable.objectId],
     ),
     createdAt = this[TasksTable.createdAt].toKotlinInstant(),
 )

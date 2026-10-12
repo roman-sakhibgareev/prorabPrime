@@ -3,6 +3,7 @@ package ru.prorabprime.domain.repository
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.flow.Flow
 import ru.prorabprime.domain.model.LocalDay
+import ru.prorabprime.domain.model.ObjectId
 import ru.prorabprime.domain.model.Reminder
 import ru.prorabprime.domain.model.Task
 import ru.prorabprime.domain.model.TaskDraft
@@ -21,6 +22,9 @@ interface TasksRepository {
 
     /** Open tasks from [from] on, which is what reminders are set for. */
     fun observeOpenFrom(from: LocalDay): Flow<Result<ImmutableList<Task>>>
+
+    /** Every task of one object, done or not, in the order of the plan. */
+    fun observeByObject(objectId: ObjectId): Flow<Result<ImmutableList<Task>>>
 
     suspend fun add(draft: TaskDraft): Result<Unit>
 
