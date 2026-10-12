@@ -910,3 +910,33 @@ customer is one more flavor and one more `local.properties` key. A customer's to
 revocable on the server and the APK is for that person only.
 
 **Review when:** a second customer needs an APK, or the token stops being a single shared secret (per-device login).
+
+---
+
+## ADR-0026
+
+### A choice that opens a list is a bottom sheet, built on one design-system component
+
+**Accepted** · 2026-10-12
+
+**Context.** The objects list filtered with a row of chips and sorted with a dropdown menu; the calendar picked an
+object with another dropdown. Each looked different, a menu hides that it holds a list, and the calendar could narrow
+to one object only.
+
+**Decision.** `ProrabBottomSheet(title, onDismiss, content)` in the design system wraps `ModalBottomSheet`, so the
+experimental opt-in lives in one place. Filters, sorting and the calendar's object choice open in it from a labelled
+button. Whether such a sheet is open is local `remember` state of the button that opens it, as the old sort menu was;
+what the choice changes (statuses, sort, the set of objects) stays in the screen state and goes through events. The
+calendar's `objectFilter` is a set of object ids, empty meaning every object, and `ObserveNextTaskUseCase` takes a set
+for the same reason.
+
+**Alternatives rejected.**
+- *`sheet: XxxSheet?` in the screen state.* Survives rotation, but a sheet that only narrows a list has no meaning to a
+  view model, and every screen would gain an event pair and tests for it.
+- *Keep the dropdown for the calendar and allow several ticks in it.* A menu closes on every tap, which is wrong for
+  ticking several.
+
+**Consequences.** A sheet closes on rotation. The existing raw `ModalBottomSheet` uses (capture, object details, map,
+finance history) are not migrated yet. The editor's single-object `ObjectSelector` stays a dropdown.
+
+**Review when:** a sheet must survive rotation or carry its own state, or the raw uses are touched for another reason.
