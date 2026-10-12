@@ -14,6 +14,7 @@ import ru.prorabprime.contract.FinanceDto
 import ru.prorabprime.contract.FinanceTermsDto
 import ru.prorabprime.contract.MaterialDto
 import ru.prorabprime.contract.MaterialStatusDto
+import ru.prorabprime.contract.NoteDto
 import ru.prorabprime.contract.ObjectDetailsDto
 import ru.prorabprime.contract.ObjectStatusDto
 import ru.prorabprime.contract.ObjectSummaryDto
@@ -47,6 +48,7 @@ class FakeServer {
     var objects: List<ObjectDetailsDto> = listOf(details)
     var tasks = listOf(TaskDto("t1", "Позвонить", "2026-10-01"))
     var materials = listOf(MaterialDto("m1", "Ламинат", MaterialStatusDto.CHOSEN))
+    var notes = listOf(NoteDto("n1", objectId, "Маяки поставлены", "2026-10-01T09:00:00Z"))
 
     /** No signal at all. */
     var offline = false
@@ -108,6 +110,7 @@ class FakeServer {
     private fun MockRequestHandleScope.childrenOf(path: String): HttpResponseData = when {
         path.endsWith("/finance") -> body(FinanceDto.serializer(), finance)
         path.endsWith("/payments/history") -> json("[]")
+        path.endsWith("/notes") -> body(ListSerializer(NoteDto.serializer()), notes)
         path.endsWith("/materials") -> body(ListSerializer(MaterialDto.serializer()), materials)
         path == "/api/tasks" -> body(ListSerializer(TaskDto.serializer()), tasks)
         else -> respond("", HttpStatusCode.NotFound)

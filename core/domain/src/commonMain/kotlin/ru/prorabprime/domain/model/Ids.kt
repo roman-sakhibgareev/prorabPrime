@@ -33,6 +33,11 @@ value class MaterialId(
 )
 
 @JvmInline
+value class NoteId(
+    val value: String,
+)
+
+@JvmInline
 value class TaskId(
     val value: String,
 )

@@ -64,6 +64,12 @@ internal class OperationRunner(
 
         is Operation.AddDefaultMaterials -> remote.addDefaultMaterials(operation.objectId)
 
+        is Operation.CreateNote -> remote.createNote(operation.objectId, operation.request)
+
+        is Operation.UpdateNote -> remote.updateNote(operation.id, operation.request)
+
+        is Operation.DeleteNote -> remote.deleteNote(operation.id).goneIsDone()
+
         is Operation.CreateTask -> remote.createTask(operation.request)
 
         is Operation.UpdateTask -> remote.updateTask(operation.id, operation.request)

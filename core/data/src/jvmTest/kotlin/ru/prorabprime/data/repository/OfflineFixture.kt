@@ -33,6 +33,7 @@ internal class OfflineFixture(
     val contacts = ContactsRepositoryImpl(db, ids)
     val finance = FinanceRepositoryImpl(db, ids)
     val materials = MaterialsRepositoryImpl(db, ids)
+    val notes = NotesRepositoryImpl(db, ids, server.clock)
     val tasks = TasksRepositoryImpl(db, ids)
     val expenses = ExpensesRepositoryImpl(db)
     val sync = SyncRepositoryImpl(db, engine, coordinator)

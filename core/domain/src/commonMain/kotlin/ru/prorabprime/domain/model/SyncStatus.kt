@@ -24,6 +24,7 @@ enum class ChangeKind {
     PAYMENT,
     EXTRA_WORK,
     MATERIAL,
+    NOTE,
     TASK,
 }
 
