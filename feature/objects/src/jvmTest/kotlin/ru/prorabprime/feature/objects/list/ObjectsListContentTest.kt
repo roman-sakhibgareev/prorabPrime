@@ -130,7 +130,7 @@ class ObjectsListContentTest {
     }
 
     @Test
-    fun `the status chips send their choice, and the all chip clears them`() = runComposeUiTest {
+    fun `the filters button opens a sheet whose chips send their choice and which resets them`() = runComposeUiTest {
         setContent {
             show(
                 ObjectsListState(
@@ -141,22 +141,33 @@ class ObjectsListContentTest {
             )
         }
 
-        onAllNodes(hasText("В работе") and hasClickAction()).onFirst().performClick()
-        onNode(hasText("Все") and hasClickAction()).performClick()
+        onNodeWithText("Фильтры · 1").performClick()
+        onNode(hasText("На паузе") and hasClickAction()).performClick()
+        onNodeWithText("Сбросить").performClick()
 
         assertThat(events).containsExactly(
-            ObjectsListEvent.StatusToggled(ObjectStatus.IN_PROGRESS),
+            ObjectsListEvent.StatusToggled(ObjectStatus.PAUSED),
             ObjectsListEvent.FiltersCleared,
         ).inOrder()
     }
 
     @Test
-    fun `the sort menu lists every option and sends the chosen one`() = runComposeUiTest {
+    fun `without filters the sheet has no reset`() = runComposeUiTest {
+        setContent { show(ObjectsListState(status = ObjectsListStatus.Content, items = cards)) }
+
+        onNodeWithText("Фильтры").performClick()
+
+        onNodeWithText("Сбросить").assertDoesNotExist()
+    }
+
+    @Test
+    fun `the sort button opens a sheet with every option and sends the chosen one`() = runComposeUiTest {
         setContent {
             show(ObjectsListState(status = ObjectsListStatus.Content, items = cards, sort = ObjectSort.UPDATED_NEWEST))
         }
 
-        onNodeWithContentDescription("Недавно изменённые").performClick()
+        onNodeWithText("Сортировка").performClick()
+        onNodeWithText("Недавно изменённые").assertIsDisplayed()
         onNodeWithText("Адрес Я–А").performClick()
 
         assertThat(events).containsExactly(ObjectsListEvent.SortSelected(ObjectSort.ADDRESS_DESC))
