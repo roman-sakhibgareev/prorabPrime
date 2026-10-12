@@ -3,8 +3,10 @@ package ru.prorabprime.feature.tasks
 import androidx.compose.runtime.Immutable
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
+import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.collections.immutable.persistentSetOf
 import ru.prorabprime.domain.model.FieldProblem
 import ru.prorabprime.domain.model.LocalDay
 import ru.prorabprime.domain.model.ObjectField
@@ -99,8 +101,8 @@ internal data class TasksState(
     val nextPlan: NextPlanUi? = null,
     /** Set when the screen was opened for one object: it is the plan of that object only, with no filter. */
     val scopedObjectId: String? = null,
-    /** The object the plan is narrowed to; null shows every object's tasks. */
-    val objectFilter: String? = scopedObjectId,
+    /** The objects the plan is narrowed to; empty shows every object's tasks. */
+    val objectFilter: ImmutableSet<String> = scopedObjectId?.let { persistentSetOf(it) } ?: persistentSetOf(),
     val objects: ImmutableList<ObjectChoiceUi> = persistentListOf(),
 ) {
     val isToday: Boolean get() = day == today
@@ -122,10 +124,16 @@ internal sealed interface TasksEvent {
     /** The calendar button: opens the month grid above the day, or closes it. */
     data object MonthToggled : TasksEvent
 
-    /** Narrows the plan to one object, or (null) back to all of them. */
-    data class ObjectFilterPicked(
-        val objectId: String?,
-    ) : TasksEvent
+    /** What the filter sheet does to the objects the plan is narrowed to. */
+    sealed interface ObjectFilterEvent : TasksEvent
+
+    /** An object in the filter sheet: adds it to the plan's objects, or takes it out. */
+    data class ObjectFilterToggled(
+        val objectId: String,
+    ) : ObjectFilterEvent
+
+    /** "Show all" in the filter sheet. */
+    data object ObjectFilterCleared : ObjectFilterEvent
 
     data object PreviousMonth : TasksEvent
 

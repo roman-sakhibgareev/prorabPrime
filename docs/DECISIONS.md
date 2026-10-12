@@ -879,3 +879,125 @@ show the object's tasks; they are in its calendar.
 
 **Review when:** the journal needs photos or tasks in the same feed, or the foreman asks to see an object's open
 tasks on its journal page.
+
+---
+
+## ADR-0025
+
+### Three build flavors carry the server and token, not a `-P` flag
+
+**Accepted** · 2026-10-12
+
+**Context.** One APK recipe served three audiences: the owner's local builds, a customer who needs an APK that
+opens ready to work, and the store, whose APK must hold no token. The only switch was blanking `-Pprorab.serverUrl`
+and `-Pprorab.apiToken` by hand, and forgetting it put the owner's token into an APK handed to someone else.
+
+**Decision.** One flavor dimension, `distribution`: `dev`, `client`, `rustore`. Each flavor fixes its own
+`DEFAULT_SERVER_URL` and `DEFAULT_API_TOKEN`, read from `local.properties` under `prorab.<flavor>.*` (a `-P`
+property wins). `rustore` never has a token. building `client` for release fails when its token is missing, rather than
+producing an APK that opens empty. The values are set per variant (`androidComponents`) and read lazily, so a
+flavor that is not being built asks for nothing. `verify` builds `devDebug`.
+
+**Alternatives rejected.**
+- *Keep the `-P` overrides.* Safe only if the person remembers; the default was the unsafe direction.
+- *Separate build types for the customer.* Build types are for how the code is built, not for whom; a flavor
+  keeps debug and release of each audience.
+- *A different `applicationId` per flavor.* Lets them sit side by side on one phone, but the store listing is
+  `ru.prorabprime` and an update from the customer's APK to the store's would stop working.
+
+**Consequences.** Every Gradle task and path gains a flavor (`assembleClientRelease`, `apk/client/release/`). A new
+customer is one more flavor and one more `local.properties` key. A customer's token lives in the APK, so it is
+revocable on the server and the APK is for that person only.
+
+**Review when:** a second customer needs an APK, or the token stops being a single shared secret (per-device login).
+
+---
+
+## ADR-0026
+
+### A choice that opens a list is a bottom sheet, built on one design-system component
+
+**Accepted** · 2026-10-12
+
+**Context.** The objects list filtered with a row of chips and sorted with a dropdown menu; the calendar picked an
+object with another dropdown. Each looked different, a menu hides that it holds a list, and the calendar could narrow
+to one object only.
+
+**Decision.** `ProrabBottomSheet(title, onDismiss, content)` in the design system wraps `ModalBottomSheet`, so the
+experimental opt-in lives in one place. Filters, sorting and the calendar's object choice open in it from a labelled
+button. Whether such a sheet is open is local `remember` state of the button that opens it, as the old sort menu was;
+what the choice changes (statuses, sort, the set of objects) stays in the screen state and goes through events. The
+calendar's `objectFilter` is a set of object ids, empty meaning every object, and `ObserveNextTaskUseCase` takes a set
+for the same reason.
+
+**Alternatives rejected.**
+- *`sheet: XxxSheet?` in the screen state.* Survives rotation, but a sheet that only narrows a list has no meaning to a
+  view model, and every screen would gain an event pair and tests for it.
+- *Keep the dropdown for the calendar and allow several ticks in it.* A menu closes on every tap, which is wrong for
+  ticking several.
+
+**Consequences.** A sheet closes on rotation. The existing raw `ModalBottomSheet` uses (capture, object details, map,
+finance history) are not migrated yet. The editor's single-object `ObjectSelector` stays a dropdown.
+
+**Review when:** a sheet must survive rotation or carry its own state, or the raw uses are touched for another reason.
+
+---
+
+## ADR-0027
+
+### The design system lives in code; Figma is not its source of truth
+
+**Accepted** · 2026-10-12
+
+**Context.** Screens had grown one by one: sizes of text, section headings, blocks of facts, chips and the search
+line were each set where they were used, so two screens said the same thing in two looks. Someone suggested drawing
+the system in Figma first. The account's seat in Figma is view-only (starter plan), so the connector can read a
+file but nothing here would be drawn into one.
+
+**Decision.** Tokens and components are code in `core/designsystem`. The type scale is fixed in `ProrabTypography`
+(screen title 24/28, section 20/24, card title 16/20, text 16/20, secondary text 14/20, labels 14/16 and 12/16,
+footnote 10/12), still in the platform's own font. Parts of a screen are a `SectionHeader` with an `InfoCard` under
+it; chips that open something are `ActionChip`; sheets are `ProrabBottomSheet`. `DesignSystemGallery` draws all of it
+on one page for a preview, and a test draws it in both themes so a token that breaks a component shows up in
+`verify`.
+
+**Alternatives rejected.**
+- *Figma tokens and Code Connect.* Needs an edit seat, and a file somebody keeps in step with the code; for one
+  developer that is a second place to forget.
+- *Bundling Inter.* About a megabyte of fonts for a different look and no gain in reading; Roboto has Cyrillic.
+- *Putting the gallery behind a settings item in debug builds.* It would pass a build flag through `:shared` into a
+  feature; a preview does the same job for the one person using it.
+
+**Consequences.** A new text size or color is added to the theme first, not at the call site. The gallery is not
+reachable on a device yet; it is looked at in the IDE preview. Existing screens that still use `titleMedium` as a
+heading move to `SectionHeader` when they are next touched, not all at once.
+
+**Review when:** a designer or a Figma file with an edit seat appears, or the gallery is wanted on a device.
+
+## ADR-0028
+
+### Controls share one height, and text is black or white
+
+**Accepted** · 2026-10-12
+
+**Context.** A button, the search line, a chip and a form field were each given a height where they were drawn
+(48, 44, 32 and 56 dp), so buttons standing in one row were not as tall as each other. Text had picked up green
+tints from the theme (`onPrimaryContainer`, `onSurface`), and labels were semi-bold, so a button looked like a
+heading.
+
+**Decision.** `Sizes.control` is the height of a button, an `ActionChip`, a `FilterChip` and the search line;
+`Sizes.field` is the height of a form field whose name sits inside it. Labels are 14sp in the regular weight.
+Text roles are black in the light theme and white in the dark one; only secondary text is a neutral gray. The
+`FilterChip` is a pill without an outline. `ActionChip` and the filter row collapse to icons when the sort chip
+needs the room (`CollapsingChips`), the sort chip keeping its words.
+
+**Alternatives rejected.**
+- *Material's own heights.* 56dp fields next to 40dp buttons, and a 32dp chip with a 48dp touch area that moves its
+  corner dot away from the chip.
+- *A tinted text color for secondary actions.* Green text on a green fill is what made labels hard to read.
+
+**Consequences.** A new control takes its height from `Sizes`, not from a literal. Previews render only with
+`ui-tooling` on the `androidRuntimeClasspath` of every Compose module, which the convention plugin now does.
+The other `OutlinedTextField`s of the app keep Material's height until their screens are next touched.
+
+**Review when:** a screen needs a control that cannot be this tall, or the type scale changes.

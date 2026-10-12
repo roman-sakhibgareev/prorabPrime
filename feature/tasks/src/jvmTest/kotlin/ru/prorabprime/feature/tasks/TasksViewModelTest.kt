@@ -324,17 +324,33 @@ class TasksViewModelTest {
         withObjectTasks()
         viewModel.onEvent(TasksEvent.MonthToggled)
 
-        viewModel.onEvent(TasksEvent.ObjectFilterPicked("kitchen"))
+        viewModel.onEvent(TasksEvent.ObjectFilterToggled("kitchen"))
 
-        assertThat(state.objectFilter).isEqualTo("kitchen")
+        assertThat(state.objectFilter).containsExactly("kitchen")
         assertThat(state.tasks.map { it.id }).containsExactly("k1")
         assertThat(state.overdue.map { it.id }).containsExactly("k2")
         assertThat(state.marks[today]).isEqualTo(DayMarkUi(open = 1, done = 0))
 
-        viewModel.onEvent(TasksEvent.ObjectFilterPicked(null))
+        viewModel.onEvent(TasksEvent.ObjectFilterCleared)
 
         assertThat(state.tasks.map { it.id }).containsExactly("k1", "b1", "any")
         assertThat(state.marks[today]).isEqualTo(DayMarkUi(open = 3, done = 0))
+    }
+
+    @Test
+    fun `several objects can be shown together, and unticking one drops only its tasks`() {
+        withObjectTasks()
+
+        viewModel.onEvent(TasksEvent.ObjectFilterToggled("kitchen"))
+        viewModel.onEvent(TasksEvent.ObjectFilterToggled("bath"))
+
+        assertThat(state.objectFilter).containsExactly("kitchen", "bath")
+        assertThat(state.tasks.map { it.id }).containsExactly("k1", "b1")
+
+        viewModel.onEvent(TasksEvent.ObjectFilterToggled("kitchen"))
+
+        assertThat(state.objectFilter).containsExactly("bath")
+        assertThat(state.tasks.map { it.id }).containsExactly("b1")
     }
 
     @Test
@@ -346,7 +362,7 @@ class TasksViewModelTest {
         )
         assertThat(state.nextPlan).isEqualTo(NextPlanUi(today.plusDays(2), "Чужое", 2))
 
-        viewModel.onEvent(TasksEvent.ObjectFilterPicked("kitchen"))
+        viewModel.onEvent(TasksEvent.ObjectFilterToggled("kitchen"))
 
         assertThat(state.nextPlan).isEqualTo(NextPlanUi(today.plusDays(5), "Моё", 5))
     }
@@ -361,17 +377,17 @@ class TasksViewModelTest {
         assertThat(state.tasks.map { it.id }).containsExactly("k1")
         assertThat(state.tasks.single().objectTitle).isNull()
 
-        viewModel.onEvent(TasksEvent.ObjectFilterPicked(null))
-        viewModel.onEvent(TasksEvent.ObjectFilterPicked("bath"))
+        viewModel.onEvent(TasksEvent.ObjectFilterCleared)
+        viewModel.onEvent(TasksEvent.ObjectFilterToggled("bath"))
 
-        assertThat(state.objectFilter).isEqualTo("kitchen")
+        assertThat(state.objectFilter).containsExactly("kitchen")
         assertThat(state.tasks.map { it.id }).containsExactly("k1")
     }
 
     @Test
     fun `a new task starts on the object the plan is narrowed to and is saved with it`() {
         withObjectTasks()
-        viewModel.onEvent(TasksEvent.ObjectFilterPicked("kitchen"))
+        viewModel.onEvent(TasksEvent.ObjectFilterToggled("kitchen"))
 
         viewModel.onEvent(TaskEditorEvent.Add)
         assertThat(state.editor).isEqualTo(TaskEditorUi(day = today, objectId = "kitchen"))

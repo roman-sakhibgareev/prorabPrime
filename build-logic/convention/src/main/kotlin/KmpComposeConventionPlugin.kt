@@ -37,6 +37,10 @@ class KmpComposeConventionPlugin : Plugin<Project> {
             tasks.matching { it.name == "checkComposeUiTestConfigurationForWasmJs" }
                 .configureEach { enabled = false }
 
+            // Android Studio renders @Preview through ComposeViewAdapter from this artifact; without it
+            // on the runtime classpath every preview fails with ClassNotFoundException.
+            dependencies.add("androidRuntimeClasspath", library("compose-mp-ui-tooling"))
+
             extensions.configure<KotlinMultiplatformExtension> {
                 sourceSets.named("commonMain").configure {
                     dependencies {

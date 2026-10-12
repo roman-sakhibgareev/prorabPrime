@@ -98,24 +98,34 @@ From the Android emulator the computer is `http://10.0.2.2:8080`.
 
 ## 4. Build and install the app
 
-Optionally put the address and token in `local.properties` so a fresh install starts with them
-(they can always be changed in the app's settings):
+The app has three flavors, and each starts on a server of its own (it can always be changed in the app's settings):
+
+| Flavor | For | Server | Token |
+| --- | --- | --- | --- |
+| `dev` | your own builds | `prorab.dev.serverUrl`, else `http://10.0.2.2:8080` | `prorab.dev.apiToken` |
+| `client` | a customer's APK | `https://prorabprime.duckdns.org` | `prorab.client.apiToken`, required for release |
+| `rustore` | the store | `https://prorabprime.duckdns.org` | none |
+
+Put the values in `local.properties`:
 
 ```properties
-prorab.serverUrl=http://192.168.1.10:8080
-prorab.apiToken=the same value as API_TOKEN in .env
+prorab.dev.serverUrl=http://192.168.1.10:8080
+prorab.dev.apiToken=the same value as API_TOKEN in .env
+prorab.client.apiToken=the customer's token
 ```
 
-With the phone connected over USB (developer options and USB debugging on):
+A flavor's `serverUrl` can be overridden the same way (`prorab.client.serverUrl`, `prorab.rustore.serverUrl`), and a
+`-P` Gradle property wins over `local.properties`. With the phone connected over USB (developer options and USB
+debugging on):
 
 ```bash
-./gradlew :app:installDebug
+./gradlew :app:installDevDebug
 ```
 
 Or build the APK and copy it to the phone:
 
 ```bash
-./gradlew :app:assembleDebug
+./gradlew :app:assembleDevDebug
 ```
 
 The file is `app/build/outputs/apk/debug/app-debug.apk`.
@@ -191,20 +201,17 @@ On a build machine the same four values come from `PRORAB_STORE_FILE`, `PRORAB_S
 `PRORAB_KEY_ALIAS` and `PRORAB_KEY_PASSWORD`. Then:
 
 ```bash
-./gradlew :app:assembleRelease
+./gradlew :app:assembleClientRelease     # the customer's APK, with his token inside
+./gradlew :app:assembleRustoreRelease  # the store's APK, no token
 ```
 
-builds `app/build/outputs/apk/release/app-release.apk`. Without a key the same task produces an unsigned
-APK, which a phone will not install.
+build `app/build/outputs/apk/<flavor>/release/app-<flavor>-release.apk`. Without a key the same tasks produce an
+unsigned APK, which a phone will not install.
 
-**That APK carries the server address and token from `local.properties`.** For an APK that goes to anybody
-else (GitHub, a store) leave them out; the address and token are then typed in the settings:
+**The `client` APK carries his token**: give it to him only. The `rustore` APK carries no token, so it is the one for
+anybody else (GitHub, a store); the token is typed in the settings.
 
-```bash
-./gradlew :app:assembleRelease -Pprorab.serverUrl= -Pprorab.apiToken=
-```
-
-The release build speaks only HTTPS (see "HTTPS" below); over plain HTTP on the home network use the debug build.
+The release builds speak only HTTPS (see "HTTPS" below); over plain HTTP on the home network use `dev` debug.
 
 ## Checking a change
 
@@ -212,7 +219,7 @@ The release build speaks only HTTPS (see "HTTPS" below); over plain HTTP on the 
 ./gradlew verify
 ```
 
-Formatting, static analysis, every unit test and the debug APK; the server's PostgreSQL tests run
+Formatting, static analysis, every unit test and the `dev` debug APK; the server's PostgreSQL tests run
 in Docker, or over embedded PostgreSQL when Docker is missing (ADR-0006, ADR-0007). See
 [`CONTRIBUTING.md`](CONTRIBUTING.md).
 

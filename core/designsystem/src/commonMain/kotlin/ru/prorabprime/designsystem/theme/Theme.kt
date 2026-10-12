@@ -9,9 +9,13 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
+// Text is black or white, never tinted; only the secondary text is a neutral gray.
 // The brand's green and white (the client's own profile and logo): white surfaces and text on
 // green in the dark theme, green on white in the light one. Every role is set, so no Material
 // baseline purple shows through in containers or surfaces.
@@ -22,26 +26,26 @@ private val BrandGreenSoft = Color(0xFF4CC27F)
 private val LightColors = lightColorScheme(
     primary = BrandGreen,
     onPrimary = Color.White,
-    primaryContainer = Color(0xFFD5F2E0),
-    onPrimaryContainer = Color(0xFF033A1A),
+    primaryContainer = Color(0xFFC2E7D1),
+    onPrimaryContainer = Color.Black,
     secondary = Color(0xFF3F6B50),
     onSecondary = Color.White,
     secondaryContainer = Color(0xFFE1F1E7),
-    onSecondaryContainer = Color(0xFF0E2A1A),
+    onSecondaryContainer = Color.Black,
     tertiary = Color(0xFF5B6B3A),
     onTertiary = Color.White,
     tertiaryContainer = Color(0xFFE6EDCB),
-    onTertiaryContainer = Color(0xFF1A2205),
+    onTertiaryContainer = Color.Black,
     background = Color.White,
-    onBackground = Color(0xFF111A14),
+    onBackground = Color.Black,
     surface = Color.White,
-    onSurface = Color(0xFF111A14),
+    onSurface = Color.Black,
     surfaceVariant = Color(0xFFE3EEE7),
-    onSurfaceVariant = Color(0xFF3A4A41),
+    onSurfaceVariant = Color(0xFF444444),
     surfaceContainerLowest = Color.White,
-    surfaceContainerLow = Color(0xFFF6FAF7),
-    surfaceContainer = Color(0xFFEFF5F1),
-    surfaceContainerHigh = Color(0xFFE8F0EA),
+    surfaceContainerLow = Color(0xFFEAF2EC),
+    surfaceContainer = Color(0xFFE3EDE6),
+    surfaceContainerHigh = Color(0xFFDCE9E0),
     surfaceContainerHighest = Color(0xFFE1EBE4),
     outline = Color(0xFF5F7267),
     outlineVariant = Color(0xFFBFD0C5),
@@ -59,13 +63,13 @@ private val DarkColors = darkColorScheme(
     tertiary = Color(0xFFCDD9A6),
     onTertiary = Color(0xFF2D3510),
     tertiaryContainer = Color(0xFF444F25),
-    onTertiaryContainer = Color(0xFFE9F2C5),
+    onTertiaryContainer = Color.White,
     background = Color(0xFF0C130F),
     onBackground = Color.White,
     surface = Color(0xFF0C130F),
     onSurface = Color.White,
     surfaceVariant = Color(0xFF34443B),
-    onSurfaceVariant = Color(0xFFC9D8CF),
+    onSurfaceVariant = Color(0xFFCCCCCC),
     surfaceContainerLowest = Color(0xFF080D0A),
     surfaceContainerLow = Color(0xFF131C16),
     surfaceContainer = Color(0xFF18221C),
@@ -75,6 +79,27 @@ private val DarkColors = darkColorScheme(
     outlineVariant = Color(0xFF34443B),
 )
 
+/** Colors that have no Material role. */
+object ProrabColors {
+    private val LinkLight = Color(0xFF1A5FC8)
+    private val LinkDark = Color(0xFF8AB4F8)
+    private val BadgeLight = Color(0xFFD92D20)
+    private val BadgeDark = Color(0xFFFF6B5E)
+
+    /** Blue for anything that opens something (a phone number, a link): the color people read as a link. */
+    val link: Color
+        @Composable get() = if (isDark()) LinkDark else LinkLight
+
+    /** Red for a dot that says "something is switched on here", such as an active filter. */
+    val badge: Color
+        @Composable get() = if (isDark()) BadgeDark else BadgeLight
+
+    @Composable
+    private fun isDark() = MaterialTheme.colorScheme.background.luminance() < DARK_LUMINANCE
+
+    private const val DARK_LUMINANCE = 0.5f
+}
+
 /** One corner radius for everything that has corners, so a card, a button and a field match. */
 object Corners {
     val m = 8.dp
@@ -83,12 +108,27 @@ object Corners {
 
 private val BaseTypography = Typography()
 
-/** Headings and buttons a weight heavier than the default, so a screen's structure is easy to see. */
+private fun TextStyle.sized(
+    size: Int,
+    line: Int,
+    weight: FontWeight,
+): TextStyle = copy(fontSize = size.sp, lineHeight = line.sp, fontWeight = weight)
+
+/**
+ * The type scale, as size/line height in sp: screen title 24/28, section 20/24, card title 16/20, text 16/20,
+ * secondary text 14/20, label 14/16 and 12/16, footnote 10/12. Headings and labels a weight heavier than the
+ * default, so a screen's structure is easy to see.
+ */
 private val ProrabTypography = Typography(
-    titleLarge = BaseTypography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
-    titleMedium = BaseTypography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+    headlineSmall = BaseTypography.headlineSmall.sized(24, 28, FontWeight.SemiBold),
+    titleLarge = BaseTypography.titleLarge.sized(20, 24, FontWeight.SemiBold),
+    titleMedium = BaseTypography.titleMedium.sized(16, 20, FontWeight.SemiBold),
     titleSmall = BaseTypography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
-    labelLarge = BaseTypography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
+    bodyLarge = BaseTypography.bodyLarge.sized(16, 20, FontWeight.Normal),
+    bodyMedium = BaseTypography.bodyMedium.sized(14, 20, FontWeight.Normal),
+    labelLarge = BaseTypography.labelLarge.sized(14, 16, FontWeight.Normal),
+    labelMedium = BaseTypography.labelMedium.sized(12, 16, FontWeight.Medium),
+    labelSmall = BaseTypography.labelSmall.sized(10, 12, FontWeight.Normal),
 )
 
 private val ProrabShapes = Shapes(

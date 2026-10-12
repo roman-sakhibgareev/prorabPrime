@@ -2,10 +2,12 @@ package ru.prorabprime.feature.objects.details
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.v2.runComposeUiTest
 import com.google.common.truth.Truth.assertThat
 import kotlinx.collections.immutable.persistentListOf
@@ -37,8 +39,33 @@ class ObjectDetailsContentTest {
         onNodeWithText("Тверская, 5").assertIsDisplayed()
         onNodeWithText("На паузе").assertIsDisplayed()
         onNodeWithText("Иван").assertIsDisplayed()
-        onNodeWithText("+7 900 123-45-67").assertIsDisplayed()
-        onNodeWithText("Ключи у соседа").assertIsDisplayed()
+        onNodeWithText("+7 900 123-45-67").performScrollTo().assertIsDisplayed()
+        onNodeWithText("Ключи у соседа").performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun `the facts sit in titled cards, and a part with nothing in it is not drawn`() = runComposeUiTest {
+        setContent { show(ObjectDetailsState(status = ObjectDetailsStatus.Content, details = details)) }
+
+        onNodeWithText("Клиент").performScrollTo().assertIsDisplayed()
+        onNodeWithText("Заметки").performScrollTo().assertIsDisplayed()
+        onNodeWithText("Контакты").performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun `an object with no client and no notes shows neither card`() = runComposeUiTest {
+        val bare = ObjectDetailsUi("Кухня", null, ObjectStatus.PLANNED, null, null, null)
+        setContent { show(ObjectDetailsState(status = ObjectDetailsStatus.Content, details = bare)) }
+
+        onNodeWithText("Клиент").assertDoesNotExist()
+        onNodeWithText("Заметки").assertDoesNotExist()
+    }
+
+    @Test
+    fun `the phone is a link that can be tapped`() = runComposeUiTest {
+        setContent { show(ObjectDetailsState(status = ObjectDetailsStatus.Content, details = details)) }
+
+        onNodeWithText("+7 900 123-45-67").performScrollTo().assertHasClickAction()
     }
 
     @Test

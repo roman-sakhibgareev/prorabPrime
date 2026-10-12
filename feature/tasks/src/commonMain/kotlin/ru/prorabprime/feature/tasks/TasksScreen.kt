@@ -16,7 +16,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -45,7 +45,6 @@ import ru.prorabprime.designsystem.theme.Spacing
 import ru.prorabprime.domain.model.ObjectId
 import ru.prorabprime.feature.tasks.resources.Res
 import ru.prorabprime.feature.tasks.resources.tasks_add
-import ru.prorabprime.feature.tasks.resources.tasks_all_objects
 import ru.prorabprime.feature.tasks.resources.tasks_back
 import ru.prorabprime.feature.tasks.resources.tasks_empty
 import ru.prorabprime.feature.tasks.resources.tasks_hide_month
@@ -112,13 +111,13 @@ internal fun TasksContent(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
+            ExtendedFloatingActionButton(
                 onClick = { onEvent(TaskEditorEvent.Add) },
+                icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                text = { Text(stringResource(Res.string.tasks_add)) },
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
-            ) {
-                Icon(Icons.Default.Add, stringResource(Res.string.tasks_add))
-            }
+            )
         },
     ) { padding ->
         Column(Modifier.padding(padding).fillMaxSize()) {
@@ -140,15 +139,15 @@ internal fun TasksContent(
     )
 }
 
-/** Narrows the plan to one object. */
+/** Narrows the plan to some of the objects. */
 @Composable
 private fun ObjectFilter(state: TasksState, onEvent: (TasksEvent) -> Unit) {
-    ObjectSelector(
-        selectedId = state.objectFilter,
+    ObjectFilterButton(
+        selectedIds = state.objectFilter,
         objects = state.objects,
-        noneLabel = stringResource(Res.string.tasks_all_objects),
-        onPicked = { onEvent(TasksEvent.ObjectFilterPicked(it)) },
-        modifier = Modifier.padding(horizontal = Spacing.m),
+        onToggle = { onEvent(TasksEvent.ObjectFilterToggled(it)) },
+        onClear = { onEvent(TasksEvent.ObjectFilterCleared) },
+        modifier = Modifier.padding(horizontal = Spacing.m, vertical = Spacing.s),
     )
 }
 

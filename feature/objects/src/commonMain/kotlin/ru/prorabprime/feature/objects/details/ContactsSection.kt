@@ -70,49 +70,46 @@ internal fun ContactsSection(
     modifier: Modifier = Modifier,
 ) {
     val uriHandler = LocalUriHandler.current
-    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-        Row(Modifier.padding(horizontal = Spacing.m), verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                stringResource(Res.string.objectdetails_contacts),
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.weight(1f),
-            )
+    SectionCard(
+        title = stringResource(Res.string.objectdetails_contacts),
+        modifier = modifier.padding(horizontal = Spacing.m),
+        action = {
             IconButton(onClick = onAdd) {
                 Icon(Icons.Default.Add, stringResource(Res.string.objectdetails_add_contact))
             }
-        }
+        },
+    ) {
         if (contacts.isEmpty()) {
             Text(
                 stringResource(Res.string.objectdetails_contacts_empty),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = Spacing.m),
             )
         }
         contacts.forEach { contact ->
-            ListItem(
-                headlineContent = { PendingTitle(contact.name, contact.isPending) },
-                supportingContent = {
-                    Text(
-                        listOfNotNull(stringResource(contact.role.label), contact.phone).joinToString(" · "),
-                    )
-                },
-                trailingContent = {
-                    Row {
-                        contact.phone?.let { phone ->
-                            IconButton(onClick = { uriHandler.openUri(phone.asTelUri()) }) {
-                                Icon(Icons.Default.Call, stringResource(Res.string.objectdetails_call))
-                            }
-                        }
-                        IconButton(onClick = { onEdit(contact) }) {
-                            Icon(Icons.Default.Edit, stringResource(Res.string.objectdetails_edit_contact))
-                        }
-                    }
-                },
-                modifier = Modifier.clickable(enabled = contact.phone != null) {
+            Row(
+                modifier = Modifier.fillMaxWidth().clickable(enabled = contact.phone != null) {
                     contact.phone?.let { uriHandler.openUri(it.asTelUri()) }
                 },
-            )
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                    PendingTitle(contact.name, contact.isPending)
+                    Text(
+                        listOfNotNull(stringResource(contact.role.label), contact.phone).joinToString(" · "),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                contact.phone?.let { phone ->
+                    IconButton(onClick = { uriHandler.openUri(phone.asTelUri()) }) {
+                        Icon(Icons.Default.Call, stringResource(Res.string.objectdetails_call))
+                    }
+                }
+                IconButton(onClick = { onEdit(contact) }) {
+                    Icon(Icons.Default.Edit, stringResource(Res.string.objectdetails_edit_contact))
+                }
+            }
         }
     }
 }

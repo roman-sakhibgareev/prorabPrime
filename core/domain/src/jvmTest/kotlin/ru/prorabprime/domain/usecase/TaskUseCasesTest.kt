@@ -111,7 +111,7 @@ class TaskUseCasesTest {
     }
 
     @Test
-    fun `the nearest plan can be asked for one object`() = runTest {
+    fun `the nearest plan can be asked for some objects`() = runTest {
         repository.tasks.value = listOf(
             aTask("near", "Ближе", day.plusDays(1)),
             aTask("mine", "Моё", day.plusDays(4), objectId = ObjectId("o1")),
@@ -120,7 +120,9 @@ class TaskUseCasesTest {
         val next = ObserveNextTaskUseCase(repository)
 
         assertThat(next(day).first().getOrThrow()?.id).isEqualTo(TaskId("near"))
-        assertThat(next(day, ObjectId("o1")).first().getOrThrow()?.id).isEqualTo(TaskId("mine"))
-        assertThat(next(day, ObjectId("other")).first().getOrThrow()).isNull()
+        assertThat(next(day, setOf(ObjectId("o1"))).first().getOrThrow()?.id).isEqualTo(TaskId("mine"))
+        assertThat(next(day, setOf(ObjectId("o1"), ObjectId("o2"))).first().getOrThrow()?.id)
+            .isEqualTo(TaskId("mine"))
+        assertThat(next(day, setOf(ObjectId("other"))).first().getOrThrow()).isNull()
     }
 }

@@ -10,6 +10,7 @@ import androidx.compose.material3.Button as MaterialButton
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledIconButton as MaterialFilledIconButton
+import androidx.compose.material3.FilledTonalButton as MaterialTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton as MaterialOutlinedButton
 import androidx.compose.material3.TextButton as MaterialTextButton
@@ -18,15 +19,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
+import ru.prorabprime.designsystem.theme.Sizes
 
 /*
  * The app's buttons: one height, one corner radius (the theme's), so a screen never mixes a pill with
  * a rectangle. Filled is the one main action of a screen, outlined the others, text the quiet ones.
  */
 
-private val ButtonHeight = 48.dp
+private val ButtonHeight = Sizes.control
 private val ButtonPadding = PaddingValues(horizontal = 20.dp)
-private val IconButtonSize = 48.dp
+private val TonalButtonPadding = PaddingValues(horizontal = 12.dp)
+private val IconButtonSize = Sizes.control
 
 @Composable
 fun Button(
@@ -64,6 +67,28 @@ fun OutlinedButton(
         contentPadding = ButtonPadding,
         border = ButtonDefaults.outlinedButtonBorder(enabled).copy(width = 1.dp),
         content = { Busy(loading, content) },
+    )
+}
+
+/** The same soft green as the status chip: a secondary action that still reads as a button, not a label. */
+@Composable
+fun TonalButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    content: @Composable RowScope.() -> Unit,
+) {
+    MaterialTonalButton(
+        onClick = onClick,
+        modifier = modifier.defaultMinSize(minHeight = ButtonHeight),
+        enabled = enabled,
+        shape = MaterialTheme.shapes.small,
+        contentPadding = TonalButtonPadding,
+        colors = ButtonDefaults.filledTonalButtonColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        ),
+        content = content,
     )
 }
 

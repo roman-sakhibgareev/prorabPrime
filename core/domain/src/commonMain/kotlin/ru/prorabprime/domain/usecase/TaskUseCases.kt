@@ -30,10 +30,12 @@ class ObserveOverdueTasksUseCase(
 class ObserveNextTaskUseCase(
     private val repository: TasksRepository,
 ) {
-    /** With [objectId], only the plans of that object count. */
-    operator fun invoke(after: LocalDay, objectId: ObjectId? = null): Flow<Result<Task?>> =
+    /** With [objectIds], only the plans of those objects count; empty is every object. */
+    operator fun invoke(after: LocalDay, objectIds: Set<ObjectId> = emptySet()): Flow<Result<Task?>> =
         repository.observeOpenFrom(after.plusDays(1)).map { result ->
-            result.map { tasks -> tasks.filter { objectId == null || it.objectId == objectId }.minByOrNull { it.day } }
+            result.map { tasks ->
+                tasks.filter { objectIds.isEmpty() || it.objectId in objectIds }.minByOrNull { it.day }
+            }
         }
 }
 

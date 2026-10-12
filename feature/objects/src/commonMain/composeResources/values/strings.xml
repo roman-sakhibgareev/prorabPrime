@@ -2,20 +2,23 @@
 <resources>
     <!-- objectslist -->
     <string name="objectslist_title">Объекты</string>
-    <string name="objectslist_tasks">Дела на день</string>
+    <string name="objectslist_tasks">Календарь задач</string>
     <string name="objectslist_expenses">Расходы</string>
     <string name="objectslist_map">Карта объектов</string>
     <string name="objectslist_settings">Настройки</string>
     <string name="objectslist_add">Добавить объект</string>
     <string name="objectslist_search">Адрес или название</string>
+    <string name="objectslist_filters">Фильтры</string>
+    <string name="objectslist_filters_active">Фильтры включены</string>
+    <string name="objectslist_filters_reset">Сбросить все</string>
+    <string name="objectslist_filters_status">Статус</string>
+    <string name="objectslist_sort">Сортировка</string>
     <string name="objectslist_search_open">Поиск</string>
-    <string name="objectslist_search_close">Закрыть поиск</string>
-    <string name="objectslist_filter_all">Все</string>
-    <string name="objectslist_clear_search">Очистить поиск</string>
-    <string name="objectslist_sort_address_asc">Адрес А–Я</string>
-    <string name="objectslist_sort_address_desc">Адрес Я–А</string>
-    <string name="objectslist_sort_created">Сначала новые</string>
-    <string name="objectslist_sort_updated">Недавно изменённые</string>
+    <string name="objectslist_search_cancel">Отменить</string>
+    <string name="objectslist_sort_address_asc">По адресу А–Я</string>
+    <string name="objectslist_sort_address_desc">По адресу Я–А</string>
+    <string name="objectslist_sort_created">По дате добавления</string>
+    <string name="objectslist_sort_updated">По дате изменений</string>
     <string name="objectslist_empty">Пока нет ни одного объекта</string>
     <string name="objectslist_empty_action">Добавить первый объект</string>
     <string name="objectslist_camera_photo">Сфотографировать объект</string>
@@ -40,7 +43,7 @@
     <string name="objectdetails_status_title">Статус объекта</string>
     <string name="objectdetails_edit">Редактировать</string>
     <string name="objectdetails_delete">Удалить объект</string>
-    <string name="objectdetails_address">Адрес</string>
+    <string name="objectdetails_name">Имя</string>
     <string name="objectdetails_client">Клиент</string>
     <string name="objectdetails_phone">Телефон</string>
     <string name="objectdetails_notes">Заметки</string>
@@ -66,7 +69,7 @@
     <string name="objectdetails_photos">Фотографии объекта</string>
     <string name="objectdetails_receipts">Чеки</string>
     <string name="objectdetails_add_receipt">Добавить чек</string>
-    <string name="objectdetails_finance">Финансы объекта</string>
+    <string name="objectdetails_finance">Финансы</string>
     <string name="objectdetails_materials">Материалы</string>
     <string name="objectdetails_journal">Журнал</string>
     <string name="objectdetails_calendar">Календарь</string>
@@ -131,7 +134,10 @@
     <string name="objectedit_status">Статус</string>
     <string name="objectedit_client_name">Имя клиента</string>
     <string name="objectedit_client_phone">Телефон клиента</string>
-    <string name="objectedit_notes">Заметки</string>
+    <string name="objectedit_notes">Текст заметок</string>
+    <string name="objectedit_section_object">Объект</string>
+    <string name="objectedit_section_client">Клиент</string>
+    <string name="objectedit_section_notes">Заметки</string>
     <string name="objectedit_save">Сохранить</string>
     <string name="objectedit_error_required">Обязательное поле</string>
     <string name="objectedit_error_too_long">Слишком длинное значение</string>

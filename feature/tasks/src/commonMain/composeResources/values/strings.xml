@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="tasks_title">Дела на день</string>
+    <string name="tasks_title">Задачи на день</string>
     <string name="tasks_object_calendar">Календарь: %1$s</string>
     <string name="tasks_object_field">Объект</string>
     <string name="tasks_all_objects">Все объекты</string>
+    <string name="tasks_objects_count">Объекты: %1$d</string>
+    <string name="tasks_objects_title">Какие объекты показывать</string>
+    <string name="tasks_objects_show_all">Сбросить все</string>
+    <string name="tasks_objects_caption">Объекты</string>
     <string name="tasks_no_object">Без объекта</string>
     <string name="tasks_back">Назад</string>
     <string name="tasks_previous_day">Предыдущий день</string>
@@ -36,9 +40,9 @@
     <string name="tasks_previous_month">Предыдущий месяц</string>
     <string name="tasks_next_month">Следующий месяц</string>
     <string name="tasks_day_title">%1$s, %2$s</string>
-    <string name="tasks_add">Добавить дело</string>
-    <string name="tasks_edit">Дело</string>
-    <string name="tasks_empty">На этот день дел нет</string>
+    <string name="tasks_add">Добавить задачу</string>
+    <string name="tasks_edit">Задача</string>
+    <string name="tasks_empty">На этот день задач нет</string>
     <plurals name="tasks_next_plan">
         <item quantity="one">Ближайшие планы — через %1$d день</item>
         <item quantity="few">Ближайшие планы — через %1$d дня</item>
@@ -60,10 +64,10 @@
     <string name="tasks_cancel">Отмена</string>
     <string name="tasks_delete">Удалить</string>
     <string name="tasks_ok">Готово</string>
-    <string name="tasks_delete_title">Удалить дело?</string>
-    <string name="tasks_delete_message">Дело и его напоминание исчезнут.</string>
+    <string name="tasks_delete_title">Удалить задачу?</string>
+    <string name="tasks_delete_message">Задача и её напоминание исчезнут.</string>
     <string name="tasks_error_required">Обязательное поле</string>
     <string name="tasks_error_too_long">Слишком длинное значение</string>
     <string name="tasks_error_invalid">Неверное значение</string>
-    <string name="tasks_saved">Дело сохранено</string>
+    <string name="tasks_saved">Задача сохранена</string>
 </resources>
