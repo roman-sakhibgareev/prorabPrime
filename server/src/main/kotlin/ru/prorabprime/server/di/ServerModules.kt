@@ -16,6 +16,7 @@ import ru.prorabprime.server.repository.ExposedContactRepository
 import ru.prorabprime.server.repository.ExposedExtraWorkRepository
 import ru.prorabprime.server.repository.ExposedFinanceTermsRepository
 import ru.prorabprime.server.repository.ExposedMaterialRepository
+import ru.prorabprime.server.repository.ExposedNoteRepository
 import ru.prorabprime.server.repository.ExposedObjectRepository
 import ru.prorabprime.server.repository.ExposedPaymentRepository
 import ru.prorabprime.server.repository.ExposedPhotoRepository
@@ -24,6 +25,7 @@ import ru.prorabprime.server.repository.ExposedUserRepository
 import ru.prorabprime.server.repository.ExtraWorkRepository
 import ru.prorabprime.server.repository.FinanceTermsRepository
 import ru.prorabprime.server.repository.MaterialRepository
+import ru.prorabprime.server.repository.NoteRepository
 import ru.prorabprime.server.repository.ObjectRepository
 import ru.prorabprime.server.repository.PaymentRepository
 import ru.prorabprime.server.repository.PhotoRepository
@@ -38,6 +40,7 @@ import ru.prorabprime.server.service.Geocoder
 import ru.prorabprime.server.service.MaterialService
 import ru.prorabprime.server.service.NoGeocoder
 import ru.prorabprime.server.service.NominatimGeocoder
+import ru.prorabprime.server.service.NoteService
 import ru.prorabprime.server.service.ObjectService
 import ru.prorabprime.server.service.PaymentService
 import ru.prorabprime.server.service.PhotoService
@@ -77,6 +80,7 @@ fun databaseModule(database: Database): Module = module {
     single<PaymentRepository> { ExposedPaymentRepository(get()) }
     single<ExtraWorkRepository> { ExposedExtraWorkRepository(get()) }
     single<MaterialRepository> { ExposedMaterialRepository(get()) }
+    single<NoteRepository> { ExposedNoteRepository(get()) }
     single<TaskRepository> { ExposedTaskRepository(get()) }
     single<UserRepository> { ExposedUserRepository(get()) }
 }
@@ -91,7 +95,8 @@ val serviceModule: Module = module {
     single { PaymentService(get(), get(), get(), get()) }
     single { ExtraWorkService(get(), get(), get()) }
     single { MaterialService(get(), get(), get()) }
-    single { TaskService(get(), get()) }
+    single { NoteService(get(), get(), get()) }
+    single { TaskService(get(), get(), get()) }
     single {
         PhotoService(get(), get(), get(), get(), get(), get(), get(), quotaBytes = get<AppConfig>().accountQuotaBytes)
     }

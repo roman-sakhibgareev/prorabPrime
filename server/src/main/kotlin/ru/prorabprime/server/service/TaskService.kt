@@ -15,6 +15,7 @@ import ru.prorabprime.server.model.OwnerId
 import ru.prorabprime.server.model.TaskFields
 import ru.prorabprime.server.model.TaskQuery
 import ru.prorabprime.server.model.TaskRecord
+import ru.prorabprime.server.repository.ObjectRepository
 import ru.prorabprime.server.repository.TaskRepository
 
 /** Trims the request and checks it: a title, a real day, and a time that is a minute of the day. */
@@ -43,13 +44,14 @@ fun validateTask(request: TaskRequestDto): Result<TaskFields> {
 /** The tasks of the day plan. */
 class TaskService(
     private val tasks: TaskRepository,
+    private val objects: ObjectRepository,
     private val clock: Clock,
     private val newId: () -> UUID = UUID::randomUUID,
 ) {
     suspend fun list(owner: OwnerId, query: TaskQuery): List<TaskRecord> = tasks.list(owner, query)
 
     suspend fun create(owner: OwnerId, request: TaskRequestDto): Result<TaskRecord> {
-        val fields = validateTask(request).getOrElse { return Result.failure(it) }
+        val fields = validTask(owner, request).getOrElse { return Result.failure(it) }
         val clientId = parseClientId(request.id).getOrElse { return Result.failure(it) }
         alreadyCreated(clientId?.let { tasks.find(owner, it) }) { true }?.let { return it }
         val record = TaskRecord(clientId ?: newId(), owner, fields, clock.now())
@@ -62,12 +64,23 @@ class TaskService(
         id: UUID,
         request: TaskRequestDto,
     ): Result<Unit> {
-        val fields = validateTask(request).getOrElse { return Result.failure(it) }
+        val fields = validTask(owner, request).getOrElse { return Result.failure(it) }
         return if (tasks.update(owner, id, fields)) Result.success(Unit) else notFound(id)
     }
 
     suspend fun delete(owner: OwnerId, id: UUID): Result<Unit> =
         if (tasks.delete(owner, id)) Result.success(Unit) else notFound(id)
 
-    private fun notFound(id: UUID): Result<Unit> = ServiceError.NotFound("No task $id").asFailure()
+    /** The request's fields, with the object it names checked to be one of [owner]'s. */
+    private suspend fun validTask(owner: OwnerId, request: TaskRequestDto): Result<TaskFields> {
+        val fields = validateTask(request).getOrElse { return Result.failure(it) }
+        val objectId = parseClientId(request.objectId).getOrElse { return Result.failure(it) }
+            ?: return Result.success(fields)
+        if (objects.findAny(owner, objectId) == null) return notFound(objectId, "object")
+        return Result.success(fields.copy(objectId = objectId))
+    }
+
+    private fun <T> notFound(id: UUID, what: String): Result<T> = ServiceError.NotFound("No $what $id").asFailure()
+
+    private fun notFound(id: UUID): Result<Unit> = notFound(id, "task")
 }

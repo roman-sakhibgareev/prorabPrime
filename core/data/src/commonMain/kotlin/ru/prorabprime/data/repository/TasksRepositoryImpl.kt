@@ -5,6 +5,7 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import ru.prorabprime.contract.TaskDto
+import ru.prorabprime.contract.TaskRequestDto
 import ru.prorabprime.data.local.IdFactory
 import ru.prorabprime.data.local.Keys
 import ru.prorabprime.data.local.LocalDb
@@ -15,6 +16,7 @@ import ru.prorabprime.data.mapper.toDomain
 import ru.prorabprime.data.mapper.toRequestDto
 import ru.prorabprime.domain.model.AppError
 import ru.prorabprime.domain.model.LocalDay
+import ru.prorabprime.domain.model.ObjectId
 import ru.prorabprime.domain.model.Task
 import ru.prorabprime.domain.model.TaskDraft
 import ru.prorabprime.domain.model.TaskId
@@ -37,6 +39,9 @@ internal class TasksRepositoryImpl(
     override fun observeOpenFrom(from: LocalDay): Flow<Result<ImmutableList<Task>>> =
         tasks { !it.done && it.day >= from }
 
+    override fun observeByObject(objectId: ObjectId): Flow<Result<ImmutableList<Task>>> =
+        tasks { it.objectId == objectId }
+
     /** By day, then by reminder time (tasks without one last), then in the order they were added. */
     private fun tasks(keep: (Task) -> Boolean): Flow<Result<ImmutableList<Task>>> = db.changes.map {
         val dirty = db.outbox.dirtyKeys()
@@ -52,7 +57,7 @@ internal class TasksRepositoryImpl(
         val request = draft.toRequestDto().copy(id = id)
         db.outbox.enqueue(Operation.CreateTask(request))
         val order = nextOrder(db.tasks.rows.value.values.map { it.order })
-        db.tasks.upsert(TaskRow(TaskDto(id, request.title, request.day, request.remindAtMinutes, request.done), order))
+        db.tasks.upsert(TaskRow(request.toDto(id), order))
         return Result.success(Unit)
     }
 
@@ -61,7 +66,7 @@ internal class TasksRepositoryImpl(
         val request = draft.toRequestDto()
         db.outbox.enqueue(Operation.UpdateTask(id.value, request))
         db.tasks.upsert(
-            row.copy(dto = TaskDto(id.value, request.title, request.day, request.remindAtMinutes, request.done)),
+            row.copy(dto = request.toDto(id.value)),
         )
         return Result.success(Unit)
     }
@@ -73,3 +78,5 @@ internal class TasksRepositoryImpl(
         return Result.success(Unit)
     }
 }
+
+private fun TaskRequestDto.toDto(id: String) = TaskDto(id, title, day, remindAtMinutes, done, objectId)

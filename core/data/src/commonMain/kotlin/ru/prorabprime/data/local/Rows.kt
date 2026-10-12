@@ -7,6 +7,7 @@ import ru.prorabprime.contract.ContactDto
 import ru.prorabprime.contract.ExtraWorkDto
 import ru.prorabprime.contract.FinanceTermsDto
 import ru.prorabprime.contract.MaterialDto
+import ru.prorabprime.contract.NoteDto
 import ru.prorabprime.contract.ObjectStatusDto
 import ru.prorabprime.contract.PaymentDto
 import ru.prorabprime.contract.PaymentRevisionDto
@@ -85,6 +86,12 @@ internal data class MaterialRow(
     val objectId: String,
     val order: Long,
     val dto: MaterialDto,
+)
+
+@Serializable
+internal data class NoteRow(
+    val objectId: String,
+    val dto: NoteDto,
 )
 
 @Serializable

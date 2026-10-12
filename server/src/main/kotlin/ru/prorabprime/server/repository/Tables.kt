@@ -125,6 +125,15 @@ object MaterialsTable : Table("materials") {
     override val primaryKey = PrimaryKey(id)
 }
 
+object NotesTable : Table("object_notes") {
+    val id = javaUUID("id")
+    val objectId = javaUUID("object_id")
+    val text = varchar("text", 2000)
+    val createdAt = timestamp("created_at")
+
+    override val primaryKey = PrimaryKey(id)
+}
+
 object TasksTable : Table("tasks") {
     val id = javaUUID("id")
     val ownerId = javaUUID("owner_id")
@@ -132,6 +141,7 @@ object TasksTable : Table("tasks") {
     val day = date("day")
     val remindAtMinutes = integer("remind_at_minutes").nullable()
     val done = bool("done")
+    val objectId = javaUUID("object_id").nullable()
     val createdAt = timestamp("created_at")
 
     override val primaryKey = PrimaryKey(id)

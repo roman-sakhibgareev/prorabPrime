@@ -26,12 +26,14 @@ internal class LocalDb(
     val payments = Table("payments", PaymentRow.serializer(), persistence) { it.dto.id }
     val extraWorks = Table("extra-works", ExtraWorkRow.serializer(), persistence) { it.dto.id }
     val materials = Table("materials", MaterialRow.serializer(), persistence) { it.dto.id }
+    val notes = Table("notes", NoteRow.serializer(), persistence) { it.dto.id }
     val terms = Table("terms", TermsRow.serializer(), persistence) { it.objectId }
     val history = Table("history", HistoryRow.serializer(), persistence) { it.objectId }
     val tasks = Table("tasks", TaskRow.serializer(), persistence) { it.dto.id }
     val meta = Table("meta", MetaRow.serializer(), persistence) { it.key }
 
-    private val tables = listOf(objects, contacts, photos, payments, extraWorks, materials, terms, history, tasks, meta)
+    private val tables =
+        listOf(objects, contacts, photos, payments, extraWorks, materials, notes, terms, history, tasks, meta)
 
     private val loaded = CompletableDeferred<Unit>()
 

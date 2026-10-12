@@ -24,6 +24,7 @@ import ru.prorabprime.data.repository.ContactsRepositoryImpl
 import ru.prorabprime.data.repository.ExpensesRepositoryImpl
 import ru.prorabprime.data.repository.FinanceRepositoryImpl
 import ru.prorabprime.data.repository.MaterialsRepositoryImpl
+import ru.prorabprime.data.repository.NotesRepositoryImpl
 import ru.prorabprime.data.repository.ObjectsRepositoryImpl
 import ru.prorabprime.data.repository.PhotosRepositoryImpl
 import ru.prorabprime.data.repository.PlacesRepositoryImpl
@@ -40,6 +41,7 @@ import ru.prorabprime.domain.repository.ContactsRepository
 import ru.prorabprime.domain.repository.ExpensesRepository
 import ru.prorabprime.domain.repository.FinanceRepository
 import ru.prorabprime.domain.repository.MaterialsRepository
+import ru.prorabprime.domain.repository.NotesRepository
 import ru.prorabprime.domain.repository.ObjectsRepository
 import ru.prorabprime.domain.repository.PhotosRepository
 import ru.prorabprime.domain.repository.PlacesRepository
@@ -54,6 +56,7 @@ import ru.prorabprime.domain.usecase.CreateObjectUseCase
 import ru.prorabprime.domain.usecase.DeleteContactUseCase
 import ru.prorabprime.domain.usecase.DeleteExtraWorkUseCase
 import ru.prorabprime.domain.usecase.DeleteMaterialUseCase
+import ru.prorabprime.domain.usecase.DeleteNoteUseCase
 import ru.prorabprime.domain.usecase.DeleteObjectUseCase
 import ru.prorabprime.domain.usecase.DeletePaymentUseCase
 import ru.prorabprime.domain.usecase.DeletePhotoUseCase
@@ -69,6 +72,7 @@ import ru.prorabprime.domain.usecase.ObserveFailedChangesUseCase
 import ru.prorabprime.domain.usecase.ObserveFinanceUseCase
 import ru.prorabprime.domain.usecase.ObserveMaterialsUseCase
 import ru.prorabprime.domain.usecase.ObserveNextTaskUseCase
+import ru.prorabprime.domain.usecase.ObserveNotesUseCase
 import ru.prorabprime.domain.usecase.ObserveObjectSortUseCase
 import ru.prorabprime.domain.usecase.ObserveObjectUseCase
 import ru.prorabprime.domain.usecase.ObserveObjectsUseCase
@@ -86,6 +90,7 @@ import ru.prorabprime.domain.usecase.SaveContactUseCase
 import ru.prorabprime.domain.usecase.SaveExtraWorkUseCase
 import ru.prorabprime.domain.usecase.SaveFinanceTermsUseCase
 import ru.prorabprime.domain.usecase.SaveMaterialUseCase
+import ru.prorabprime.domain.usecase.SaveNoteUseCase
 import ru.prorabprime.domain.usecase.SaveObjectSortUseCase
 import ru.prorabprime.domain.usecase.SavePaymentUseCase
 import ru.prorabprime.domain.usecase.SaveServerSettingsUseCase
@@ -129,6 +134,7 @@ val dataModule: Module = module {
     single { PickedPlaceStore() }
     single<FinanceRepository> { FinanceRepositoryImpl(get(), get()) }
     single<MaterialsRepository> { MaterialsRepositoryImpl(get(), get()) }
+    single<NotesRepository> { NotesRepositoryImpl(get(), get(), Clock.System) }
     single<TasksRepository> { TasksRepositoryImpl(get(), get()) }
     single<ExpensesRepository> { ExpensesRepositoryImpl(get()) }
     single<TrashRepository> { TrashRepositoryImpl(get(), get()) }
@@ -173,6 +179,9 @@ val dataModule: Module = module {
     factory { SaveMaterialUseCase(get()) }
     factory { DeleteMaterialUseCase(get()) }
     factory { AddDefaultMaterialsUseCase(get()) }
+    factory { ObserveNotesUseCase(get()) }
+    factory { SaveNoteUseCase(get()) }
+    factory { DeleteNoteUseCase(get()) }
     factory { ObserveDayTasksUseCase(get()) }
     factory { ObserveOverdueTasksUseCase(get()) }
     factory { ObserveTasksRangeUseCase(get()) }

@@ -51,6 +51,7 @@ fun TaskRecord.toDto() = TaskDto(
     day = fields.day.toString(),
     remindAtMinutes = fields.remindAtMinutes,
     done = fields.done,
+    objectId = fields.objectId?.toString(),
 )
 
 private fun RoutingCall.taskQuery(): TaskQuery {

@@ -10,6 +10,7 @@ import ru.prorabprime.server.fakes.FakeExtraWorkRepository
 import ru.prorabprime.server.fakes.FakeFileStorage
 import ru.prorabprime.server.fakes.FakeFinanceTermsRepository
 import ru.prorabprime.server.fakes.FakeMaterialRepository
+import ru.prorabprime.server.fakes.FakeNoteRepository
 import ru.prorabprime.server.fakes.FakeObjectRepository
 import ru.prorabprime.server.fakes.FakePaymentRepository
 import ru.prorabprime.server.fakes.FakePhotoRepository
@@ -34,8 +35,8 @@ class AdminCommandsTest {
     private val objects = FakeObjectRepository(photos)
     private val copies = AccountCopyService(
         users, objects, photos, FakeContactRepository(), FakeFinanceTermsRepository(), FakePaymentRepository(),
-        FakeExtraWorkRepository(), FakeMaterialRepository(), FakeTaskRepository(), FakeFileStorage(),
-        ImmediateTransactor, FixedClock(),
+        FakeExtraWorkRepository(), FakeMaterialRepository(), FakeNoteRepository(), FakeTaskRepository(),
+        FakeFileStorage(), ImmediateTransactor, FixedClock(),
     )
     private val lines = mutableListOf<String>()
     private val commands = AdminCommands(accounts, copies) { lines += it }

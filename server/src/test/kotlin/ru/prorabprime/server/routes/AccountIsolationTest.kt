@@ -47,6 +47,8 @@ import ru.prorabprime.contract.FinanceDto
 import ru.prorabprime.contract.FinanceTermsDto
 import ru.prorabprime.contract.IdDto
 import ru.prorabprime.contract.MaterialRequestDto
+import ru.prorabprime.contract.NoteDto
+import ru.prorabprime.contract.NoteRequestDto
 import ru.prorabprime.contract.ObjectCreatedDto
 import ru.prorabprime.contract.ObjectDetailsDto
 import ru.prorabprime.contract.ObjectRequestDto
@@ -112,6 +114,7 @@ class AccountIsolationTest {
         val extraWorkId: String,
         val materialId: String,
         val taskId: String,
+        val noteId: String,
         val photo: PhotoDto,
         val receipt: PhotoDto,
     )
@@ -195,6 +198,11 @@ class AccountIsolationTest {
             "/api/tasks",
             TaskRequestDto(title = "Позвонить Ивану", day = "2026-09-25"),
         ).body<IdDto>().id
+        val noteId = create(
+            TEST_TOKEN,
+            "/api/objects/$objectId/notes",
+            NoteRequestDto(text = "Стены оштукатурены"),
+        ).body<IdDto>().id
         put("/api/objects/$objectId/finance/terms") {
             bearerAuth(TEST_TOKEN)
             contentType(ContentType.Application.Json)
@@ -202,7 +210,7 @@ class AccountIsolationTest {
         }
         val photo = upload(TEST_TOKEN, objectId).body<PhotoDto>()
         val receipt = upload(TEST_TOKEN, objectId, "?kind=receipt").body<PhotoDto>()
-        return World(objectId, contactId, paymentId, extraWorkId, materialId, taskId, photo, receipt)
+        return World(objectId, contactId, paymentId, extraWorkId, materialId, taskId, noteId, photo, receipt)
     }
 
     private suspend fun HttpClient.get(token: String, path: String): HttpResponse = get(path) { bearerAuth(token) }
@@ -229,7 +237,16 @@ class AccountIsolationTest {
     }
 
     /** Every request Bob can make about something of Alice's, by its id. */
-    private fun World.attacks(): List<Triple<String, String, String?>> {
+    private fun World.attacks(): List<Triple<String, String, String?>> = objectAttacks() + noteAttacks()
+
+    private fun World.noteAttacks(): List<Triple<String, String, String?>> = listOf(
+        Triple("GET", "/api/objects/$objectId/notes", null),
+        Triple("POST", "/api/objects/$objectId/notes", json(NoteRequestDto(text = "Чужая"))),
+        Triple("PUT", "/api/notes/$noteId", json(NoteRequestDto(text = "Чужая"))),
+        Triple("DELETE", "/api/notes/$noteId", null),
+    )
+
+    private fun World.objectAttacks(): List<Triple<String, String, String?>> {
         val request = json(ObjectRequestDto(title = "Моё", address = "Чужой, 1", status = ObjectStatusDto.DONE))
         return listOf(
             Triple("GET", "/api/objects/$objectId", null),
@@ -294,6 +311,7 @@ class AccountIsolationTest {
         get(TEST_TOKEN, "/api/objects/${world.objectId}").body<ObjectDetailsDto>(),
         get(TEST_TOKEN, "/api/objects/${world.objectId}/finance").body<FinanceDto>(),
         get(TEST_TOKEN, "/api/tasks").body<List<TaskDto>>(),
+        get(TEST_TOKEN, "/api/objects/${world.objectId}/notes").body<List<NoteDto>>(),
         get(TEST_TOKEN, "/api/objects").body<List<ObjectSummaryDto>>(),
     )
 
@@ -414,6 +432,22 @@ class AccountIsolationTest {
         assertThat(client.snapshot(world)).isEqualTo(before)
         // And Bob's object is still his, untouched by what failed beside it.
         assertThat(client.get(bobToken, "/api/objects/$bobsObject").status).isEqualTo(HttpStatusCode.OK)
+    }
+
+    @Test
+    fun `a task cannot be hung on an object of another account`() = twoAccounts { client ->
+        val world = client.makeWorld()
+        val before = client.snapshot(world)
+
+        val create = client.create(
+            bobToken,
+            "/api/tasks",
+            TaskRequestDto(title = "Чужому", day = "2026-09-25", objectId = world.objectId),
+        )
+
+        assertThat(create.status).isEqualTo(HttpStatusCode.NotFound)
+        assertThat(client.get(bobToken, "/api/tasks").body<List<TaskDto>>()).isEmpty()
+        assertThat(client.snapshot(world)).isEqualTo(before)
     }
 
     @Test

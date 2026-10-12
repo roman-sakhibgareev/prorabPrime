@@ -25,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import kotlinx.collections.immutable.ImmutableList
 import org.jetbrains.compose.resources.stringResource
 import ru.prorabprime.designsystem.components.OutlinedButton
 import ru.prorabprime.designsystem.components.TextButton
@@ -38,7 +39,9 @@ import ru.prorabprime.feature.tasks.resources.tasks_clear_time
 import ru.prorabprime.feature.tasks.resources.tasks_day_field
 import ru.prorabprime.feature.tasks.resources.tasks_delete
 import ru.prorabprime.feature.tasks.resources.tasks_edit
+import ru.prorabprime.feature.tasks.resources.tasks_no_object
 import ru.prorabprime.feature.tasks.resources.tasks_no_reminder
+import ru.prorabprime.feature.tasks.resources.tasks_object_field
 import ru.prorabprime.feature.tasks.resources.tasks_ok
 import ru.prorabprime.feature.tasks.resources.tasks_pick_day
 import ru.prorabprime.feature.tasks.resources.tasks_pick_time
@@ -47,12 +50,16 @@ import ru.prorabprime.feature.tasks.resources.tasks_time_field
 import ru.prorabprime.feature.tasks.resources.tasks_title_field
 
 @Composable
-internal fun TaskEditorDialog(editor: TaskEditorUi, onEvent: (TasksEvent) -> Unit) {
+internal fun TaskEditorDialog(
+    editor: TaskEditorUi,
+    objects: ImmutableList<ObjectChoiceUi>?,
+    onEvent: (TasksEvent) -> Unit,
+) {
     val title = if (editor.taskId == null) Res.string.tasks_add else Res.string.tasks_edit
     AlertDialog(
         onDismissRequest = { if (!editor.isSaving) onEvent(TaskEditorEvent.Dismiss) },
         title = { Text(stringResource(title)) },
-        text = { TaskForm(editor, onEvent) },
+        text = { TaskForm(editor, objects, onEvent) },
         confirmButton = {
             TextButton(onClick = { onEvent(TaskEditorEvent.Save) }, loading = editor.isSaving) {
                 Text(stringResource(Res.string.tasks_save))
@@ -74,7 +81,11 @@ internal fun TaskEditorDialog(editor: TaskEditorUi, onEvent: (TasksEvent) -> Uni
 }
 
 @Composable
-private fun TaskForm(editor: TaskEditorUi, onEvent: (TasksEvent) -> Unit) {
+private fun TaskForm(
+    editor: TaskEditorUi,
+    objects: ImmutableList<ObjectChoiceUi>?,
+    onEvent: (TasksEvent) -> Unit,
+) {
     val problem = editor.errors[ObjectField.TASK_TITLE]
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
         OutlinedTextField(
@@ -86,6 +97,20 @@ private fun TaskForm(editor: TaskEditorUi, onEvent: (TasksEvent) -> Unit) {
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
             modifier = Modifier.fillMaxWidth(),
         )
+        // A screen opened for one object puts every task on it, so it offers no choice.
+        if (!objects.isNullOrEmpty()) {
+            Text(
+                stringResource(Res.string.tasks_object_field),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            ObjectSelector(
+                selectedId = editor.objectId,
+                objects = objects,
+                noneLabel = stringResource(Res.string.tasks_no_object),
+                onPicked = { onEvent(TaskEditorEvent.ObjectChanged(it)) },
+            )
+        }
         DayRow(editor.day) { onEvent(TaskEditorEvent.DayChanged(it)) }
         TimeRow(editor.minutes) { onEvent(TaskEditorEvent.TimeChanged(it)) }
     }

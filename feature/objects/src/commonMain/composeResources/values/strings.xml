@@ -68,6 +68,8 @@
     <string name="objectdetails_add_receipt">Добавить чек</string>
     <string name="objectdetails_finance">Финансы объекта</string>
     <string name="objectdetails_materials">Материалы</string>
+    <string name="objectdetails_journal">Журнал</string>
+    <string name="objectdetails_calendar">Календарь</string>
     <string name="objectdetails_open_chat">Открыть чат</string>
     <string name="objectdetails_contacts">Контакты</string>
     <string name="objectdetails_contacts_empty">Пока нет контактов</string>

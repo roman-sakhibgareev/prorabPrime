@@ -13,6 +13,7 @@ import ru.prorabprime.server.error.asFailure
 import ru.prorabprime.server.model.ContactRecord
 import ru.prorabprime.server.model.ExtraWorkRecord
 import ru.prorabprime.server.model.MaterialRecord
+import ru.prorabprime.server.model.NoteRecord
 import ru.prorabprime.server.model.ObjectListQuery
 import ru.prorabprime.server.model.ObjectRecord
 import ru.prorabprime.server.model.OwnerId
@@ -25,6 +26,7 @@ import ru.prorabprime.server.repository.ContactRepository
 import ru.prorabprime.server.repository.ExtraWorkRepository
 import ru.prorabprime.server.repository.FinanceTermsRepository
 import ru.prorabprime.server.repository.MaterialRepository
+import ru.prorabprime.server.repository.NoteRepository
 import ru.prorabprime.server.repository.ObjectRepository
 import ru.prorabprime.server.repository.PaymentRepository
 import ru.prorabprime.server.repository.PhotoRepository
@@ -56,6 +58,7 @@ class AccountCopyService(
     private val payments: PaymentRepository,
     private val extras: ExtraWorkRepository,
     private val materials: MaterialRepository,
+    private val notes: NoteRepository,
     private val tasks: TaskRepository,
     private val storage: FileStorage,
     private val transactor: Transactor,
@@ -91,17 +94,22 @@ class AccountCopyService(
         private val written: MutableList<Pair<UUID, String>>,
     ) {
         private var photoCount = 0
+        private val objectIds = mutableMapOf<UUID, UUID>()
 
         suspend fun run(): CopyReport {
             val sources = objects.list(from, ObjectListQuery(sort = SortFieldDto.CREATED, order = SortOrderDto.ASC))
             sources.forEach { copyObject(it.record) }
             val sourceTasks = tasks.list(from, TaskQuery())
-            sourceTasks.forEach { tasks.insert(TaskRecord(newId(), to, it.fields, it.createdAt)) }
+            sourceTasks.forEach {
+                val fields = it.fields.copy(objectId = it.fields.objectId?.let(objectIds::get))
+                tasks.insert(TaskRecord(newId(), to, fields, it.createdAt))
+            }
             return CopyReport(sources.size, photoCount, sourceTasks.size)
         }
 
         private suspend fun copyObject(source: ObjectRecord) {
             val id = newId()
+            objectIds[source.id] = id
             // The cover points at a photo, which does not exist yet: it is set once the photos are copied.
             objects.insert(source.copy(id = id, ownerId = to, coverPhotoId = null))
             source.coordinates?.let { objects.setCoordinates(to, id, it) }
@@ -120,6 +128,7 @@ class AccountCopyService(
             materials.listByObject(source.id).forEach {
                 materials.insert(MaterialRecord(newId(), id, it.fields, it.sortOrder, it.createdAt))
             }
+            notes.listByObject(source.id).forEach { notes.insert(NoteRecord(newId(), id, it.text, it.createdAt)) }
         }
 
         /** Returns the new id of each photo that was copied, by the id it had. */

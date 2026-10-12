@@ -3,6 +3,7 @@ package ru.prorabprime.data.sync
 import kotlin.time.Clock
 import ru.prorabprime.contract.FinanceDto
 import ru.prorabprime.contract.MaterialDto
+import ru.prorabprime.contract.NoteDto
 import ru.prorabprime.contract.ObjectDetailsDto
 import ru.prorabprime.contract.ObjectSummaryDto
 import ru.prorabprime.contract.PaymentRevisionDto
@@ -13,6 +14,7 @@ import ru.prorabprime.data.local.HistoryRow
 import ru.prorabprime.data.local.Keys
 import ru.prorabprime.data.local.LocalDb
 import ru.prorabprime.data.local.MaterialRow
+import ru.prorabprime.data.local.NoteRow
 import ru.prorabprime.data.local.ObjectRow
 import ru.prorabprime.data.local.PaymentRow
 import ru.prorabprime.data.local.PhotoRow
@@ -60,7 +62,8 @@ internal class PullStep(
         val finance = remote.finance(id).getOrElse { return stopOf(it) }
         val history = remote.history(id).getOrElse { return stopOf(it) }
         val materials = remote.materials(id).getOrElse { return stopOf(it) }
-        store(details, finance, history, materials)
+        val notes = remote.notes(id).getOrElse { return stopOf(it) }
+        store(details, finance, history, materials, notes)
         return null
     }
 
@@ -69,6 +72,7 @@ internal class PullStep(
         finance: FinanceDto,
         history: List<PaymentRevisionDto>,
         materials: List<MaterialDto>,
+        notes: List<NoteDto>,
     ) {
         val id = details.id
         db.objects.upsert(details.toRow())
@@ -81,6 +85,7 @@ internal class PullStep(
         reconcile(db.photos, { it.objectId == id }, photos, { it.id }, Keys::photo)
         reconcile(db.payments, { it.objectId == id }, payments, { it.dto.id }, Keys::payment)
         reconcile(db.extraWorks, { it.objectId == id }, extras, { it.dto.id }, Keys::extra)
+        reconcile(db.notes, { it.objectId == id }, notes.map { NoteRow(id, it) }, { it.dto.id }, Keys::note)
         reconcile(db.materials, { it.objectId == id }, checklist, { it.dto.id }, Keys::material)
         if (Keys.terms(id) !in db.outbox.dirtyKeys()) db.terms.upsert(TermsRow(id, finance.terms))
         db.history.upsert(HistoryRow(id, history))
@@ -106,6 +111,7 @@ internal class PullStep(
             db.payments.change { rows -> rows.values.removeAll { it.objectId == id } }
             db.extraWorks.change { rows -> rows.values.removeAll { it.objectId == id } }
             db.materials.change { rows -> rows.values.removeAll { it.objectId == id } }
+            db.notes.change { rows -> rows.values.removeAll { it.objectId == id } }
             db.terms.remove(id)
             db.history.remove(id)
         }

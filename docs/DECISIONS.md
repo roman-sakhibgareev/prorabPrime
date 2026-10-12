@@ -840,3 +840,42 @@ could not see what the contract came to, what the extras came to, and what had b
 older app keeps working against this server and the other way round.
 
 **Review when:** payments need to be tied to a single extra work, or a third kind of payment appears.
+
+
+---
+
+## ADR-0024
+
+### An object has a journal of notes, and its tasks are the plan's tasks
+
+**Accepted** · 2026-10-12
+
+**Context.** The foreman wants to keep, inside each object, what was done and what not to forget ("walls
+plastered", "order the plaster"), to set tasks with an alarm from the card of an object, and to see every such
+task in the one calendar.
+
+**Decision.**
+- A note is its own record: `object_notes` (`id`, `object_id`, `text` up to 2000, `created_at`), deleted with its
+  object. The phone writes it first (ADR-0017) and sends the time it was written; the server keeps that time but
+  never one from the future. A note's text can change; its time cannot.
+- A task may belong to an object: `tasks.object_id`, null for a task of no object, deleted with the object. The
+  server checks the object is the account's own (`404` otherwise). The tasks already reach the phone whole, so the
+  calendar of one object, and the filter by object in the general one, are made on the phone.
+- The journal is a screen of its own (`:feature:journal`) that holds notes only. The calendar of an object is the
+  existing tasks screen opened for that object: it shows that object's tasks, and a task made there belongs to it.
+- Where a note falls on a day is worked out on the device's wall clock (`LocalMoment`), not in UTC.
+
+**Alternatives rejected.**
+- *One kind of record, a note with an optional reminder that makes a task.* One list to read, but a plain line of
+  the log and a thing to do are different to the person writing them, and every note would drag the task's day and
+  time fields along.
+- *A chat-like wall with photos and voice.* The most polished, but large and unasked for before anyone has used a
+  plain log; it can be added on top of notes later.
+- *A second calendar screen for objects.* The same screen filtered says the same, and a fix to one is a fix to both.
+
+**Consequences.** A task that is ticked or edited keeps its object. A task of an object in the trash stays in the
+general calendar without the object's name until the object is restored or deleted for good. The journal does not
+show the object's tasks; they are in its calendar.
+
+**Review when:** the journal needs photos or tasks in the same feed, or the foreman asks to see an object's open
+tasks on its journal page.

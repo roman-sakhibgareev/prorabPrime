@@ -64,6 +64,12 @@ internal fun QueuedOperation.describe(): FailedChange {
 
         is Operation.AddDefaultMaterials -> Triple(ChangeKind.MATERIAL, ChangeAction.CREATE, null)
 
+        is Operation.CreateNote -> Triple(ChangeKind.NOTE, ChangeAction.CREATE, op.request.text.take(TITLE_LENGTH))
+
+        is Operation.UpdateNote -> Triple(ChangeKind.NOTE, ChangeAction.UPDATE, op.request.text.take(TITLE_LENGTH))
+
+        is Operation.DeleteNote -> Triple(ChangeKind.NOTE, ChangeAction.DELETE, null)
+
         is Operation.CreateTask -> Triple(ChangeKind.TASK, ChangeAction.CREATE, op.request.title)
 
         is Operation.UpdateTask -> Triple(ChangeKind.TASK, ChangeAction.UPDATE, op.request.title)
@@ -72,3 +78,6 @@ internal fun QueuedOperation.describe(): FailedChange {
     }
     return FailedChange(seq, kind, action, title, reason.orEmpty())
 }
+
+/** How much of a note is quoted when the list of waiting changes names it. */
+private const val TITLE_LENGTH = 60

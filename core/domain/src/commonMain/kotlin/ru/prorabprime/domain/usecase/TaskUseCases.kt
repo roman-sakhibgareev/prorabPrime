@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import ru.prorabprime.domain.model.AppError
 import ru.prorabprime.domain.model.LocalDay
+import ru.prorabprime.domain.model.ObjectId
 import ru.prorabprime.domain.model.Task
 import ru.prorabprime.domain.model.TaskDraft
 import ru.prorabprime.domain.model.TaskId
@@ -29,9 +30,10 @@ class ObserveOverdueTasksUseCase(
 class ObserveNextTaskUseCase(
     private val repository: TasksRepository,
 ) {
-    operator fun invoke(after: LocalDay): Flow<Result<Task?>> =
+    /** With [objectId], only the plans of that object count. */
+    operator fun invoke(after: LocalDay, objectId: ObjectId? = null): Flow<Result<Task?>> =
         repository.observeOpenFrom(after.plusDays(1)).map { result ->
-            result.map { tasks -> tasks.minByOrNull { it.day } }
+            result.map { tasks -> tasks.filter { objectId == null || it.objectId == objectId }.minByOrNull { it.day } }
         }
 }
 

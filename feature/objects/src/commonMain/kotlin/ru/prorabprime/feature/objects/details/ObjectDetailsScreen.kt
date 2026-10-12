@@ -3,6 +3,7 @@ package ru.prorabprime.feature.objects.details
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -64,10 +65,12 @@ import ru.prorabprime.feature.objects.resources.Res
 import ru.prorabprime.feature.objects.resources.objectdetails_add_receipt
 import ru.prorabprime.feature.objects.resources.objectdetails_address
 import ru.prorabprime.feature.objects.resources.objectdetails_back
+import ru.prorabprime.feature.objects.resources.objectdetails_calendar
 import ru.prorabprime.feature.objects.resources.objectdetails_client
 import ru.prorabprime.feature.objects.resources.objectdetails_delete
 import ru.prorabprime.feature.objects.resources.objectdetails_edit
 import ru.prorabprime.feature.objects.resources.objectdetails_finance
+import ru.prorabprime.feature.objects.resources.objectdetails_journal
 import ru.prorabprime.feature.objects.resources.objectdetails_materials
 import ru.prorabprime.feature.objects.resources.objectdetails_notes
 import ru.prorabprime.feature.objects.resources.objectdetails_open_chat
@@ -88,6 +91,8 @@ fun ObjectDetailsScreen(
     onOpenGallery: (receipts: Boolean) -> Unit,
     onOpenFinance: () -> Unit,
     onOpenMaterials: () -> Unit,
+    onOpenJournal: () -> Unit,
+    onOpenCalendar: () -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -98,6 +103,8 @@ fun ObjectDetailsScreen(
         onOpenGallery,
         onOpenFinance,
         onOpenMaterials,
+        onOpenJournal,
+        onOpenCalendar,
         onClose,
         modifier,
         viewModel,
@@ -111,6 +118,8 @@ private fun ObjectDetailsScreen(
     onOpenGallery: (receipts: Boolean) -> Unit,
     onOpenFinance: () -> Unit,
     onOpenMaterials: () -> Unit,
+    onOpenJournal: () -> Unit,
+    onOpenCalendar: () -> Unit,
     onClose: () -> Unit,
     modifier: Modifier,
     viewModel: ObjectDetailsViewModel,
@@ -133,6 +142,8 @@ private fun ObjectDetailsScreen(
         onOpenGallery = onOpenGallery,
         onOpenFinance = onOpenFinance,
         onOpenMaterials = onOpenMaterials,
+        onOpenJournal = onOpenJournal,
+        onOpenCalendar = onOpenCalendar,
         onTakePhoto = { sourcesFor(it).takePhoto() },
         onPickPhotos = { sourcesFor(it).pickFromGallery() },
         modifier = modifier,
@@ -151,11 +162,19 @@ internal fun ObjectDetailsContent(
     onOpenGallery: (receipts: Boolean) -> Unit = {},
     onOpenFinance: () -> Unit = {},
     onOpenMaterials: () -> Unit = {},
+    onOpenJournal: () -> Unit = {},
+    onOpenCalendar: () -> Unit = {},
     onTakePhoto: (AttachmentKind) -> Unit = {},
     onPickPhotos: (AttachmentKind) -> Unit = {},
 ) {
     var choosingStatus by remember { mutableStateOf(false) }
-    val sections = ObjectSections(onOpenFinance, onOpenMaterials, onEditStatus = { choosingStatus = true })
+    val sections = ObjectSections(
+        onOpenFinance,
+        onOpenMaterials,
+        onOpenJournal,
+        onOpenCalendar,
+        onEditStatus = { choosingStatus = true },
+    )
     // Whether the "camera or gallery" sheet is open is view state, like a menu.
     var choosingSourceFor by remember { mutableStateOf<AttachmentKind?>(null) }
     BusyScreen(state.isDeleting, modifier) {
@@ -164,25 +183,9 @@ internal fun ObjectDetailsContent(
         ) { padding ->
             Column(Modifier.padding(padding).fillMaxSize()) {
                 if (state.isDeleting) LinearProgressIndicator(Modifier.fillMaxWidth())
-                when (val status = state.status) {
-                    ObjectDetailsStatus.Content -> state.details?.let { details ->
-                        DetailsBody(
-                            details,
-                            state,
-                            onEvent,
-                            onOpenPhoto,
-                            onOpenGallery,
-                            sections,
-                            onAdd = { choosingSourceFor = it },
-                        )
-                    }
-
-                    ObjectDetailsStatus.Loading -> LoadingBox()
-
-                    is ObjectDetailsStatus.Error -> ErrorMessage(status.message, onRetry = {
-                        onEvent(ObjectDetailsEvent.Retry)
-                    })
-                }
+                DetailsByStatus(state, onEvent, onOpenPhoto, onOpenGallery, sections, onAdd = {
+                    choosingSourceFor = it
+                })
             }
         }
     }
@@ -297,19 +300,48 @@ private fun DetailsBody(
     }
 }
 
-/** Where the card leads besides itself: the object's finance and its materials checklist; and the status sheet. */
+@Composable
+private fun DetailsByStatus(
+    state: ObjectDetailsState,
+    onEvent: (ObjectDetailsEvent) -> Unit,
+    onOpenPhoto: (photoId: String) -> Unit,
+    onOpenGallery: (receipts: Boolean) -> Unit,
+    sections: ObjectSections,
+    onAdd: (AttachmentKind) -> Unit,
+) {
+    when (val status = state.status) {
+        ObjectDetailsStatus.Content -> state.details?.let { details ->
+            DetailsBody(details, state, onEvent, onOpenPhoto, onOpenGallery, sections, onAdd)
+        }
+
+        ObjectDetailsStatus.Loading -> LoadingBox()
+
+        is ObjectDetailsStatus.Error -> ErrorMessage(status.message, onRetry = {
+            onEvent(ObjectDetailsEvent.Retry)
+        })
+    }
+}
+
+/**
+ * Where the card leads besides itself: the object's finance, its materials checklist, its journal and its
+ * calendar; and the status sheet.
+ */
 internal data class ObjectSections(
     val onOpenFinance: () -> Unit,
     val onOpenMaterials: () -> Unit,
+    val onOpenJournal: () -> Unit,
+    val onOpenCalendar: () -> Unit,
     val onEditStatus: () -> Unit,
 )
 
 @Composable
 private fun SectionButtons(sections: ObjectSections) {
-    Row(
+    FlowRow(
         modifier = Modifier.padding(horizontal = Spacing.m),
         horizontalArrangement = Arrangement.spacedBy(Spacing.s),
     ) {
+        OutlinedButton(onClick = sections.onOpenJournal) { Text(stringResource(Res.string.objectdetails_journal)) }
+        OutlinedButton(onClick = sections.onOpenCalendar) { Text(stringResource(Res.string.objectdetails_calendar)) }
         OutlinedButton(onClick = sections.onOpenFinance) { Text(stringResource(Res.string.objectdetails_finance)) }
         OutlinedButton(onClick = sections.onOpenMaterials) { Text(stringResource(Res.string.objectdetails_materials)) }
     }

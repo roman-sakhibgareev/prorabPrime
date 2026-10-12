@@ -13,6 +13,8 @@ data class TaskDto(
     val day: String,
     val remindAtMinutes: Int? = null,
     val done: Boolean = false,
+    /** The object the task belongs to, or null for a task of the general plan. */
+    val objectId: String? = null,
 )
 
 /** Body of `POST /api/tasks` and `PUT /api/tasks/{id}`; a PUT replaces every field. */
@@ -22,6 +24,7 @@ data class TaskRequestDto(
     val day: String,
     val remindAtMinutes: Int? = null,
     val done: Boolean = false,
+    val objectId: String? = null,
     /** Chosen by the client on create (a UUID), so a retry of the same create finds the record it made. */
     val id: String? = null,
 )

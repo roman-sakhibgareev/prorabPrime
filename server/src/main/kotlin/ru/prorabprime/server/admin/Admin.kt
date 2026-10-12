@@ -14,6 +14,7 @@ import ru.prorabprime.server.repository.ExposedContactRepository
 import ru.prorabprime.server.repository.ExposedExtraWorkRepository
 import ru.prorabprime.server.repository.ExposedFinanceTermsRepository
 import ru.prorabprime.server.repository.ExposedMaterialRepository
+import ru.prorabprime.server.repository.ExposedNoteRepository
 import ru.prorabprime.server.repository.ExposedObjectRepository
 import ru.prorabprime.server.repository.ExposedPaymentRepository
 import ru.prorabprime.server.repository.ExposedPhotoRepository
@@ -62,6 +63,7 @@ fun runAdmin(
             ExposedPaymentRepository(db),
             ExposedExtraWorkRepository(db),
             ExposedMaterialRepository(db),
+            ExposedNoteRepository(db),
             ExposedTaskRepository(db),
             storage,
             db,

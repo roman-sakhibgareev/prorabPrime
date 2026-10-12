@@ -20,6 +20,7 @@ kotlin {
             implementation(project(":feature:settings"))
             implementation(project(":feature:finance"))
             implementation(project(":feature:materials"))
+            implementation(project(":feature:journal"))
             implementation(project(":feature:map"))
             implementation(project(":feature:tasks"))
             implementation(project(":feature:sync"))
