@@ -37,6 +37,8 @@ import ru.prorabprime.feature.expenses.ExpensesNavKey
 import ru.prorabprime.feature.expenses.ExpensesScreen
 import ru.prorabprime.feature.finance.FinanceNavKey
 import ru.prorabprime.feature.finance.FinanceScreen
+import ru.prorabprime.feature.journal.JournalNavKey
+import ru.prorabprime.feature.journal.JournalScreen
 import ru.prorabprime.feature.map.MapNavKey
 import ru.prorabprime.feature.map.MapScreen
 import ru.prorabprime.feature.map.PlacePickerNavKey
@@ -190,6 +192,7 @@ private fun EntryProviderScope<NavKey>.toolEntries(backStack: NavBackStack<NavKe
         )
     }
     entry<MaterialsNavKey> { key -> MaterialsScreen(objectId = key.objectId, onBack = { backStack.pop() }) }
+    entry<JournalNavKey> { key -> JournalScreen(objectId = key.objectId, onBack = { backStack.pop() }) }
     entry<SettingsNavKey> {
         SettingsScreen(onBack = { backStack.pop() }, onOpenTrash = { backStack.add(TrashNavKey) })
     }
@@ -216,6 +219,7 @@ private val NAV_KEYS = SavedStateConfiguration {
             subclass(SettingsNavKey::class, SettingsNavKey.serializer())
             subclass(FinanceNavKey::class, FinanceNavKey.serializer())
             subclass(MaterialsNavKey::class, MaterialsNavKey.serializer())
+            subclass(JournalNavKey::class, JournalNavKey.serializer())
             subclass(MapNavKey::class, MapNavKey.serializer())
             subclass(PlacePickerNavKey::class, PlacePickerNavKey.serializer())
             subclass(TasksNavKey::class, TasksNavKey.serializer())

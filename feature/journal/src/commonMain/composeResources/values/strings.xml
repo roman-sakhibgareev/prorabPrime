@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="journal_title">Журнал объекта</string>
+    <string name="journal_back">Назад</string>
+    <string name="journal_today">Сегодня</string>
+    <string name="journal_yesterday">Вчера</string>
+    <string name="journal_empty">Записей пока нет</string>
+    <string name="journal_empty_hint">Пишите, что сделано и что не забыть: «стены оштукатурены», «заказать штукатурку».</string>
+    <string name="journal_draft_label">Новая запись</string>
+    <string name="journal_send">Добавить запись</string>
+    <string name="journal_edit">Запись</string>
+    <string name="journal_save">Сохранить</string>
+    <string name="journal_cancel">Отмена</string>
+    <string name="journal_delete">Удалить</string>
+    <string name="journal_delete_title">Удалить запись?</string>
+    <string name="journal_delete_message">Запись исчезнет из журнала.</string>
+    <string name="journal_error_gone">Этот объект удалён.</string>
+    <string name="journal_error_required">Напишите хоть что-нибудь</string>
+    <string name="journal_error_too_long">Слишком длинная запись</string>
+    <string name="journal_error_invalid">Неверное значение</string>
+</resources>
