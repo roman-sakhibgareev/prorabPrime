@@ -49,6 +49,7 @@ enum class ObjectFieldDto {
     TASK_TITLE,
     TASK_DAY,
     TASK_TIME,
+    NOTE_TEXT,
 }
 
 @Serializable

@@ -10,6 +10,7 @@ import ru.prorabprime.server.model.ExtraWorkRecord
 import ru.prorabprime.server.model.FinanceTerms
 import ru.prorabprime.server.model.MaterialFields
 import ru.prorabprime.server.model.MaterialRecord
+import ru.prorabprime.server.model.NoteRecord
 import ru.prorabprime.server.model.ObjectFields
 import ru.prorabprime.server.model.ObjectListItem
 import ru.prorabprime.server.model.ObjectListQuery
@@ -263,6 +264,25 @@ interface MaterialRepository {
 
     /** One past the object's highest sort order, so a new material goes to the end. */
     suspend fun nextSortOrder(objectId: UUID): Int
+}
+
+interface NoteRepository {
+    /** Oldest first. */
+    suspend fun listByObject(objectId: UUID): List<NoteRecord>
+
+    suspend fun find(owner: OwnerId, id: UUID): NoteRecord?
+
+    suspend fun insert(note: NoteRecord)
+
+    /** Returns false when there is no such note. */
+    suspend fun updateText(
+        owner: OwnerId,
+        id: UUID,
+        text: String,
+    ): Boolean
+
+    /** Returns false when there is no such note. */
+    suspend fun delete(owner: OwnerId, id: UUID): Boolean
 }
 
 interface TaskRepository {

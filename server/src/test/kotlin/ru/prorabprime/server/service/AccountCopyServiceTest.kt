@@ -24,6 +24,7 @@ import ru.prorabprime.server.fakes.FakeExtraWorkRepository
 import ru.prorabprime.server.fakes.FakeFileStorage
 import ru.prorabprime.server.fakes.FakeFinanceTermsRepository
 import ru.prorabprime.server.fakes.FakeMaterialRepository
+import ru.prorabprime.server.fakes.FakeNoteRepository
 import ru.prorabprime.server.fakes.FakeObjectRepository
 import ru.prorabprime.server.fakes.FakePaymentRepository
 import ru.prorabprime.server.fakes.FakePhotoRepository
@@ -40,6 +41,7 @@ import ru.prorabprime.server.model.ExtraWorkRecord
 import ru.prorabprime.server.model.FinanceTerms
 import ru.prorabprime.server.model.MaterialFields
 import ru.prorabprime.server.model.MaterialRecord
+import ru.prorabprime.server.model.NoteRecord
 import ru.prorabprime.server.model.ObjectFields
 import ru.prorabprime.server.model.ObjectListQuery
 import ru.prorabprime.server.model.ObjectRecord
@@ -60,6 +62,7 @@ class AccountCopyServiceTest {
     private val payments = FakePaymentRepository()
     private val extras = FakeExtraWorkRepository()
     private val materials = FakeMaterialRepository()
+    private val notes = FakeNoteRepository()
     private val tasks = FakeTaskRepository()
     private val users = FakeUserRepository().apply {
         seed(TEST_OWNER.value, "owner", "an-owner-token-0123456789")
@@ -75,6 +78,7 @@ class AccountCopyServiceTest {
         payments,
         extras,
         materials,
+        notes,
         tasks,
         storage,
         ImmediateTransactor,
@@ -283,6 +287,20 @@ class AccountCopyServiceTest {
         val copiedObject = objects.list(theirs(), ObjectListQuery()).single().record.id
         assertThat(copiedObject).isNotEqualTo(kitchen)
         assertThat(tasks.list(theirs(), TaskQuery()).single().fields.objectId).isEqualTo(copiedObject)
+    }
+
+    @Test
+    fun `the log of an object is copied under the copy of the object`() = runTest {
+        anObject(kitchen, "Кухня")
+        notes.insert(NoteRecord(UUID.randomUUID(), kitchen, "Маяки поставлены", FIXED_NOW))
+
+        service.copy("owner", "Заказчик").getOrThrow()
+
+        val copiedObject = objects.list(theirs(), ObjectListQuery()).single().record.id
+        val copied = notes.listByObject(copiedObject).single()
+        assertThat(copied.text).isEqualTo("Маяки поставлены")
+        assertThat(copied.createdAt).isEqualTo(FIXED_NOW)
+        assertThat(notes.listByObject(kitchen)).hasSize(1)
     }
 
     @Test

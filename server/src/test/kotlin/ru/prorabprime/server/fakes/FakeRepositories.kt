@@ -15,6 +15,7 @@ import ru.prorabprime.server.model.ExtraWorkRecord
 import ru.prorabprime.server.model.FinanceTerms
 import ru.prorabprime.server.model.MaterialFields
 import ru.prorabprime.server.model.MaterialRecord
+import ru.prorabprime.server.model.NoteRecord
 import ru.prorabprime.server.model.ObjectFields
 import ru.prorabprime.server.model.ObjectListItem
 import ru.prorabprime.server.model.ObjectListQuery
@@ -34,6 +35,7 @@ import ru.prorabprime.server.repository.ContactRepository
 import ru.prorabprime.server.repository.ExtraWorkRepository
 import ru.prorabprime.server.repository.FinanceTermsRepository
 import ru.prorabprime.server.repository.MaterialRepository
+import ru.prorabprime.server.repository.NoteRepository
 import ru.prorabprime.server.repository.ObjectRepository
 import ru.prorabprime.server.repository.PaymentRepository
 import ru.prorabprime.server.repository.PhotoRepository
@@ -424,6 +426,32 @@ class FakeMaterialRepository : MaterialRepository {
         (records.values.filter { it.objectId == objectId }.maxOfOrNull { it.sortOrder } ?: 0) + 1
 }
 
+class FakeNoteRepository : NoteRepository {
+
+    val records = linkedMapOf<UUID, NoteRecord>()
+
+    override suspend fun listByObject(objectId: UUID): List<NoteRecord> =
+        records.values.filter { it.objectId == objectId }.sortedBy { it.createdAt }
+
+    override suspend fun find(owner: OwnerId, id: UUID): NoteRecord? = records[id]
+
+    override suspend fun insert(note: NoteRecord) {
+        records[note.id] = note
+    }
+
+    override suspend fun updateText(
+        owner: OwnerId,
+        id: UUID,
+        text: String,
+    ): Boolean {
+        val record = records[id] ?: return false
+        records[id] = record.copy(text = text)
+        return true
+    }
+
+    override suspend fun delete(owner: OwnerId, id: UUID): Boolean = records.remove(id) != null
+}
+
 class FakeTaskRepository : TaskRepository {
 
     val records = linkedMapOf<UUID, TaskRecord>()
@@ -490,6 +518,7 @@ fun financeFakes(): org.koin.core.module.Module = org.koin.dsl.module {
     single<PaymentRepository> { FakePaymentRepository() }
     single<ExtraWorkRepository> { FakeExtraWorkRepository() }
     single<MaterialRepository> { FakeMaterialRepository() }
+    single<NoteRepository> { FakeNoteRepository() }
     single<TaskRepository> { FakeTaskRepository() }
     single<ru.prorabprime.server.db.Transactor> { ImmediateTransactor }
 }

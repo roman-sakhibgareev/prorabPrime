@@ -21,6 +21,8 @@ object ApiPaths {
     const val OBJECT_MATERIALS = "/api/objects/{id}/materials"
     const val OBJECT_MATERIAL_DEFAULTS = "/api/objects/{id}/materials/defaults"
     const val MATERIAL = "/api/materials/{id}"
+    const val OBJECT_NOTES = "/api/objects/{id}/notes"
+    const val NOTE = "/api/notes/{id}"
     const val TASKS = "/api/tasks"
     const val TASK = "/api/tasks/{id}"
     const val PHOTO = "/api/photos/{id}"

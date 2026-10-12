@@ -37,6 +37,7 @@ import ru.prorabprime.server.routes.financeRoutes
 import ru.prorabprime.server.routes.geocodeRoutes
 import ru.prorabprime.server.routes.healthRoutes
 import ru.prorabprime.server.routes.materialRoutes
+import ru.prorabprime.server.routes.noteRoutes
 import ru.prorabprime.server.routes.objectRoutes
 import ru.prorabprime.server.routes.photoRoutes
 import ru.prorabprime.server.routes.taskRoutes
@@ -111,6 +112,7 @@ fun Application.configure(config: AppConfig, koinModules: List<Module>) {
             contactRoutes()
             financeRoutes()
             materialRoutes()
+            noteRoutes()
             taskRoutes()
             trashRoutes()
             fileRoutes()
