@@ -48,7 +48,7 @@ val androidTestModules = buildableSubprojects.flatMap { project ->
 tasks.register("verify") {
     group = "verification"
     description = "Checks formatting and static analysis, assembles the debug APK and every instrumented test APK, builds the web site, runs every unit test in every module. No device needed."
-    findProject(":app")?.let { dependsOn("${it.path}:assembleDebug") }
+    findProject(":app")?.let { dependsOn("${it.path}:assembleDevDebug") }
     dependsOn(buildableSubprojects.map { "${it.path}:check" })
     // The web client: every module's `wasmJs` target compiles (a `check` does not build it, as no
     // test runs there), and the site itself builds.

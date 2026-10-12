@@ -15,7 +15,7 @@ Two gates, both real tasks in the root `build.gradle.kts`:
     ./gradlew verify           # every change, every time. No device needed.
     ./gradlew verifyOnDevice   # before merging into dev. Needs a device/emulator.
 
-- **`verify`** = `:app:assembleDebug` + the web site (`:web:wasmJsBrowserDistribution`, plus every
+- **`verify`** = `:app:assembleDevDebug` + the web site (`:web:wasmJsBrowserDistribution`, plus every
   module's `compileKotlinWasmJs`) + every subproject's own `check` task —
   ktlint, detekt, and the unit tests all attach themselves to `check`, so `verify`
   depends on `check` itself rather than naming module-specific task paths. A new
@@ -87,8 +87,8 @@ Nothing secret is committed.
 
 - **Server:** copy `.env.example` to `.env` and fill it in; `application.conf` reads
   the environment.
-- **App:** the default server URL and token come from `local.properties`
-  (`prorab.serverUrl`, `prorab.apiToken`), which is gitignored. They can be changed at
+- **App:** each build flavor's default server URL and token come from `local.properties`
+  (`prorab.dev.*`, `prorab.client.*`, `prorab.rustore.*`; README, "Build and install the app"), which is gitignored. They can be changed at
   runtime in the app's settings screen.
 
 ---

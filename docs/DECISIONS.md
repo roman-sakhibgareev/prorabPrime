@@ -879,3 +879,34 @@ show the object's tasks; they are in its calendar.
 
 **Review when:** the journal needs photos or tasks in the same feed, or the foreman asks to see an object's open
 tasks on its journal page.
+
+---
+
+## ADR-0025
+
+### Three build flavors carry the server and token, not a `-P` flag
+
+**Accepted** · 2026-10-12
+
+**Context.** One APK recipe served three audiences: the owner's local builds, a customer who needs an APK that
+opens ready to work, and the store, whose APK must hold no token. The only switch was blanking `-Pprorab.serverUrl`
+and `-Pprorab.apiToken` by hand, and forgetting it put the owner's token into an APK handed to someone else.
+
+**Decision.** One flavor dimension, `distribution`: `dev`, `client`, `rustore`. Each flavor fixes its own
+`DEFAULT_SERVER_URL` and `DEFAULT_API_TOKEN`, read from `local.properties` under `prorab.<flavor>.*` (a `-P`
+property wins). `rustore` never has a token. building `client` for release fails when its token is missing, rather than
+producing an APK that opens empty. The values are set per variant (`androidComponents`) and read lazily, so a
+flavor that is not being built asks for nothing. `verify` builds `devDebug`.
+
+**Alternatives rejected.**
+- *Keep the `-P` overrides.* Safe only if the person remembers; the default was the unsafe direction.
+- *Separate build types for the customer.* Build types are for how the code is built, not for whom; a flavor
+  keeps debug and release of each audience.
+- *A different `applicationId` per flavor.* Lets them sit side by side on one phone, but the store listing is
+  `ru.prorabprime` and an update from the customer's APK to the store's would stop working.
+
+**Consequences.** Every Gradle task and path gains a flavor (`assembleClientRelease`, `apk/client/release/`). A new
+customer is one more flavor and one more `local.properties` key. A customer's token lives in the APK, so it is
+revocable on the server and the APK is for that person only.
+
+**Review when:** a second customer needs an APK, or the token stops being a single shared secret (per-device login).
