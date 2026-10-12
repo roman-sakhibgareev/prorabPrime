@@ -3,6 +3,7 @@ package ru.prorabprime.feature.tasks
 import ru.prorabprime.domain.usecase.DeleteTaskUseCase
 import ru.prorabprime.domain.usecase.ObserveDayTasksUseCase
 import ru.prorabprime.domain.usecase.ObserveNextTaskUseCase
+import ru.prorabprime.domain.usecase.ObserveObjectsUseCase
 import ru.prorabprime.domain.usecase.ObserveOverdueTasksUseCase
 import ru.prorabprime.domain.usecase.ObserveTasksRangeUseCase
 import ru.prorabprime.domain.usecase.SaveTaskUseCase
@@ -15,4 +16,5 @@ internal class TasksActions(
     val observeNext: ObserveNextTaskUseCase,
     val saveTask: SaveTaskUseCase,
     val deleteTask: DeleteTaskUseCase,
+    val observeObjects: ObserveObjectsUseCase,
 )

@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 import ru.prorabprime.designsystem.components.DialogHost
 import ru.prorabprime.designsystem.components.ErrorMessage
 import ru.prorabprime.designsystem.components.LoadingBox
@@ -41,14 +42,17 @@ import ru.prorabprime.designsystem.components.TextButton
 import ru.prorabprime.designsystem.components.TopAppBar
 import ru.prorabprime.designsystem.icons.ProrabIcons
 import ru.prorabprime.designsystem.theme.Spacing
+import ru.prorabprime.domain.model.ObjectId
 import ru.prorabprime.feature.tasks.resources.Res
 import ru.prorabprime.feature.tasks.resources.tasks_add
+import ru.prorabprime.feature.tasks.resources.tasks_all_objects
 import ru.prorabprime.feature.tasks.resources.tasks_back
 import ru.prorabprime.feature.tasks.resources.tasks_empty
 import ru.prorabprime.feature.tasks.resources.tasks_hide_month
 import ru.prorabprime.feature.tasks.resources.tasks_mark_done
 import ru.prorabprime.feature.tasks.resources.tasks_mark_open
 import ru.prorabprime.feature.tasks.resources.tasks_next_day
+import ru.prorabprime.feature.tasks.resources.tasks_object_calendar
 import ru.prorabprime.feature.tasks.resources.tasks_overdue
 import ru.prorabprime.feature.tasks.resources.tasks_previous_day
 import ru.prorabprime.feature.tasks.resources.tasks_show_month
@@ -57,8 +61,14 @@ import ru.prorabprime.feature.tasks.resources.tasks_today
 import ru.prorabprime.ui.UiText
 
 @Composable
-fun TasksScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
-    val viewModel: TasksViewModel = koinViewModel()
+fun TasksScreen(
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+    objectId: String? = null,
+) {
+    val viewModel: TasksViewModel = koinViewModel(key = "tasks-${objectId.orEmpty()}") {
+        parametersOf(TasksScope(objectId?.let(::ObjectId)))
+    }
     val state by viewModel.state.collectAsStateWithLifecycle()
     TasksContent(state, viewModel::onEvent, onBack, modifier)
 }
@@ -75,7 +85,16 @@ internal fun TasksContent(
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(Res.string.tasks_title)) },
+                title = {
+                    val objectTitle = state.scopedObjectTitle
+                    Text(
+                        if (objectTitle == null) {
+                            stringResource(Res.string.tasks_title)
+                        } else {
+                            stringResource(Res.string.tasks_object_calendar, objectTitle)
+                        },
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(Res.string.tasks_back))
@@ -103,6 +122,7 @@ internal fun TasksContent(
         },
     ) { padding ->
         Column(Modifier.padding(padding).fillMaxSize()) {
+            if (!state.isScoped && state.objects.isNotEmpty()) ObjectFilter(state, onEvent)
             if (state.view == TasksView.MONTH) MonthGrid(state, onEvent)
             DayBar(state, onEvent)
             when (val status = state.status) {
@@ -112,11 +132,23 @@ internal fun TasksContent(
             }
         }
     }
-    state.editor?.let { TaskEditorDialog(it, onEvent) }
+    state.editor?.let { TaskEditorDialog(it, if (state.isScoped) null else state.objects, onEvent) }
     DialogHost(
         dialog = state.dialog,
         onConfirm = { onEvent(TasksEvent.DialogConfirmed) },
         onDismiss = { onEvent(TasksEvent.DialogDismissed) },
+    )
+}
+
+/** Narrows the plan to one object. */
+@Composable
+private fun ObjectFilter(state: TasksState, onEvent: (TasksEvent) -> Unit) {
+    ObjectSelector(
+        selectedId = state.objectFilter,
+        objects = state.objects,
+        noneLabel = stringResource(Res.string.tasks_all_objects),
+        onPicked = { onEvent(TasksEvent.ObjectFilterPicked(it)) },
+        modifier = Modifier.padding(horizontal = Spacing.m),
     )
 }
 
@@ -185,7 +217,9 @@ private fun TaskRow(task: TaskUi, onEvent: (TasksEvent) -> Unit) {
                 if (task.task.isPending) PendingMark()
             }
         },
-        supportingContent = listOfNotNull(task.dayLabel, task.time).takeIf { it.isNotEmpty() }?.let { parts ->
+        supportingContent = listOfNotNull(task.objectTitle, task.dayLabel, task.time).takeIf {
+            it.isNotEmpty()
+        }?.let { parts ->
             { Text(parts.joinToString(" · ")) }
         },
         leadingContent = {

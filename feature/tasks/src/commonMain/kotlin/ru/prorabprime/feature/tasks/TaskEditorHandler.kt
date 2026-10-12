@@ -4,6 +4,7 @@ import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.coroutines.CoroutineScope
 import ru.prorabprime.domain.model.AppError
 import ru.prorabprime.domain.model.ObjectField
+import ru.prorabprime.domain.model.ObjectId
 import ru.prorabprime.domain.model.TaskDraft
 import ru.prorabprime.domain.model.TaskId
 import ru.prorabprime.domain.model.asAppError
@@ -28,7 +29,9 @@ internal class TaskEditorHandler(
 ) {
     fun onEvent(event: TaskEditorEvent) {
         when (event) {
-            TaskEditorEvent.Add -> stateHolder.setEditor(TaskEditorUi(day = stateHolder.state.value.day))
+            TaskEditorEvent.Add -> stateHolder.state.value.let {
+                stateHolder.setEditor(TaskEditorUi(day = it.day, objectId = it.objectFilter))
+            }
 
             is TaskEditorEvent.Edit -> open(event.taskId)
 
@@ -43,6 +46,8 @@ internal class TaskEditorHandler(
             is TaskEditorEvent.TimeChanged -> edit {
                 it.copy(minutes = event.minutes, errors = (it.errors - ObjectField.TASK_TIME).toImmutableMap())
             }
+
+            is TaskEditorEvent.ObjectChanged -> edit { it.copy(objectId = event.objectId) }
 
             TaskEditorEvent.Save -> save()
 
@@ -74,6 +79,7 @@ internal class TaskEditorHandler(
                 day = task.day,
                 minutes = task.remindAtMinutes,
                 done = task.done,
+                objectId = task.objectId?.value,
             ),
         )
     }
@@ -81,7 +87,7 @@ internal class TaskEditorHandler(
     private fun save() {
         val editor = stateHolder.state.value.editor ?: return
         if (editor.isSaving) return
-        val draft = TaskDraft(editor.title, editor.day, editor.minutes, editor.done)
+        val draft = TaskDraft(editor.title, editor.day, editor.minutes, editor.done, editor.objectId?.let(::ObjectId))
         edit { it.copy(isSaving = true) }
         scope.launchCatching(TAG, onFailure = { onSaveFailure(it.asAppError()) }) {
             val result = if (editor.taskId == null) {

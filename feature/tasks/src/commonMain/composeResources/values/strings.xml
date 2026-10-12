@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="tasks_title">Дела на день</string>
+    <string name="tasks_object_calendar">Календарь: %1$s</string>
+    <string name="tasks_object_field">Объект</string>
+    <string name="tasks_all_objects">Все объекты</string>
+    <string name="tasks_no_object">Без объекта</string>
     <string name="tasks_back">Назад</string>
     <string name="tasks_previous_day">Предыдущий день</string>
     <string name="tasks_next_day">Следующий день</string>

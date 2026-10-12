@@ -11,6 +11,7 @@ import ru.prorabprime.domain.model.AppError
 import ru.prorabprime.domain.model.FieldProblem
 import ru.prorabprime.domain.model.LocalDay
 import ru.prorabprime.domain.model.ObjectField
+import ru.prorabprime.domain.model.ObjectId
 import ru.prorabprime.domain.model.Reminder
 import ru.prorabprime.domain.model.TaskDraft
 import ru.prorabprime.domain.model.TaskId
@@ -107,5 +108,19 @@ class TaskUseCasesTest {
         assertThat(scheduler.syncs).isEqualTo(syncsBefore)
         assertThat(scheduler.reminders.map { it.taskId.value }).containsExactly("b")
         job.cancel()
+    }
+
+    @Test
+    fun `the nearest plan can be asked for one object`() = runTest {
+        repository.tasks.value = listOf(
+            aTask("near", "Ближе", day.plusDays(1)),
+            aTask("mine", "Моё", day.plusDays(4), objectId = ObjectId("o1")),
+            aTask("done", "Сделано", day.plusDays(2), done = true, objectId = ObjectId("o1")),
+        )
+        val next = ObserveNextTaskUseCase(repository)
+
+        assertThat(next(day).first().getOrThrow()?.id).isEqualTo(TaskId("near"))
+        assertThat(next(day, ObjectId("o1")).first().getOrThrow()?.id).isEqualTo(TaskId("mine"))
+        assertThat(next(day, ObjectId("other")).first().getOrThrow()).isNull()
     }
 }

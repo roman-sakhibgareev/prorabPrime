@@ -11,6 +11,7 @@ import ru.prorabprime.ui.DialogModel
 import ru.prorabprime.ui.StateOwner
 import ru.prorabprime.ui.UiText
 
+@Suppress("TooManyFunctions") // One mutator per transition of the screen, as the architecture asks.
 internal interface ITasksStateHolder : StateOwner<TasksState> {
     fun showTasks(tasks: ImmutableList<TaskUi>, overdue: ImmutableList<TaskUi>)
 
@@ -28,6 +29,11 @@ internal interface ITasksStateHolder : StateOwner<TasksState> {
 
     fun showNextPlan(plan: NextPlanUi?)
 
+    fun showObjects(objects: ImmutableList<ObjectChoiceUi>)
+
+    /** Narrows the plan to one object, or (null) to all of them. */
+    fun showObjectFilter(objectId: String?)
+
     /** Opens the form, or closes it when null. */
     fun setEditor(editor: TaskEditorUi?)
 
@@ -40,11 +46,13 @@ internal interface ITasksStateHolder : StateOwner<TasksState> {
     fun dismissDialog()
 }
 
+@Suppress("TooManyFunctions")
 internal class TasksStateHolder(
     today: LocalDay,
+    scopedObjectId: String? = null,
 ) : ITasksStateHolder {
 
-    private val _state = MutableStateFlow(TasksState(day = today, today = today))
+    private val _state = MutableStateFlow(TasksState(day = today, today = today, scopedObjectId = scopedObjectId))
     override val state: StateFlow<TasksState> = _state.asStateFlow()
 
     override fun showTasks(tasks: ImmutableList<TaskUi>, overdue: ImmutableList<TaskUi>) = _state.update {
@@ -64,6 +72,10 @@ internal class TasksStateHolder(
     override fun showMarks(marks: ImmutableMap<LocalDay, DayMarkUi>) = _state.update { it.copy(marks = marks) }
 
     override fun showNextPlan(plan: NextPlanUi?) = _state.update { it.copy(nextPlan = plan) }
+
+    override fun showObjects(objects: ImmutableList<ObjectChoiceUi>) = _state.update { it.copy(objects = objects) }
+
+    override fun showObjectFilter(objectId: String?) = _state.update { it.copy(objectFilter = objectId) }
 
     override fun setEditor(editor: TaskEditorUi?) = _state.update { it.copy(editor = editor) }
 

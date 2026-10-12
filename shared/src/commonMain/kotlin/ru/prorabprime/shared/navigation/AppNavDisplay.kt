@@ -128,7 +128,7 @@ private fun EntryProviderScope<NavKey>.objectEntries(backStack: NavBackStack<Nav
             onCreateObject = { backStack.add(ObjectEditNavKey()) },
             onOpenSettings = { backStack.add(SettingsNavKey) },
             onOpenMap = { backStack.add(MapNavKey) },
-            onOpenTasks = { backStack.add(TasksNavKey) },
+            onOpenTasks = { backStack.add(TasksNavKey()) },
             // The report is for the site, where there is room for it.
             onOpenExpenses = if (isWebClient) ({ backStack.add(ExpensesNavKey) }) else null,
         )
@@ -183,7 +183,7 @@ private fun EntryProviderScope<NavKey>.toolEntries(backStack: NavBackStack<NavKe
     entry<MapNavKey> {
         MapScreen(onOpenObject = { backStack.add(ObjectDetailsNavKey(it)) }, onBack = { backStack.pop() })
     }
-    entry<TasksNavKey> { TasksScreen(onBack = { backStack.pop() }) }
+    entry<TasksNavKey> { key -> TasksScreen(objectId = key.objectId, onBack = { backStack.pop() }) }
     entry<ExpensesNavKey> {
         ExpensesScreen(
             onOpenReceipt = { objectId, photoId -> backStack.add(PhotoViewerNavKey(objectId, photoId)) },
