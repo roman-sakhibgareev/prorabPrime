@@ -53,6 +53,29 @@ class ObjectDetailsContentTest {
     }
 
     @Test
+    fun `the journal and the calendar of the object open from its card`() = runComposeUiTest {
+        var journals = 0
+        var calendars = 0
+        setContent {
+            ProrabTheme {
+                ObjectDetailsContent(
+                    state = ObjectDetailsState(status = ObjectDetailsStatus.Content, details = details),
+                    onEvent = {},
+                    onEdit = {},
+                    onBack = {},
+                    onOpenJournal = { journals++ },
+                    onOpenCalendar = { calendars++ },
+                )
+            }
+        }
+
+        onNodeWithText("Журнал").performClick()
+        onNodeWithText("Календарь").performClick()
+
+        assertThat(journals to calendars).isEqualTo(1 to 1)
+    }
+
+    @Test
     fun `the toolbar edits and asks to delete`() = runComposeUiTest {
         setContent { show(ObjectDetailsState(status = ObjectDetailsStatus.Content, details = details)) }
 

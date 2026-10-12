@@ -141,6 +141,8 @@ private fun EntryProviderScope<NavKey>.objectEntries(backStack: NavBackStack<Nav
             onOpenGallery = { backStack.add(GalleryNavKey(key.objectId, it)) },
             onOpenFinance = { backStack.add(FinanceNavKey(key.objectId)) },
             onOpenMaterials = { backStack.add(MaterialsNavKey(key.objectId)) },
+            onOpenJournal = { backStack.add(JournalNavKey(key.objectId)) },
+            onOpenCalendar = { backStack.add(TasksNavKey(key.objectId)) },
             onClose = { backStack.pop() },
         )
     }
