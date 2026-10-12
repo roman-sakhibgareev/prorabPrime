@@ -2,6 +2,7 @@ package ru.prorabprime.feature.objects.edit
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -44,6 +45,7 @@ import ru.prorabprime.designsystem.components.ErrorMessage
 import ru.prorabprime.designsystem.components.FilterChip
 import ru.prorabprime.designsystem.components.LoadingBox
 import ru.prorabprime.designsystem.components.OutlinedButton
+import ru.prorabprime.designsystem.components.SectionHeader
 import ru.prorabprime.designsystem.components.TopAppBar
 import ru.prorabprime.designsystem.theme.ProrabTheme
 import ru.prorabprime.designsystem.theme.Spacing
@@ -62,6 +64,9 @@ import ru.prorabprime.feature.objects.resources.objectedit_notes
 import ru.prorabprime.feature.objects.resources.objectedit_pick_on_map
 import ru.prorabprime.feature.objects.resources.objectedit_place_picked
 import ru.prorabprime.feature.objects.resources.objectedit_save
+import ru.prorabprime.feature.objects.resources.objectedit_section_client
+import ru.prorabprime.feature.objects.resources.objectedit_section_notes
+import ru.prorabprime.feature.objects.resources.objectedit_section_object
 import ru.prorabprime.feature.objects.resources.objectedit_status
 import ru.prorabprime.feature.objects.resources.objectedit_title
 import ru.prorabprime.feature.objects.resources.objectedit_title_edit
@@ -160,33 +165,49 @@ private fun Form(
 ) {
     Column(
         modifier = modifier.fillMaxSize().imePadding().verticalScroll(rememberScrollState()).padding(Spacing.m),
-        verticalArrangement = Arrangement.spacedBy(Spacing.s),
+        verticalArrangement = Arrangement.spacedBy(Spacing.m),
     ) {
-        FormField(state, onEvent, ObjectField.TITLE, Res.string.objectedit_title)
-        FormField(state, onEvent, ObjectField.ADDRESS, Res.string.objectedit_address)
-        PickOnMapButton(placed = state.form.point != null, onClick = onPickOnMap)
-        StatusPicker(state.form.status, onSelect = { onEvent(ObjectEditEvent.StatusChanged(it)) })
-        FormField(state, onEvent, ObjectField.CLIENT_NAME, Res.string.objectedit_client_name)
-        FormField(
-            state,
-            onEvent,
-            ObjectField.CLIENT_PHONE,
-            Res.string.objectedit_client_phone,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-        )
-        FormField(
-            state,
-            onEvent,
-            ObjectField.CHAT_LINK,
-            Res.string.objectedit_chat_link,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
-        )
-        FormField(state, onEvent, ObjectField.NOTES, Res.string.objectedit_notes, singleLine = false)
+        // Each part of the form is named, so it is clear what is being filled in.
+        FormSection(Res.string.objectedit_section_object) {
+            FormField(state, onEvent, ObjectField.TITLE, Res.string.objectedit_title)
+            FormField(state, onEvent, ObjectField.ADDRESS, Res.string.objectedit_address)
+            PickOnMapButton(placed = state.form.point != null, onClick = onPickOnMap)
+            StatusPicker(state.form.status, onSelect = { onEvent(ObjectEditEvent.StatusChanged(it)) })
+        }
+        FormSection(Res.string.objectedit_section_client) {
+            FormField(state, onEvent, ObjectField.CLIENT_NAME, Res.string.objectedit_client_name)
+            FormField(
+                state,
+                onEvent,
+                ObjectField.CLIENT_PHONE,
+                Res.string.objectedit_client_phone,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+            )
+            FormField(
+                state,
+                onEvent,
+                ObjectField.CHAT_LINK,
+                Res.string.objectedit_chat_link,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+            )
+        }
+        FormSection(Res.string.objectedit_section_notes) {
+            FormField(state, onEvent, ObjectField.NOTES, Res.string.objectedit_notes, singleLine = false)
+        }
         Button(
             onClick = { onEvent(ObjectEditEvent.SaveClicked) },
             loading = state.isSaving,
-            modifier = Modifier.fillMaxWidth().padding(top = Spacing.s),
+            modifier = Modifier.fillMaxWidth(),
         ) { Text(stringResource(Res.string.objectedit_save)) }
+    }
+}
+
+/** A named part of the form: its heading, then its fields close together. */
+@Composable
+private fun FormSection(title: StringResource, content: @Composable ColumnScope.() -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
+        SectionHeader(stringResource(title))
+        content()
     }
 }
 
