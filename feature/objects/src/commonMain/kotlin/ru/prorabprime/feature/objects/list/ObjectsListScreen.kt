@@ -78,7 +78,6 @@ import ru.prorabprime.feature.objects.resources.objectslist_camera_receipt
 import ru.prorabprime.feature.objects.resources.objectslist_capture_note
 import ru.prorabprime.feature.objects.resources.objectslist_capture_title_photo
 import ru.prorabprime.feature.objects.resources.objectslist_capture_title_receipt
-import ru.prorabprime.feature.objects.resources.objectslist_clear_search
 import ru.prorabprime.feature.objects.resources.objectslist_empty
 import ru.prorabprime.feature.objects.resources.objectslist_empty_action
 import ru.prorabprime.feature.objects.resources.objectslist_expenses

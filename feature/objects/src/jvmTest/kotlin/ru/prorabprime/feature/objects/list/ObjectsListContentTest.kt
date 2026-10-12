@@ -121,7 +121,7 @@ class ObjectsListContentTest {
     }
 
     @Test
-    fun `an open search takes the place of the chips and the arrow closes it`() = runComposeUiTest {
+    fun `an open search takes the place of the chips and the cross at its end closes it`() = runComposeUiTest {
         setContent { show(ObjectsListState(status = ObjectsListStatus.Content, items = cards, searchOpen = true)) }
 
         onNodeWithText("Фильтры").assertDoesNotExist()

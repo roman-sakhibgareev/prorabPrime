@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -42,7 +42,6 @@ import ru.prorabprime.domain.model.ObjectSort
 import ru.prorabprime.domain.model.ObjectStatus
 import ru.prorabprime.feature.objects.components.label
 import ru.prorabprime.feature.objects.resources.Res
-import ru.prorabprime.feature.objects.resources.objectslist_clear_search
 import ru.prorabprime.feature.objects.resources.objectslist_filters
 import ru.prorabprime.feature.objects.resources.objectslist_filters_count
 import ru.prorabprime.feature.objects.resources.objectslist_filters_reset
@@ -77,13 +76,13 @@ internal fun FilterRow(state: ObjectsListState, onEvent: (ObjectsListEvent) -> U
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (searching) {
+                SearchField(state.search, onEvent, Modifier.weight(1f))
                 IconButton(onClick = { onEvent(ObjectsListEvent.SearchToggled) }) {
                     Icon(
-                        Icons.AutoMirrored.Filled.ArrowBack,
+                        Icons.Default.Clear,
                         contentDescription = stringResource(Res.string.objectslist_search_close),
                     )
                 }
-                SearchField(state.search, onEvent, Modifier.weight(1f))
             } else {
                 val filters = if (state.statuses.isEmpty()) {
                     stringResource(Res.string.objectslist_filters)
@@ -180,7 +179,6 @@ internal fun SearchField(
         value = text,
         onValueChange = { onEvent(ObjectsListEvent.SearchChanged(it)) },
         placeholder = stringResource(Res.string.objectslist_search),
-        clearDescription = stringResource(Res.string.objectslist_clear_search),
         modifier = modifier,
         autoFocus = true,
     )
