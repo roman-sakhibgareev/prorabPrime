@@ -53,6 +53,7 @@ import ru.prorabprime.designsystem.components.BusyScreen
 import ru.prorabprime.designsystem.components.DialogHost
 import ru.prorabprime.designsystem.components.ErrorMessage
 import ru.prorabprime.designsystem.components.LoadingBox
+import ru.prorabprime.designsystem.components.SectionHeader
 import ru.prorabprime.designsystem.components.TonalButton
 import ru.prorabprime.designsystem.components.TopAppBar
 import ru.prorabprime.designsystem.theme.ProrabColors
@@ -67,7 +68,6 @@ import ru.prorabprime.feature.objects.photos.PhotoCarousel
 import ru.prorabprime.feature.objects.photos.rememberPhotoSources
 import ru.prorabprime.feature.objects.resources.Res
 import ru.prorabprime.feature.objects.resources.objectdetails_add_receipt
-import ru.prorabprime.feature.objects.resources.objectdetails_address
 import ru.prorabprime.feature.objects.resources.objectdetails_back
 import ru.prorabprime.feature.objects.resources.objectdetails_calendar
 import ru.prorabprime.feature.objects.resources.objectdetails_client
@@ -381,56 +381,11 @@ private fun SectionBar(sections: ObjectSections) {
 
 @Composable
 private fun FolderTitle(title: StringResource, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = Spacing.m),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(stringResource(title), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
-        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
-    }
-}
-
-@Composable
-private fun DetailsFields(details: ObjectDetailsUi, onEditStatus: () -> Unit) {
-    val uriHandler = LocalUriHandler.current
-    Column(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.m),
-        verticalArrangement = Arrangement.spacedBy(Spacing.m),
-    ) {
-        StatusChip(details.status, onClick = onEditStatus)
-        details.address?.let { Field(stringResource(Res.string.objectdetails_address), it) }
-        details.clientName?.let { Field(stringResource(Res.string.objectdetails_client), it) }
-        details.clientPhone?.let { phone ->
-            // Opens the dialer with the number filled in; nothing is called without the user.
-            Field(
-                label = stringResource(Res.string.objectdetails_phone),
-                value = phone,
-                valueColor = ProrabColors.link,
-                modifier = Modifier.clickable {
-                    uriHandler.openUri(phone.asTelUri())
-                },
-            )
-        }
-        details.chatLink?.let { link ->
-            TonalButton(onClick = { uriHandler.openUri(link) }) {
-                Text(stringResource(Res.string.objectdetails_open_chat))
-            }
-        }
-        details.notes?.let { Field(stringResource(Res.string.objectdetails_notes), it) }
-    }
-}
-
-@Composable
-private fun Field(
-    label: String,
-    value: String,
-    modifier: Modifier = Modifier,
-    valueColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSurface,
-) {
-    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-        Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(value, style = MaterialTheme.typography.bodyLarge, color = valueColor)
-    }
+    SectionHeader(
+        title = stringResource(title),
+        modifier = Modifier.clickable(onClick = onClick).padding(horizontal = Spacing.m),
+        action = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
+    )
 }
 
 @Preview

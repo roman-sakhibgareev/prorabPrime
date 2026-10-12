@@ -42,7 +42,7 @@
     <string name="objectdetails_status_title">Статус объекта</string>
     <string name="objectdetails_edit">Редактировать</string>
     <string name="objectdetails_delete">Удалить объект</string>
-    <string name="objectdetails_address">Адрес</string>
+    <string name="objectdetails_name">Имя</string>
     <string name="objectdetails_client">Клиент</string>
     <string name="objectdetails_phone">Телефон</string>
     <string name="objectdetails_notes">Заметки</string>
