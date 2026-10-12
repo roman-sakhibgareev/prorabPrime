@@ -3,6 +3,7 @@ package ru.prorabprime.feature.objects.list
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
@@ -152,7 +153,7 @@ class ObjectsListContentTest {
             )
         }
 
-        onNodeWithText("Фильтры · 1").performClick()
+        onNodeWithText("Фильтры").performClick()
         onNode(hasText("На паузе") and hasClickAction()).performClick()
         onNodeWithText("Сбросить").performClick()
 
@@ -163,23 +164,39 @@ class ObjectsListContentTest {
     }
 
     @Test
-    fun `without filters the sheet has no reset`() = runComposeUiTest {
-        setContent { show(ObjectsListState(status = ObjectsListStatus.Content, items = cards)) }
+    fun `a red dot on the filters says they are on, and the sheet has nothing to reset without them`() =
+        runComposeUiTest {
+            setContent { show(ObjectsListState(status = ObjectsListStatus.Content, items = cards)) }
 
-        onNodeWithText("Фильтры").performClick()
+            onNodeWithContentDescription("Фильтры включены").assertDoesNotExist()
+            onNodeWithText("Фильтры").performClick()
 
-        onNodeWithText("Сбросить").assertDoesNotExist()
+            onNodeWithText("Сбросить").assertIsNotEnabled()
+        }
+
+    @Test
+    fun `the filters chip carries a dot when a status is chosen`() = runComposeUiTest {
+        setContent {
+            show(
+                ObjectsListState(
+                    status = ObjectsListStatus.Content,
+                    items = cards,
+                    statuses = persistentSetOf(ObjectStatus.DONE),
+                ),
+            )
+        }
+
+        onNodeWithContentDescription("Фильтры включены").assertIsDisplayed()
     }
 
     @Test
-    fun `the sort button opens a sheet with every option and sends the chosen one`() = runComposeUiTest {
+    fun `the sort chip names the current sort, and its sheet sends the chosen one`() = runComposeUiTest {
         setContent {
             show(ObjectsListState(status = ObjectsListStatus.Content, items = cards, sort = ObjectSort.UPDATED_NEWEST))
         }
 
-        onNodeWithText("Сортировка").performClick()
-        onNodeWithText("Недавно изменённые").assertIsDisplayed()
-        onNodeWithText("Адрес Я–А").performClick()
+        onNodeWithText("По дате изменений").performClick()
+        onNodeWithText("По адресу Я–А").performClick()
 
         assertThat(events).containsExactly(ObjectsListEvent.SortSelected(ObjectSort.ADDRESS_DESC))
     }

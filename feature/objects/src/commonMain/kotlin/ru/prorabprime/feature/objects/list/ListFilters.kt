@@ -12,11 +12,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,7 +37,6 @@ import ru.prorabprime.designsystem.components.ActionChip
 import ru.prorabprime.designsystem.components.FilterChip
 import ru.prorabprime.designsystem.components.ProrabBottomSheet
 import ru.prorabprime.designsystem.components.SearchField
-import ru.prorabprime.designsystem.components.TextButton
 import ru.prorabprime.designsystem.icons.ProrabIcons
 import ru.prorabprime.designsystem.theme.Spacing
 import ru.prorabprime.domain.model.ObjectSort
@@ -43,7 +44,7 @@ import ru.prorabprime.domain.model.ObjectStatus
 import ru.prorabprime.feature.objects.components.label
 import ru.prorabprime.feature.objects.resources.Res
 import ru.prorabprime.feature.objects.resources.objectslist_filters
-import ru.prorabprime.feature.objects.resources.objectslist_filters_count
+import ru.prorabprime.feature.objects.resources.objectslist_filters_active
 import ru.prorabprime.feature.objects.resources.objectslist_filters_reset
 import ru.prorabprime.feature.objects.resources.objectslist_search
 import ru.prorabprime.feature.objects.resources.objectslist_search_close
@@ -84,16 +85,18 @@ internal fun FilterRow(state: ObjectsListState, onEvent: (ObjectsListEvent) -> U
                     )
                 }
             } else {
-                val filters = if (state.statuses.isEmpty()) {
-                    stringResource(Res.string.objectslist_filters)
-                } else {
-                    stringResource(Res.string.objectslist_filters_count, state.statuses.size)
-                }
-                ActionChip(filters, onClick = { sheet = ListSheet.FILTERS }, icon = ProrabIcons.Filter)
                 ActionChip(
-                    stringResource(Res.string.objectslist_sort),
+                    stringResource(Res.string.objectslist_filters),
+                    onClick = { sheet = ListSheet.FILTERS },
+                    icon = ProrabIcons.Filter,
+                    badgeDescription = stringResource(Res.string.objectslist_filters_active)
+                        .takeIf { state.statuses.isNotEmpty() },
+                )
+                // The chip says how the list is sorted now; the sheet is where to change it.
+                ActionChip(
+                    stringResource(state.sort.label),
                     onClick = { sheet = ListSheet.SORT },
-                    icon = ProrabIcons.Sort,
+                    trailingIcon = Icons.Default.ArrowDropDown,
                 )
                 ActionChip(
                     stringResource(Res.string.objectslist_search_open),
@@ -126,6 +129,16 @@ private fun FiltersSheet(
     onDismiss: () -> Unit,
 ) {
     ProrabBottomSheet(title = stringResource(Res.string.objectslist_filters), onDismiss = onDismiss) {
+        // Always there, so the sheet does not change height; it only works when something is switched on.
+        val canReset = statuses.isNotEmpty()
+        Text(
+            stringResource(Res.string.objectslist_filters_reset),
+            style = MaterialTheme.typography.labelLarge,
+            color = if (canReset) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+            modifier = Modifier
+                .clickable(enabled = canReset) { onEvent(ObjectsListEvent.FiltersCleared) }
+                .padding(vertical = Spacing.s),
+        )
         // The chips are 32dp tall and 48dp to touch; without this the rows of a wrapped list drift far apart.
         CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
             FlowRow(
@@ -139,11 +152,6 @@ private fun FiltersSheet(
                         label = { Text(stringResource(status.label)) },
                     )
                 }
-            }
-        }
-        if (statuses.isNotEmpty()) {
-            TextButton(onClick = { onEvent(ObjectsListEvent.FiltersCleared) }) {
-                Text(stringResource(Res.string.objectslist_filters_reset))
             }
         }
     }
