@@ -37,7 +37,7 @@ class ReminderReceiver : BroadcastReceiver() {
         context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
 
     private fun createChannel(context: Context) {
-        val channel = NotificationChannel(CHANNEL_ID, "Напоминания о делах", NotificationManager.IMPORTANCE_HIGH)
+        val channel = NotificationChannel(CHANNEL_ID, "Напоминания о задачах", NotificationManager.IMPORTANCE_HIGH)
         context.getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
     }
 

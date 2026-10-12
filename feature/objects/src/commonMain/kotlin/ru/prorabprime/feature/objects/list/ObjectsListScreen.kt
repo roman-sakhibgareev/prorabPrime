@@ -22,8 +22,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
@@ -62,7 +60,6 @@ import ru.prorabprime.designsystem.components.ErrorMessage
 import ru.prorabprime.designsystem.components.FilterChip
 import ru.prorabprime.designsystem.components.LoadingBox
 import ru.prorabprime.designsystem.components.PendingMark
-import ru.prorabprime.designsystem.components.SearchField
 import ru.prorabprime.designsystem.components.ServerImage
 import ru.prorabprime.designsystem.components.TopAppBar
 import ru.prorabprime.designsystem.icons.ProrabIcons
@@ -81,16 +78,11 @@ import ru.prorabprime.feature.objects.resources.objectslist_camera_receipt
 import ru.prorabprime.feature.objects.resources.objectslist_capture_note
 import ru.prorabprime.feature.objects.resources.objectslist_capture_title_photo
 import ru.prorabprime.feature.objects.resources.objectslist_capture_title_receipt
-import ru.prorabprime.feature.objects.resources.objectslist_clear_search
 import ru.prorabprime.feature.objects.resources.objectslist_empty
 import ru.prorabprime.feature.objects.resources.objectslist_empty_action
 import ru.prorabprime.feature.objects.resources.objectslist_expenses
-import ru.prorabprime.feature.objects.resources.objectslist_filter_all
 import ru.prorabprime.feature.objects.resources.objectslist_map
 import ru.prorabprime.feature.objects.resources.objectslist_nothing_found
-import ru.prorabprime.feature.objects.resources.objectslist_search
-import ru.prorabprime.feature.objects.resources.objectslist_search_close
-import ru.prorabprime.feature.objects.resources.objectslist_search_open
 import ru.prorabprime.feature.objects.resources.objectslist_settings
 import ru.prorabprime.feature.objects.resources.objectslist_sort_address_asc
 import ru.prorabprime.feature.objects.resources.objectslist_sort_address_desc
@@ -174,7 +166,7 @@ internal fun ObjectsListContent(
     Scaffold(
         modifier = modifier,
         topBar = {
-            ListTopBar(state, onEvent, onCreateObject, onOpenSettings, onOpenMap, onOpenTasks, onOpenExpenses)
+            ListTopBar(onCreateObject, onOpenSettings, onOpenMap, onOpenTasks, onOpenExpenses)
         },
         floatingActionButton = {
             // Side by side under the thumb: a photo of the object, then a receipt. The button sets the kind.
@@ -188,13 +180,6 @@ internal fun ObjectsListContent(
         },
     ) { padding ->
         Column(Modifier.padding(padding).fillMaxSize()) {
-            if (state.searchOpen) {
-                SearchField(
-                    state.search,
-                    onEvent,
-                    Modifier.padding(horizontal = Spacing.m, vertical = Spacing.s),
-                )
-            }
             FilterRow(state, onEvent)
             ListBody(state, onEvent, onOpenObject, onCreateObject)
         }
@@ -205,8 +190,6 @@ internal fun ObjectsListContent(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ListTopBar(
-    state: ObjectsListState,
-    onEvent: (ObjectsListEvent) -> Unit,
     onCreateObject: () -> Unit,
     onOpenSettings: () -> Unit,
     onOpenMap: () -> Unit,
@@ -216,15 +199,8 @@ private fun ListTopBar(
     TopAppBar(
         title = { Text(stringResource(Res.string.objectslist_title)) },
         actions = {
-            IconButton(onClick = { onEvent(ObjectsListEvent.SearchToggled) }) {
-                if (state.searchOpen) {
-                    Icon(Icons.Default.Clear, stringResource(Res.string.objectslist_search_close))
-                } else {
-                    Icon(Icons.Default.Search, stringResource(Res.string.objectslist_search_open))
-                }
-            }
             IconButton(onClick = onOpenTasks) {
-                Icon(ProrabIcons.Tasks, contentDescription = stringResource(Res.string.objectslist_tasks))
+                Icon(ProrabIcons.CalendarMonth, contentDescription = stringResource(Res.string.objectslist_tasks))
             }
             onOpenExpenses?.let { open ->
                 IconButton(onClick = open) {
@@ -235,7 +211,7 @@ private fun ListTopBar(
                 }
             }
             IconButton(onClick = onOpenMap) {
-                Icon(ProrabIcons.Map, contentDescription = stringResource(Res.string.objectslist_map))
+                Icon(ProrabIcons.Pin, contentDescription = stringResource(Res.string.objectslist_map))
             }
             IconButton(onClick = onCreateObject) {
                 Icon(Icons.Default.Add, contentDescription = stringResource(Res.string.objectslist_add))

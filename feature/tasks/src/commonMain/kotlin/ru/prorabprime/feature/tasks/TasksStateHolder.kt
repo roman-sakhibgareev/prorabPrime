@@ -2,6 +2,7 @@ package ru.prorabprime.feature.tasks
 
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
+import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -31,8 +32,8 @@ internal interface ITasksStateHolder : StateOwner<TasksState> {
 
     fun showObjects(objects: ImmutableList<ObjectChoiceUi>)
 
-    /** Narrows the plan to one object, or (null) to all of them. */
-    fun showObjectFilter(objectId: String?)
+    /** Narrows the plan to these objects, or (empty) to all of them. */
+    fun showObjectFilter(objectIds: ImmutableSet<String>)
 
     /** Opens the form, or closes it when null. */
     fun setEditor(editor: TaskEditorUi?)
@@ -75,7 +76,7 @@ internal class TasksStateHolder(
 
     override fun showObjects(objects: ImmutableList<ObjectChoiceUi>) = _state.update { it.copy(objects = objects) }
 
-    override fun showObjectFilter(objectId: String?) = _state.update { it.copy(objectFilter = objectId) }
+    override fun showObjectFilter(objectIds: ImmutableSet<String>) = _state.update { it.copy(objectFilter = objectIds) }
 
     override fun setEditor(editor: TaskEditorUi?) = _state.update { it.copy(editor = editor) }
 

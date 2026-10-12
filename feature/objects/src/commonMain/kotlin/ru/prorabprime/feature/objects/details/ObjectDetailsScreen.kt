@@ -3,12 +3,12 @@ package ru.prorabprime.feature.objects.details
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -28,6 +28,7 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -38,8 +39,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.collections.immutable.toImmutableList
 import org.jetbrains.compose.resources.StringResource
@@ -50,8 +53,10 @@ import ru.prorabprime.designsystem.components.BusyScreen
 import ru.prorabprime.designsystem.components.DialogHost
 import ru.prorabprime.designsystem.components.ErrorMessage
 import ru.prorabprime.designsystem.components.LoadingBox
-import ru.prorabprime.designsystem.components.OutlinedButton
+import ru.prorabprime.designsystem.components.SectionHeader
+import ru.prorabprime.designsystem.components.TonalButton
 import ru.prorabprime.designsystem.components.TopAppBar
+import ru.prorabprime.designsystem.theme.ProrabColors
 import ru.prorabprime.designsystem.theme.ProrabTheme
 import ru.prorabprime.designsystem.theme.Spacing
 import ru.prorabprime.domain.model.AttachmentKind
@@ -63,7 +68,6 @@ import ru.prorabprime.feature.objects.photos.PhotoCarousel
 import ru.prorabprime.feature.objects.photos.rememberPhotoSources
 import ru.prorabprime.feature.objects.resources.Res
 import ru.prorabprime.feature.objects.resources.objectdetails_add_receipt
-import ru.prorabprime.feature.objects.resources.objectdetails_address
 import ru.prorabprime.feature.objects.resources.objectdetails_back
 import ru.prorabprime.feature.objects.resources.objectdetails_calendar
 import ru.prorabprime.feature.objects.resources.objectdetails_client
@@ -180,6 +184,7 @@ internal fun ObjectDetailsContent(
     BusyScreen(state.isDeleting, modifier) {
         Scaffold(
             topBar = { DetailsTopBar(state, onEvent, onEdit, onBack) },
+            bottomBar = { if (state.status == ObjectDetailsStatus.Content) SectionBar(sections) },
         ) { padding ->
             Column(Modifier.padding(padding).fillMaxSize()) {
                 if (state.isDeleting) LinearProgressIndicator(Modifier.fillMaxWidth())
@@ -291,7 +296,6 @@ private fun DetailsBody(
             addLabel = Res.string.objectdetails_add_receipt,
         )
         DetailsFields(details, sections.onEditStatus)
-        SectionButtons(sections)
         ContactsSection(
             contacts = details.contacts,
             onAdd = { onEvent(ObjectDetailsEvent.AddContactClicked) },
@@ -334,71 +338,54 @@ internal data class ObjectSections(
     val onEditStatus: () -> Unit,
 )
 
+/** The four places the card leads, floating over the bottom edge so they are always one tap away. */
 @Composable
-private fun SectionButtons(sections: ObjectSections) {
-    FlowRow(
-        modifier = Modifier.padding(horizontal = Spacing.m),
-        horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+private fun SectionBar(sections: ObjectSections) {
+    val items = listOf(
+        Res.string.objectdetails_journal to sections.onOpenJournal,
+        Res.string.objectdetails_calendar to sections.onOpenCalendar,
+        Res.string.objectdetails_finance to sections.onOpenFinance,
+        Res.string.objectdetails_materials to sections.onOpenMaterials,
+    )
+    Surface(
+        modifier = Modifier.navigationBarsPadding().padding(horizontal = Spacing.m, vertical = Spacing.s),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        tonalElevation = 3.dp,
+        shadowElevation = 6.dp,
     ) {
-        OutlinedButton(onClick = sections.onOpenJournal) { Text(stringResource(Res.string.objectdetails_journal)) }
-        OutlinedButton(onClick = sections.onOpenCalendar) { Text(stringResource(Res.string.objectdetails_calendar)) }
-        OutlinedButton(onClick = sections.onOpenFinance) { Text(stringResource(Res.string.objectdetails_finance)) }
-        OutlinedButton(onClick = sections.onOpenMaterials) { Text(stringResource(Res.string.objectdetails_materials)) }
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(Spacing.s),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+        ) {
+            items.forEach { (label, onClick) ->
+                Surface(
+                    onClick = onClick,
+                    modifier = Modifier.weight(1f),
+                    shape = MaterialTheme.shapes.small,
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                ) {
+                    Text(
+                        stringResource(label),
+                        style = MaterialTheme.typography.labelMedium,
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        modifier = Modifier.padding(horizontal = 2.dp, vertical = Spacing.m),
+                    )
+                }
+            }
+        }
     }
 }
 
 @Composable
 private fun FolderTitle(title: StringResource, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = Spacing.m),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(stringResource(title), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
-        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
-    }
-}
-
-@Composable
-private fun DetailsFields(details: ObjectDetailsUi, onEditStatus: () -> Unit) {
-    val uriHandler = LocalUriHandler.current
-    Column(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.m),
-        verticalArrangement = Arrangement.spacedBy(Spacing.m),
-    ) {
-        StatusChip(details.status, onClick = onEditStatus)
-        details.address?.let { Field(stringResource(Res.string.objectdetails_address), it) }
-        details.clientName?.let { Field(stringResource(Res.string.objectdetails_client), it) }
-        details.clientPhone?.let { phone ->
-            // Opens the dialer with the number filled in; nothing is called without the user.
-            Field(
-                label = stringResource(Res.string.objectdetails_phone),
-                value = phone,
-                valueColor = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.clickable {
-                    uriHandler.openUri(phone.asTelUri())
-                },
-            )
-        }
-        details.chatLink?.let { link ->
-            OutlinedButton(onClick = { uriHandler.openUri(link) }) {
-                Text(stringResource(Res.string.objectdetails_open_chat))
-            }
-        }
-        details.notes?.let { Field(stringResource(Res.string.objectdetails_notes), it) }
-    }
-}
-
-@Composable
-private fun Field(
-    label: String,
-    value: String,
-    modifier: Modifier = Modifier,
-    valueColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSurface,
-) {
-    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-        Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(value, style = MaterialTheme.typography.bodyLarge, color = valueColor)
-    }
+    SectionHeader(
+        title = stringResource(title),
+        modifier = Modifier.clickable(onClick = onClick).padding(horizontal = Spacing.m),
+        action = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
+    )
 }
 
 @Preview

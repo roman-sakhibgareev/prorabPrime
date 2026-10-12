@@ -27,7 +27,7 @@
     <string name="sync_kind_extra_work">дополнительная работа</string>
     <string name="sync_kind_material">материал</string>
     <string name="sync_kind_note">запись журнала</string>
-    <string name="sync_kind_task">дело</string>
+    <string name="sync_kind_task">задача</string>
 
     <string name="sync_reason_validation">Сервер не принял данные</string>
     <string name="sync_reason_not_found">Записи больше нет на сервере</string>

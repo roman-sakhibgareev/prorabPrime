@@ -5,6 +5,7 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.v2.runComposeUiTest
 import com.google.common.truth.Truth.assertThat
@@ -31,6 +32,15 @@ class ObjectEditContentTest {
     fun `a new object and an edit have their own titles`() = runComposeUiTest {
         setContent { show(content) }
         onNodeWithText("Новый объект").assertIsDisplayed()
+    }
+
+    @Test
+    fun `the form names its parts`() = runComposeUiTest {
+        setContent { show(content) }
+
+        onNodeWithText("Объект").assertIsDisplayed()
+        onNodeWithText("Клиент").performScrollTo().assertIsDisplayed()
+        onNodeWithText("Заметки").performScrollTo().assertIsDisplayed()
     }
 
     @Test
@@ -62,7 +72,7 @@ class ObjectEditContentTest {
     fun `save sends the form`() = runComposeUiTest {
         setContent { show(content) }
 
-        onNodeWithText("Сохранить").performClick()
+        onNodeWithText("Сохранить").performScrollTo().performClick()
 
         assertThat(events).containsExactly(ObjectEditEvent.SaveClicked)
     }

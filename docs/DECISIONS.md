@@ -910,3 +910,66 @@ customer is one more flavor and one more `local.properties` key. A customer's to
 revocable on the server and the APK is for that person only.
 
 **Review when:** a second customer needs an APK, or the token stops being a single shared secret (per-device login).
+
+---
+
+## ADR-0026
+
+### A choice that opens a list is a bottom sheet, built on one design-system component
+
+**Accepted** · 2026-10-12
+
+**Context.** The objects list filtered with a row of chips and sorted with a dropdown menu; the calendar picked an
+object with another dropdown. Each looked different, a menu hides that it holds a list, and the calendar could narrow
+to one object only.
+
+**Decision.** `ProrabBottomSheet(title, onDismiss, content)` in the design system wraps `ModalBottomSheet`, so the
+experimental opt-in lives in one place. Filters, sorting and the calendar's object choice open in it from a labelled
+button. Whether such a sheet is open is local `remember` state of the button that opens it, as the old sort menu was;
+what the choice changes (statuses, sort, the set of objects) stays in the screen state and goes through events. The
+calendar's `objectFilter` is a set of object ids, empty meaning every object, and `ObserveNextTaskUseCase` takes a set
+for the same reason.
+
+**Alternatives rejected.**
+- *`sheet: XxxSheet?` in the screen state.* Survives rotation, but a sheet that only narrows a list has no meaning to a
+  view model, and every screen would gain an event pair and tests for it.
+- *Keep the dropdown for the calendar and allow several ticks in it.* A menu closes on every tap, which is wrong for
+  ticking several.
+
+**Consequences.** A sheet closes on rotation. The existing raw `ModalBottomSheet` uses (capture, object details, map,
+finance history) are not migrated yet. The editor's single-object `ObjectSelector` stays a dropdown.
+
+**Review when:** a sheet must survive rotation or carry its own state, or the raw uses are touched for another reason.
+
+---
+
+## ADR-0027
+
+### The design system lives in code; Figma is not its source of truth
+
+**Accepted** · 2026-10-12
+
+**Context.** Screens had grown one by one: sizes of text, section headings, blocks of facts, chips and the search
+line were each set where they were used, so two screens said the same thing in two looks. Someone suggested drawing
+the system in Figma first. The account's seat in Figma is view-only (starter plan), so the connector can read a
+file but nothing here would be drawn into one.
+
+**Decision.** Tokens and components are code in `core/designsystem`. The type scale is fixed in `ProrabTypography`
+(screen title 24/28, section 20/24, card title 16/20, text 16/20, secondary text 14/20, labels 14/16 and 12/16,
+footnote 10/12), still in the platform's own font. Parts of a screen are a `SectionHeader` with an `InfoCard` under
+it; chips that open something are `ActionChip`; sheets are `ProrabBottomSheet`. `DesignSystemGallery` draws all of it
+on one page for a preview, and a test draws it in both themes so a token that breaks a component shows up in
+`verify`.
+
+**Alternatives rejected.**
+- *Figma tokens and Code Connect.* Needs an edit seat, and a file somebody keeps in step with the code; for one
+  developer that is a second place to forget.
+- *Bundling Inter.* About a megabyte of fonts for a different look and no gain in reading; Roboto has Cyrillic.
+- *Putting the gallery behind a settings item in debug builds.* It would pass a build flag through `:shared` into a
+  feature; a preview does the same job for the one person using it.
+
+**Consequences.** A new text size or color is added to the theme first, not at the call site. The gallery is not
+reachable on a device yet; it is looked at in the IDE preview. Existing screens that still use `titleMedium` as a
+heading move to `SectionHeader` when they are next touched, not all at once.
+
+**Review when:** a designer or a Figma file with an edit seat appears, or the gallery is wanted on a device.

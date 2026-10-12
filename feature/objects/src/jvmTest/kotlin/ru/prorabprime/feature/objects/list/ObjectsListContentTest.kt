@@ -3,6 +3,7 @@ package ru.prorabprime.feature.objects.list
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
@@ -116,7 +117,18 @@ class ObjectsListContentTest {
         setContent { show(ObjectsListState(status = ObjectsListStatus.Content, items = cards)) }
 
         onNode(hasSetTextAction()).assertDoesNotExist()
-        onNodeWithContentDescription("Поиск").performClick()
+        onNodeWithText("Поиск").performClick()
+        assertThat(events).containsExactly(ObjectsListEvent.SearchToggled)
+    }
+
+    @Test
+    fun `an open search takes the place of the chips and the cross at its end closes it`() = runComposeUiTest {
+        setContent { show(ObjectsListState(status = ObjectsListStatus.Content, items = cards, searchOpen = true)) }
+
+        onNodeWithText("Фильтры").assertDoesNotExist()
+        onNodeWithText("Сортировка").assertDoesNotExist()
+        onNodeWithContentDescription("Закрыть поиск").performClick()
+
         assertThat(events).containsExactly(ObjectsListEvent.SearchToggled)
     }
 
@@ -130,7 +142,7 @@ class ObjectsListContentTest {
     }
 
     @Test
-    fun `the status chips send their choice, and the all chip clears them`() = runComposeUiTest {
+    fun `the filters button opens a sheet whose chips send their choice and which resets them`() = runComposeUiTest {
         setContent {
             show(
                 ObjectsListState(
@@ -141,23 +153,50 @@ class ObjectsListContentTest {
             )
         }
 
-        onAllNodes(hasText("В работе") and hasClickAction()).onFirst().performClick()
-        onNode(hasText("Все") and hasClickAction()).performClick()
+        onNodeWithText("Фильтры").performClick()
+        onNode(hasText("На паузе") and hasClickAction()).performClick()
+        onNodeWithText("Сбросить").performClick()
 
         assertThat(events).containsExactly(
-            ObjectsListEvent.StatusToggled(ObjectStatus.IN_PROGRESS),
+            ObjectsListEvent.StatusToggled(ObjectStatus.PAUSED),
             ObjectsListEvent.FiltersCleared,
         ).inOrder()
     }
 
     @Test
-    fun `the sort menu lists every option and sends the chosen one`() = runComposeUiTest {
+    fun `a red dot on the filters says they are on, and the sheet has nothing to reset without them`() =
+        runComposeUiTest {
+            setContent { show(ObjectsListState(status = ObjectsListStatus.Content, items = cards)) }
+
+            onNodeWithContentDescription("Фильтры включены").assertDoesNotExist()
+            onNodeWithText("Фильтры").performClick()
+
+            onNodeWithText("Сбросить").assertIsNotEnabled()
+        }
+
+    @Test
+    fun `the filters chip carries a dot when a status is chosen`() = runComposeUiTest {
+        setContent {
+            show(
+                ObjectsListState(
+                    status = ObjectsListStatus.Content,
+                    items = cards,
+                    statuses = persistentSetOf(ObjectStatus.DONE),
+                ),
+            )
+        }
+
+        onNodeWithContentDescription("Фильтры включены").assertIsDisplayed()
+    }
+
+    @Test
+    fun `the sort chip names the current sort, and its sheet sends the chosen one`() = runComposeUiTest {
         setContent {
             show(ObjectsListState(status = ObjectsListStatus.Content, items = cards, sort = ObjectSort.UPDATED_NEWEST))
         }
 
-        onNodeWithContentDescription("Недавно изменённые").performClick()
-        onNodeWithText("Адрес Я–А").performClick()
+        onNodeWithText("По дате изменений").performClick()
+        onNodeWithText("По адресу Я–А").performClick()
 
         assertThat(events).containsExactly(ObjectsListEvent.SortSelected(ObjectSort.ADDRESS_DESC))
     }

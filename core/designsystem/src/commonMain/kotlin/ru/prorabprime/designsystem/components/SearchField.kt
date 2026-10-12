@@ -1,7 +1,6 @@
 package ru.prorabprime.designsystem.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,10 +9,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,13 +24,15 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.dp
 import ru.prorabprime.designsystem.theme.Spacing
 
-/** A search line as tall as a button, not as a form field: it sits above a list and must not eat it. */
+/**
+ * A flat search line as tall as a button, not as a form field: it sits above a list and must not eat it.
+ * Closing it, and with it clearing the text, is the caller's control beside the line.
+ */
 @Composable
 fun SearchField(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,
-    clearDescription: String,
     modifier: Modifier = Modifier,
     /** Takes the keyboard as soon as it appears, for a line that was asked for with an icon. */
     autoFocus: Boolean = false,
@@ -41,7 +40,7 @@ fun SearchField(
     val focus = remember { FocusRequester() }
     LaunchedEffect(Unit) { if (autoFocus) focus.requestFocus() }
     val colors = MaterialTheme.colorScheme
-    val shape = MaterialTheme.shapes.small
+    val shape = MaterialTheme.shapes.large
     BasicTextField(
         value = value,
         onValueChange = onValueChange,
@@ -52,9 +51,8 @@ fun SearchField(
         decorationBox = { inner ->
             Row(
                 modifier = Modifier.fillMaxWidth().heightIn(min = FieldHeight)
-                    .background(colors.surfaceContainerLowest, shape)
-                    .border(1.dp, colors.outlineVariant, shape)
-                    .padding(start = Spacing.s),
+                    .background(colors.surfaceContainerHigh, shape)
+                    .padding(horizontal = Spacing.m),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(
@@ -73,11 +71,6 @@ fun SearchField(
                         )
                     }
                     inner()
-                }
-                if (value.isNotEmpty()) {
-                    IconButton(onClick = { onValueChange("") }, modifier = Modifier.size(FieldHeight)) {
-                        Icon(Icons.Default.Clear, contentDescription = clearDescription)
-                    }
                 }
             }
         },

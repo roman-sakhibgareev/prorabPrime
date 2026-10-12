@@ -15,7 +15,7 @@ import ru.prorabprime.designsystem.components.OutlinedButton
 
 /**
  * A button that names the chosen object and opens the list of them. [noneLabel] is what "no object"
- * is called here: "all objects" for a filter, "no object" for a task.
+ * is called here.
  */
 @Composable
 internal fun ObjectSelector(

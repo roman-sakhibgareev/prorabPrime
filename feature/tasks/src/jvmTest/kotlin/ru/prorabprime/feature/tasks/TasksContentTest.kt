@@ -11,6 +11,7 @@ import androidx.compose.ui.test.v2.runComposeUiTest
 import com.google.common.truth.Truth.assertThat
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.collections.immutable.persistentSetOf
 import org.junit.Test
 import ru.prorabprime.designsystem.theme.ProrabTheme
 import ru.prorabprime.domain.model.LocalDay
@@ -103,7 +104,7 @@ class TasksContentTest {
             }
         }
 
-        onNodeWithText("На этот день дел нет").assertIsDisplayed()
+        onNodeWithText("На этот день задач нет").assertIsDisplayed()
         onNodeWithText("Ближайшие планы — через 3 дня").assertIsDisplayed()
         onNodeWithText("Заказать двери", substring = true).performClick()
 
@@ -128,7 +129,7 @@ class TasksContentTest {
         onNodeWithContentDescription("Следующий день").performClick()
         onAllNodesWithContentDescription("Отметить сделанным")[1].performClick()
         onNodeWithText("Купить плитку").performClick()
-        onNodeWithContentDescription("Добавить дело").performClick()
+        onNodeWithContentDescription("Добавить задачу").performClick()
 
         assertThat(events).containsExactly(
             TasksEvent.PreviousDay,
@@ -143,7 +144,7 @@ class TasksContentTest {
     fun `a day with nothing says so`() = runComposeUiTest {
         show(TasksState(status = TasksStatus.Content, day = today, today = today))
 
-        onNodeWithText("На этот день дел нет").assertIsDisplayed()
+        onNodeWithText("На этот день задач нет").assertIsDisplayed()
     }
 
     @Test
@@ -172,13 +173,23 @@ class TasksContentTest {
     private val objects = persistentListOf(ObjectChoiceUi("kitchen", "Кухня"), ObjectChoiceUi("bath", "Мира, 3"))
 
     @Test
-    fun `the plan of all objects offers a filter, and picking an object narrows it`() = runComposeUiTest {
+    fun `the plan of all objects offers a filter sheet, and ticking an object narrows it`() = runComposeUiTest {
         show(state().copy(objects = objects))
 
         onNodeWithText("Все объекты").performClick()
         onNodeWithText("Кухня").performClick()
 
-        assertThat(events).containsExactly(TasksEvent.ObjectFilterPicked("kitchen"))
+        assertThat(events).containsExactly(TasksEvent.ObjectFilterToggled("kitchen"))
+    }
+
+    @Test
+    fun `the filter button counts several objects, and the sheet can show all again`() = runComposeUiTest {
+        show(state().copy(objects = objects, objectFilter = persistentSetOf("kitchen", "bath")))
+
+        onNodeWithText("Объекты: 2").performClick()
+        onNodeWithText("Показать все").performClick()
+
+        assertThat(events).containsExactly(TasksEvent.ObjectFilterCleared)
     }
 
     @Test
@@ -190,7 +201,7 @@ class TasksContentTest {
 
     @Test
     fun `the calendar of one object is titled by it and has no filter`() = runComposeUiTest {
-        show(state().copy(scopedObjectId = "kitchen", objectFilter = "kitchen", objects = objects))
+        show(state().copy(scopedObjectId = "kitchen", objectFilter = persistentSetOf("kitchen"), objects = objects))
 
         onNodeWithText("Календарь: Кухня").assertIsDisplayed()
         assertThat(onAllNodesWithText("Все объекты").fetchSemanticsNodes()).isEmpty()
@@ -211,7 +222,7 @@ class TasksContentTest {
         show(
             state().copy(
                 scopedObjectId = "kitchen",
-                objectFilter = "kitchen",
+                objectFilter = persistentSetOf("kitchen"),
                 objects = objects,
                 editor = TaskEditorUi(day = today, objectId = "kitchen"),
             ),
