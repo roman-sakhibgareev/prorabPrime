@@ -5,17 +5,17 @@ console change; where this page is unsure it says "check in the console".
 
 ## 1. The build
 
-The store build must not carry the owner's server address and token (README, "A signed release APK").
-The address of the server may go in (the token must not); the token is typed in the settings:
+The store build is the `rustore` flavor: it carries the public server's address and no token, which is typed in
+the settings (README, "A signed release APK"). The address can be changed with `prorab.rustore.serverUrl`.
 
 ```bash
-./gradlew :app:assembleRelease -Pprorab.serverUrl=https://prorab.example.ru -Pprorab.apiToken=
+./gradlew :app:assembleRustoreRelease
 ```
 
-- Output: `app/build/outputs/apk/release/app-release.apk`, signed with the key from `keystore.properties`.
-  RuStore takes an APK; `./gradlew :app:bundleRelease` makes an AAB if the console asks for one.
+- Output: `app/build/outputs/apk/rustore/release/app-rustore-release.apk`, signed with the key from
+  `keystore.properties`. RuStore takes an APK; `./gradlew :app:bundleRustoreRelease` makes an AAB if the console asks for one.
 - The release build is minified by R8. A crash report from it needs
-  `app/build/outputs/mapping/release/mapping.txt` of the same build: keep it with the APK.
+  `app/build/outputs/mapping/rustoreRelease/mapping.txt` of the same build: keep it with the APK.
 - **Every upload needs a higher version.** Raise `prorab.version` in `gradle.properties`; `versionCode` follows it.
 - Check the APK on a device before uploading: install it, open the list, make an object, add a photo.
 
@@ -97,7 +97,7 @@ There is no camera or storage permission: photos come from the camera app and th
 ## 5. Checklist
 
 - [ ] Developer account in the RuStore console, verified.
-- [ ] `prorab.version` raised; release built with no token in it; installed and tried on a device.
+- [ ] `prorab.version` raised; `rustore` release built (no token in it); installed and tried on a device.
 - [ ] Server with accounts running, over HTTPS; database backed up before the update.
 - [ ] Reviewer's account made, with invented data.
 - [ ] Privacy page open at its address.

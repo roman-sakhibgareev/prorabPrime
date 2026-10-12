@@ -1,3 +1,4 @@
+import com.android.build.api.variant.BuildConfigField
 import java.util.Properties
 
 plugins {
@@ -12,18 +13,58 @@ val (versionMajor, versionMinor, versionPatch) = providers.gradleProperty("prora
     .split('.')
     .map(String::toInt)
 
-// The server the app talks to until the user changes it in the settings. From local.properties,
-// which is gitignored: a real address and token never enter the repository.
 val localProperties = Properties().apply {
     val file = rootProject.file("local.properties")
     if (file.exists()) file.inputStream().use(::load)
 }
 
-// A Gradle property wins over local.properties, so `-Pprorab.serverUrl= -Pprorab.apiToken=` builds an APK
-// with no address and no token in it: the one to give to anybody else.
-fun buildConfigString(key: String): String {
-    val value = providers.gradleProperty(key).orNull ?: localProperties.getProperty(key).orEmpty()
-    return "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
+// The server behind Caddy (Caddyfile); what a store or customer build talks to.
+val publicServer = "https://prorabprime.duckdns.org"
+
+// Each flavor carries the server the app talks to until the user changes it in the settings. Values come
+// from local.properties (gitignored: a real token never enters the repository); a Gradle property wins.
+// Read lazily, so a flavor that is not being built never asks for its values.
+fun buildConfigString(key: String, default: String = ""): Provider<String> = provider {
+    val value = providers.gradleProperty(key).orNull ?: localProperties.getProperty(key) ?: default
+    "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
+}
+
+// Every flavor starts the app on a server of its own until the user changes it in the settings:
+// - rustore: the public server, no token (the user types theirs in the settings);
+// - dev: the owner's local builds, the emulator's host machine unless local.properties says otherwise;
+// - client: the public server and the customer's token, so the APK opens ready to work.
+fun flavorServerUrl(flavor: String) = when (flavor) {
+    "dev" -> buildConfigString("prorab.dev.serverUrl", "http://10.0.2.2:8080")
+    else -> buildConfigString("prorab.$flavor.serverUrl", publicServer)
+}
+
+fun flavorApiToken(flavor: String) = when (flavor) {
+    "rustore" -> provider { "\"\"" }
+    else -> buildConfigString("prorab.$flavor.apiToken")
+}
+
+// An APK for the customer without its token would open empty; only building that APK needs the token, so
+// `verify` and CI, which compile every variant, are not stopped by it.
+tasks.matching { it.name == "assembleClientRelease" || it.name == "bundleClientRelease" }.configureEach {
+    doFirst {
+        check(!flavorApiToken("client").get().trim('"').isEmpty()) {
+            "prorab.client.apiToken is not set: put it in local.properties"
+        }
+    }
+}
+
+androidComponents {
+    onVariants { variant ->
+        val flavor = variant.flavorName.orEmpty()
+        variant.buildConfigFields?.put(
+            "DEFAULT_SERVER_URL",
+            flavorServerUrl(flavor).map { BuildConfigField("String", it, null) },
+        )
+        variant.buildConfigFields?.put(
+            "DEFAULT_API_TOKEN",
+            flavorApiToken(flavor).map { BuildConfigField("String", it, null) },
+        )
+    }
 }
 
 // The release signing key, from keystore.properties (gitignored) or, on a build machine, from the
@@ -48,20 +89,13 @@ android {
         targetSdk = 37
         versionCode = versionMajor * 10_000 + versionMinor * 100 + versionPatch
         versionName = "$versionMajor.$versionMinor.$versionPatch"
-
-        buildConfigField("String", "DEFAULT_SERVER_URL", buildConfigString("prorab.serverUrl"))
-        buildConfigField("String", "DEFAULT_API_TOKEN", buildConfigString("prorab.apiToken"))
     }
 
-    signingConfigs {
-        if (releaseStoreFile != null) {
-            create("release") {
-                storeFile = rootProject.file(releaseStoreFile)
-                storePassword = signingValue("storePassword", "PRORAB_STORE_PASSWORD")
-                keyAlias = signingValue("keyAlias", "PRORAB_KEY_ALIAS")
-                keyPassword = signingValue("keyPassword", "PRORAB_KEY_PASSWORD")
-            }
-        }
+    flavorDimensions += "distribution"
+    productFlavors {
+        create("rustore") { dimension = "distribution" }
+        create("dev") { dimension = "distribution" }
+        create("client") { dimension = "distribution" }
     }
 
     buildTypes {
