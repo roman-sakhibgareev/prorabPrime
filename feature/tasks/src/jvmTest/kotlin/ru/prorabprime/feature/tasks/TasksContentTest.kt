@@ -103,7 +103,7 @@ class TasksContentTest {
             }
         }
 
-        onNodeWithText("На этот день дел нет").assertIsDisplayed()
+        onNodeWithText("На этот день задач нет").assertIsDisplayed()
         onNodeWithText("Ближайшие планы — через 3 дня").assertIsDisplayed()
         onNodeWithText("Заказать двери", substring = true).performClick()
 
@@ -128,7 +128,7 @@ class TasksContentTest {
         onNodeWithContentDescription("Следующий день").performClick()
         onAllNodesWithContentDescription("Отметить сделанным")[1].performClick()
         onNodeWithText("Купить плитку").performClick()
-        onNodeWithContentDescription("Добавить дело").performClick()
+        onNodeWithContentDescription("Добавить задачу").performClick()
 
         assertThat(events).containsExactly(
             TasksEvent.PreviousDay,
@@ -143,7 +143,7 @@ class TasksContentTest {
     fun `a day with nothing says so`() = runComposeUiTest {
         show(TasksState(status = TasksStatus.Content, day = today, today = today))
 
-        onNodeWithText("На этот день дел нет").assertIsDisplayed()
+        onNodeWithText("На этот день задач нет").assertIsDisplayed()
     }
 
     @Test
