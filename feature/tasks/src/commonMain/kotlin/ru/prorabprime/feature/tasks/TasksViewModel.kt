@@ -3,8 +3,11 @@ package ru.prorabprime.feature.tasks
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.toImmutableSet
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -56,7 +59,7 @@ internal class TasksViewModel(
             TasksEvent.NextDay -> moveTo(state.value.day.plusDays(1))
             TasksEvent.TodayClicked -> moveTo(state.value.today)
             TasksEvent.MonthToggled -> toggleMonth()
-            is TasksEvent.ObjectFilterPicked -> filterBy(event.objectId)
+            is TasksEvent.ObjectFilterEvent -> filterBy(event)
             TasksEvent.PreviousMonth -> showMonth(state.value.month.previousMonth())
             TasksEvent.NextMonth -> showMonth(state.value.month.nextMonth())
             is TasksEvent.DayPicked -> moveTo(event.day)
@@ -87,7 +90,7 @@ internal class TasksViewModel(
     /** The nearest later plan, so an empty day can point at it. */
     private fun watchNextPlan(day: LocalDay) {
         nextJob?.cancel()
-        nextJob = actions.observeNext(day, state.value.objectFilter?.let(::ObjectId))
+        nextJob = actions.observeNext(day, state.value.objectFilter.mapTo(mutableSetOf(), ::ObjectId))
             .onEach { result ->
                 result.onSuccess { task ->
                     stateHolder.showNextPlan(task?.let { NextPlanUi(it.day, it.title, it.day.epochDay - day.epochDay) })
@@ -124,10 +127,14 @@ internal class TasksViewModel(
         }
     }
 
-    /** The plan of one object, or of all; a screen opened for one object keeps to it. */
-    private fun filterBy(objectId: String?) {
-        if (state.value.isScoped || objectId == state.value.objectFilter) return
-        stateHolder.showObjectFilter(objectId)
+    /** The plan of some objects, or of all; a screen opened for one object keeps to it. */
+    private fun filterBy(event: TasksEvent.ObjectFilterEvent) {
+        val objectIds = when (event) {
+            is TasksEvent.ObjectFilterToggled -> state.value.objectFilter.toggled(event.objectId)
+            TasksEvent.ObjectFilterCleared -> persistentSetOf()
+        }
+        if (state.value.isScoped || objectIds == state.value.objectFilter) return
+        stateHolder.showObjectFilter(objectIds)
         load()
         if (state.value.view == TasksView.MONTH) showMonth(state.value.month)
     }
@@ -177,10 +184,13 @@ private fun TasksActions.observeChoices(): Flow<ImmutableList<ObjectChoiceUi>> =
     observeObjects(ObjectQuery(sort = ObjectSort.ADDRESS_ASC))
         .map { result -> result.getOrNull()?.toChoices() ?: persistentListOf() }
 
-/** Only the tasks of [objectId]; all of them when it is null. */
-private fun Flow<Result<ImmutableList<Task>>>.matching(objectId: String?): Flow<Result<ImmutableList<Task>>> =
-    if (objectId == null) {
+/** Only the tasks of [objectIds]; all of them when it is empty. */
+private fun Flow<Result<ImmutableList<Task>>>.matching(objectIds: Set<String>): Flow<Result<ImmutableList<Task>>> =
+    if (objectIds.isEmpty()) {
         this
     } else {
-        map { result -> result.map { tasks -> tasks.filter { it.objectId?.value == objectId }.toImmutableList() } }
+        map { result -> result.map { tasks -> tasks.filter { it.objectId?.value in objectIds }.toImmutableList() } }
     }
+
+private fun ImmutableSet<String>.toggled(id: String): ImmutableSet<String> =
+    (if (id in this) this - id else this + id).toImmutableSet()

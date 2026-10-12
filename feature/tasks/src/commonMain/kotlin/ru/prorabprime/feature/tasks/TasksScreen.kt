@@ -45,7 +45,6 @@ import ru.prorabprime.designsystem.theme.Spacing
 import ru.prorabprime.domain.model.ObjectId
 import ru.prorabprime.feature.tasks.resources.Res
 import ru.prorabprime.feature.tasks.resources.tasks_add
-import ru.prorabprime.feature.tasks.resources.tasks_all_objects
 import ru.prorabprime.feature.tasks.resources.tasks_back
 import ru.prorabprime.feature.tasks.resources.tasks_empty
 import ru.prorabprime.feature.tasks.resources.tasks_hide_month
@@ -140,15 +139,15 @@ internal fun TasksContent(
     )
 }
 
-/** Narrows the plan to one object. */
+/** Narrows the plan to some of the objects. */
 @Composable
 private fun ObjectFilter(state: TasksState, onEvent: (TasksEvent) -> Unit) {
-    ObjectSelector(
-        selectedId = state.objectFilter,
+    ObjectFilterButton(
+        selectedIds = state.objectFilter,
         objects = state.objects,
-        noneLabel = stringResource(Res.string.tasks_all_objects),
-        onPicked = { onEvent(TasksEvent.ObjectFilterPicked(it)) },
-        modifier = Modifier.padding(horizontal = Spacing.m),
+        onToggle = { onEvent(TasksEvent.ObjectFilterToggled(it)) },
+        onClear = { onEvent(TasksEvent.ObjectFilterCleared) },
+        modifier = Modifier.padding(horizontal = Spacing.m, vertical = Spacing.s),
     )
 }
 

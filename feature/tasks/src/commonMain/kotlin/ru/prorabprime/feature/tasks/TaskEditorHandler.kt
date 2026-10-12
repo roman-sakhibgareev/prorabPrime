@@ -30,7 +30,7 @@ internal class TaskEditorHandler(
     fun onEvent(event: TaskEditorEvent) {
         when (event) {
             TaskEditorEvent.Add -> stateHolder.state.value.let {
-                stateHolder.setEditor(TaskEditorUi(day = it.day, objectId = it.objectFilter))
+                stateHolder.setEditor(TaskEditorUi(day = it.day, objectId = it.objectFilter.singleOrNull()))
             }
 
             is TaskEditorEvent.Edit -> open(event.taskId)
