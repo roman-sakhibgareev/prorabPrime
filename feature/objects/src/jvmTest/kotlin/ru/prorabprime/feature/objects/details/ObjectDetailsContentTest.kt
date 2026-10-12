@@ -6,6 +6,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.v2.runComposeUiTest
 import com.google.common.truth.Truth.assertThat
 import kotlinx.collections.immutable.persistentListOf
@@ -38,7 +39,7 @@ class ObjectDetailsContentTest {
         onNodeWithText("На паузе").assertIsDisplayed()
         onNodeWithText("Иван").assertIsDisplayed()
         onNodeWithText("+7 900 123-45-67").assertIsDisplayed()
-        onNodeWithText("Ключи у соседа").assertIsDisplayed()
+        onNodeWithText("Ключи у соседа").performScrollTo().assertIsDisplayed()
     }
 
     @Test
