@@ -3,12 +3,12 @@ package ru.prorabprime.feature.objects.details
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -38,8 +38,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.collections.immutable.toImmutableList
 import org.jetbrains.compose.resources.StringResource
@@ -50,8 +52,9 @@ import ru.prorabprime.designsystem.components.BusyScreen
 import ru.prorabprime.designsystem.components.DialogHost
 import ru.prorabprime.designsystem.components.ErrorMessage
 import ru.prorabprime.designsystem.components.LoadingBox
-import ru.prorabprime.designsystem.components.OutlinedButton
+import ru.prorabprime.designsystem.components.TonalButton
 import ru.prorabprime.designsystem.components.TopAppBar
+import ru.prorabprime.designsystem.theme.ProrabColors
 import ru.prorabprime.designsystem.theme.ProrabTheme
 import ru.prorabprime.designsystem.theme.Spacing
 import ru.prorabprime.domain.model.AttachmentKind
@@ -334,16 +337,34 @@ internal data class ObjectSections(
     val onEditStatus: () -> Unit,
 )
 
+private val SectionButtonHeight = 56.dp
+
+/** Two rows of two equal buttons, so the grid never ends up ragged. */
 @Composable
 private fun SectionButtons(sections: ObjectSections) {
-    FlowRow(
-        modifier = Modifier.padding(horizontal = Spacing.m),
-        horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+    val rows = listOf(
+        listOf(
+            Res.string.objectdetails_journal to sections.onOpenJournal,
+            Res.string.objectdetails_calendar to sections.onOpenCalendar,
+        ),
+        listOf(
+            Res.string.objectdetails_finance to sections.onOpenFinance,
+            Res.string.objectdetails_materials to sections.onOpenMaterials,
+        ),
+    )
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.m),
+        verticalArrangement = Arrangement.spacedBy(Spacing.s),
     ) {
-        OutlinedButton(onClick = sections.onOpenJournal) { Text(stringResource(Res.string.objectdetails_journal)) }
-        OutlinedButton(onClick = sections.onOpenCalendar) { Text(stringResource(Res.string.objectdetails_calendar)) }
-        OutlinedButton(onClick = sections.onOpenFinance) { Text(stringResource(Res.string.objectdetails_finance)) }
-        OutlinedButton(onClick = sections.onOpenMaterials) { Text(stringResource(Res.string.objectdetails_materials)) }
+        rows.forEach { row ->
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
+                row.forEach { (label, onClick) ->
+                    TonalButton(onClick = onClick, modifier = Modifier.weight(1f).heightIn(min = SectionButtonHeight)) {
+                        Text(stringResource(label), textAlign = TextAlign.Center)
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -373,14 +394,14 @@ private fun DetailsFields(details: ObjectDetailsUi, onEditStatus: () -> Unit) {
             Field(
                 label = stringResource(Res.string.objectdetails_phone),
                 value = phone,
-                valueColor = MaterialTheme.colorScheme.primary,
+                valueColor = ProrabColors.link,
                 modifier = Modifier.clickable {
                     uriHandler.openUri(phone.asTelUri())
                 },
             )
         }
         details.chatLink?.let { link ->
-            OutlinedButton(onClick = { uriHandler.openUri(link) }) {
+            TonalButton(onClick = { uriHandler.openUri(link) }) {
                 Text(stringResource(Res.string.objectdetails_open_chat))
             }
         }
