@@ -39,7 +39,7 @@ class ObjectDetailsContentTest {
         onNodeWithText("Тверская, 5").assertIsDisplayed()
         onNodeWithText("На паузе").assertIsDisplayed()
         onNodeWithText("Иван").assertIsDisplayed()
-        onNodeWithText("+7 900 123-45-67").assertIsDisplayed()
+        onNodeWithText("+7 900 123-45-67").performScrollTo().assertIsDisplayed()
         onNodeWithText("Ключи у соседа").performScrollTo().assertIsDisplayed()
     }
 

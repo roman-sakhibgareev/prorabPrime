@@ -6,7 +6,8 @@
     <string name="tasks_all_objects">Все объекты</string>
     <string name="tasks_objects_count">Объекты: %1$d</string>
     <string name="tasks_objects_title">Какие объекты показывать</string>
-    <string name="tasks_objects_show_all">Показать все</string>
+    <string name="tasks_objects_show_all">Сбросить все</string>
+    <string name="tasks_objects_caption">Объекты</string>
     <string name="tasks_no_object">Без объекта</string>
     <string name="tasks_back">Назад</string>
     <string name="tasks_previous_day">Предыдущий день</string>

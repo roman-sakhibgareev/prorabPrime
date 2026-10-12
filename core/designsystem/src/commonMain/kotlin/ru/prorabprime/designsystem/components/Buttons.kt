@@ -19,16 +19,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
+import ru.prorabprime.designsystem.theme.Sizes
 
 /*
  * The app's buttons: one height, one corner radius (the theme's), so a screen never mixes a pill with
  * a rectangle. Filled is the one main action of a screen, outlined the others, text the quiet ones.
  */
 
-private val ButtonHeight = 48.dp
+private val ButtonHeight = Sizes.control
 private val ButtonPadding = PaddingValues(horizontal = 20.dp)
 private val TonalButtonPadding = PaddingValues(horizontal = 12.dp)
-private val IconButtonSize = 48.dp
+private val IconButtonSize = Sizes.control
 
 @Composable
 fun Button(

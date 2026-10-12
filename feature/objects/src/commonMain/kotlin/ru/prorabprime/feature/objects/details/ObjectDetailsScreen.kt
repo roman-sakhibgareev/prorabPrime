@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -20,6 +21,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,6 +40,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -56,6 +59,7 @@ import ru.prorabprime.designsystem.components.LoadingBox
 import ru.prorabprime.designsystem.components.SectionHeader
 import ru.prorabprime.designsystem.components.TonalButton
 import ru.prorabprime.designsystem.components.TopAppBar
+import ru.prorabprime.designsystem.icons.ProrabIcons
 import ru.prorabprime.designsystem.theme.ProrabColors
 import ru.prorabprime.designsystem.theme.ProrabTheme
 import ru.prorabprime.designsystem.theme.Spacing
@@ -338,14 +342,16 @@ internal data class ObjectSections(
     val onEditStatus: () -> Unit,
 )
 
+private val SectionIconSize = 40.dp
+
 /** The four places the card leads, floating over the bottom edge so they are always one tap away. */
 @Composable
 private fun SectionBar(sections: ObjectSections) {
     val items = listOf(
-        Res.string.objectdetails_journal to sections.onOpenJournal,
-        Res.string.objectdetails_calendar to sections.onOpenCalendar,
-        Res.string.objectdetails_finance to sections.onOpenFinance,
-        Res.string.objectdetails_materials to sections.onOpenMaterials,
+        Triple(Icons.Default.Edit, Res.string.objectdetails_journal, sections.onOpenJournal),
+        Triple(ProrabIcons.CalendarMonth, Res.string.objectdetails_calendar, sections.onOpenCalendar),
+        Triple(ProrabIcons.Receipt, Res.string.objectdetails_finance, sections.onOpenFinance),
+        Triple(Icons.Default.ShoppingCart, Res.string.objectdetails_materials, sections.onOpenMaterials),
     )
     Surface(
         modifier = Modifier.navigationBarsPadding().padding(horizontal = Spacing.m, vertical = Spacing.s),
@@ -358,20 +364,23 @@ private fun SectionBar(sections: ObjectSections) {
             modifier = Modifier.fillMaxWidth().padding(Spacing.s),
             horizontalArrangement = Arrangement.spacedBy(Spacing.s),
         ) {
-            items.forEach { (label, onClick) ->
-                Surface(
-                    onClick = onClick,
-                    modifier = Modifier.weight(1f),
-                    shape = MaterialTheme.shapes.small,
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            items.forEach { (icon, label, onClick) ->
+                Column(
+                    modifier = Modifier.weight(1f).clip(MaterialTheme.shapes.small).clickable(onClick = onClick)
+                        .padding(vertical = Spacing.s),
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
+                    Icon(
+                        icon,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(SectionIconSize),
+                    )
                     Text(
                         stringResource(label),
-                        style = MaterialTheme.typography.labelMedium,
+                        style = MaterialTheme.typography.bodyMedium,
                         textAlign = TextAlign.Center,
                         maxLines = 1,
-                        modifier = Modifier.padding(horizontal = 2.dp, vertical = Spacing.m),
                     )
                 }
             }
