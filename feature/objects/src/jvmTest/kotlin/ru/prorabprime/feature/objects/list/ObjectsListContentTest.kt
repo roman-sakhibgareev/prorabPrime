@@ -121,6 +121,17 @@ class ObjectsListContentTest {
     }
 
     @Test
+    fun `an open search takes the place of the chips and the arrow closes it`() = runComposeUiTest {
+        setContent { show(ObjectsListState(status = ObjectsListStatus.Content, items = cards, searchOpen = true)) }
+
+        onNodeWithText("Фильтры").assertDoesNotExist()
+        onNodeWithText("Сортировка").assertDoesNotExist()
+        onNodeWithContentDescription("Закрыть поиск").performClick()
+
+        assertThat(events).containsExactly(ObjectsListEvent.SearchToggled)
+    }
+
+    @Test
     fun `an open search line sends the search text`() = runComposeUiTest {
         setContent { show(ObjectsListState(status = ObjectsListStatus.Content, items = cards, searchOpen = true)) }
 

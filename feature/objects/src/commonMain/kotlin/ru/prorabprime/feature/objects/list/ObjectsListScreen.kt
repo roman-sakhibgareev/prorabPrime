@@ -60,7 +60,6 @@ import ru.prorabprime.designsystem.components.ErrorMessage
 import ru.prorabprime.designsystem.components.FilterChip
 import ru.prorabprime.designsystem.components.LoadingBox
 import ru.prorabprime.designsystem.components.PendingMark
-import ru.prorabprime.designsystem.components.SearchField
 import ru.prorabprime.designsystem.components.ServerImage
 import ru.prorabprime.designsystem.components.TopAppBar
 import ru.prorabprime.designsystem.icons.ProrabIcons
@@ -183,13 +182,6 @@ internal fun ObjectsListContent(
     ) { padding ->
         Column(Modifier.padding(padding).fillMaxSize()) {
             FilterRow(state, onEvent)
-            if (state.searchOpen) {
-                SearchField(
-                    state.search,
-                    onEvent,
-                    Modifier.padding(horizontal = Spacing.m, vertical = Spacing.s),
-                )
-            }
             ListBody(state, onEvent, onOpenObject, onCreateObject)
         }
     }

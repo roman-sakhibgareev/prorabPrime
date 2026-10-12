@@ -1,16 +1,21 @@
 package ru.prorabprime.feature.objects.list
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
@@ -23,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import ru.prorabprime.designsystem.components.ActionChip
@@ -41,12 +47,16 @@ import ru.prorabprime.feature.objects.resources.objectslist_filters
 import ru.prorabprime.feature.objects.resources.objectslist_filters_count
 import ru.prorabprime.feature.objects.resources.objectslist_filters_reset
 import ru.prorabprime.feature.objects.resources.objectslist_search
+import ru.prorabprime.feature.objects.resources.objectslist_search_close
 import ru.prorabprime.feature.objects.resources.objectslist_search_open
 import ru.prorabprime.feature.objects.resources.objectslist_sort
 import ru.prorabprime.feature.objects.resources.objectslist_sort_address_asc
 import ru.prorabprime.feature.objects.resources.objectslist_sort_address_desc
 import ru.prorabprime.feature.objects.resources.objectslist_sort_created
 import ru.prorabprime.feature.objects.resources.objectslist_sort_updated
+
+/** A search field's height (44dp) and a margin above and below it. */
+private val RowHeight = 60.dp
 
 private enum class ListSheet { FILTERS, SORT }
 
@@ -55,27 +65,44 @@ private enum class ListSheet { FILTERS, SORT }
 internal fun FilterRow(state: ObjectsListState, onEvent: (ObjectsListEvent) -> Unit) {
     // Which sheet is open is view state with no meaning beyond this composable.
     var sheet by remember { mutableStateOf<ListSheet?>(null) }
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.m, vertical = Spacing.s),
-        horizontalArrangement = Arrangement.spacedBy(Spacing.s),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        val filters = if (state.statuses.isEmpty()) {
-            stringResource(Res.string.objectslist_filters)
-        } else {
-            stringResource(Res.string.objectslist_filters_count, state.statuses.size)
+    // Both states are one height, so opening the search never moves the list under it.
+    Crossfade(
+        targetState = state.searchOpen,
+        modifier = Modifier.fillMaxWidth().height(RowHeight),
+        label = "search",
+    ) { searching ->
+        Row(
+            modifier = Modifier.fillMaxSize().padding(horizontal = Spacing.m),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (searching) {
+                IconButton(onClick = { onEvent(ObjectsListEvent.SearchToggled) }) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(Res.string.objectslist_search_close),
+                    )
+                }
+                SearchField(state.search, onEvent, Modifier.weight(1f))
+            } else {
+                val filters = if (state.statuses.isEmpty()) {
+                    stringResource(Res.string.objectslist_filters)
+                } else {
+                    stringResource(Res.string.objectslist_filters_count, state.statuses.size)
+                }
+                ActionChip(filters, onClick = { sheet = ListSheet.FILTERS }, icon = ProrabIcons.Filter)
+                ActionChip(
+                    stringResource(Res.string.objectslist_sort),
+                    onClick = { sheet = ListSheet.SORT },
+                    icon = ProrabIcons.Sort,
+                )
+                ActionChip(
+                    stringResource(Res.string.objectslist_search_open),
+                    onClick = { onEvent(ObjectsListEvent.SearchToggled) },
+                    icon = Icons.Default.Search,
+                )
+            }
         }
-        ActionChip(filters, onClick = { sheet = ListSheet.FILTERS }, icon = ProrabIcons.Filter)
-        ActionChip(
-            stringResource(Res.string.objectslist_sort),
-            onClick = { sheet = ListSheet.SORT },
-            icon = ProrabIcons.Sort,
-        )
-        ActionChip(
-            stringResource(Res.string.objectslist_search_open),
-            onClick = { onEvent(ObjectsListEvent.SearchToggled) },
-            icon = if (state.searchOpen) Icons.Default.Clear else Icons.Default.Search,
-        )
     }
     when (sheet) {
         ListSheet.FILTERS -> FiltersSheet(state.statuses, onEvent, onDismiss = { sheet = null })
