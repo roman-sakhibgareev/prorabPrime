@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -28,6 +28,7 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -183,6 +184,7 @@ internal fun ObjectDetailsContent(
     BusyScreen(state.isDeleting, modifier) {
         Scaffold(
             topBar = { DetailsTopBar(state, onEvent, onEdit, onBack) },
+            bottomBar = { if (state.status == ObjectDetailsStatus.Content) SectionBar(sections) },
         ) { padding ->
             Column(Modifier.padding(padding).fillMaxSize()) {
                 if (state.isDeleting) LinearProgressIndicator(Modifier.fillMaxWidth())
@@ -294,7 +296,6 @@ private fun DetailsBody(
             addLabel = Res.string.objectdetails_add_receipt,
         )
         DetailsFields(details, sections.onEditStatus)
-        SectionButtons(sections)
         ContactsSection(
             contacts = details.contacts,
             onAdd = { onEvent(ObjectDetailsEvent.AddContactClicked) },
@@ -337,31 +338,41 @@ internal data class ObjectSections(
     val onEditStatus: () -> Unit,
 )
 
-private val SectionButtonHeight = 56.dp
-
-/** Two rows of two equal buttons, so the grid never ends up ragged. */
+/** The four places the card leads, floating over the bottom edge so they are always one tap away. */
 @Composable
-private fun SectionButtons(sections: ObjectSections) {
-    val rows = listOf(
-        listOf(
-            Res.string.objectdetails_journal to sections.onOpenJournal,
-            Res.string.objectdetails_calendar to sections.onOpenCalendar,
-        ),
-        listOf(
-            Res.string.objectdetails_finance to sections.onOpenFinance,
-            Res.string.objectdetails_materials to sections.onOpenMaterials,
-        ),
+private fun SectionBar(sections: ObjectSections) {
+    val items = listOf(
+        Res.string.objectdetails_journal to sections.onOpenJournal,
+        Res.string.objectdetails_calendar to sections.onOpenCalendar,
+        Res.string.objectdetails_finance to sections.onOpenFinance,
+        Res.string.objectdetails_materials to sections.onOpenMaterials,
     )
-    Column(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.m),
-        verticalArrangement = Arrangement.spacedBy(Spacing.s),
+    Surface(
+        modifier = Modifier.navigationBarsPadding().padding(horizontal = Spacing.m, vertical = Spacing.s),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        tonalElevation = 3.dp,
+        shadowElevation = 6.dp,
     ) {
-        rows.forEach { row ->
-            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
-                row.forEach { (label, onClick) ->
-                    TonalButton(onClick = onClick, modifier = Modifier.weight(1f).heightIn(min = SectionButtonHeight)) {
-                        Text(stringResource(label), textAlign = TextAlign.Center)
-                    }
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(Spacing.s),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+        ) {
+            items.forEach { (label, onClick) ->
+                Surface(
+                    onClick = onClick,
+                    modifier = Modifier.weight(1f),
+                    shape = MaterialTheme.shapes.small,
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                ) {
+                    Text(
+                        stringResource(label),
+                        style = MaterialTheme.typography.labelMedium,
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        modifier = Modifier.padding(horizontal = 2.dp, vertical = Spacing.m),
+                    )
                 }
             }
         }
