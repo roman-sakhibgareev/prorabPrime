@@ -9,6 +9,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
@@ -74,6 +75,21 @@ private val DarkColors = darkColorScheme(
     outline = Color(0xFF8FA398),
     outlineVariant = Color(0xFF34443B),
 )
+
+/** Colors that have no Material role. */
+object ProrabColors {
+    private val LinkLight = Color(0xFF1A5FC8)
+    private val LinkDark = Color(0xFF8AB4F8)
+
+    /** Blue for anything that opens something (a phone number, a link): the color people read as a link. */
+    val link: Color
+        @Composable get() {
+            val isDark = MaterialTheme.colorScheme.background.luminance() < DARK_LUMINANCE
+            return if (isDark) LinkDark else LinkLight
+        }
+
+    private const val DARK_LUMINANCE = 0.5f
+}
 
 /** One corner radius for everything that has corners, so a card, a button and a field match. */
 object Corners {
