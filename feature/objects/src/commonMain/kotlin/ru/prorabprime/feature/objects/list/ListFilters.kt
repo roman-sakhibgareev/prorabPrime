@@ -11,23 +11,22 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Dp
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
+import ru.prorabprime.designsystem.components.ActionChip
 import ru.prorabprime.designsystem.components.FilterChip
-import ru.prorabprime.designsystem.components.OutlinedButton
 import ru.prorabprime.designsystem.components.ProrabBottomSheet
 import ru.prorabprime.designsystem.components.SearchField
 import ru.prorabprime.designsystem.components.TextButton
@@ -42,7 +41,6 @@ import ru.prorabprime.feature.objects.resources.objectslist_filters
 import ru.prorabprime.feature.objects.resources.objectslist_filters_count
 import ru.prorabprime.feature.objects.resources.objectslist_filters_reset
 import ru.prorabprime.feature.objects.resources.objectslist_search
-import ru.prorabprime.feature.objects.resources.objectslist_search_close
 import ru.prorabprime.feature.objects.resources.objectslist_search_open
 import ru.prorabprime.feature.objects.resources.objectslist_sort
 import ru.prorabprime.feature.objects.resources.objectslist_sort_address_asc
@@ -58,7 +56,7 @@ internal fun FilterRow(state: ObjectsListState, onEvent: (ObjectsListEvent) -> U
     // Which sheet is open is view state with no meaning beyond this composable.
     var sheet by remember { mutableStateOf<ListSheet?>(null) }
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.m),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.m, vertical = Spacing.s),
         horizontalArrangement = Arrangement.spacedBy(Spacing.s),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -67,16 +65,17 @@ internal fun FilterRow(state: ObjectsListState, onEvent: (ObjectsListEvent) -> U
         } else {
             stringResource(Res.string.objectslist_filters_count, state.statuses.size)
         }
-        SheetButton(ProrabIcons.Filter, filters) { sheet = ListSheet.FILTERS }
-        SheetButton(ProrabIcons.Sort, stringResource(Res.string.objectslist_sort)) { sheet = ListSheet.SORT }
-        Spacer(Modifier.weight(1f))
-        IconButton(onClick = { onEvent(ObjectsListEvent.SearchToggled) }) {
-            if (state.searchOpen) {
-                Icon(Icons.Default.Clear, stringResource(Res.string.objectslist_search_close))
-            } else {
-                Icon(Icons.Default.Search, stringResource(Res.string.objectslist_search_open))
-            }
-        }
+        ActionChip(filters, onClick = { sheet = ListSheet.FILTERS }, icon = ProrabIcons.Filter)
+        ActionChip(
+            stringResource(Res.string.objectslist_sort),
+            onClick = { sheet = ListSheet.SORT },
+            icon = ProrabIcons.Sort,
+        )
+        ActionChip(
+            stringResource(Res.string.objectslist_search_open),
+            onClick = { onEvent(ObjectsListEvent.SearchToggled) },
+            icon = if (state.searchOpen) Icons.Default.Clear else Icons.Default.Search,
+        )
     }
     when (sheet) {
         ListSheet.FILTERS -> FiltersSheet(state.statuses, onEvent, onDismiss = { sheet = null })
@@ -95,35 +94,25 @@ internal fun FilterRow(state: ObjectsListState, onEvent: (ObjectsListEvent) -> U
 }
 
 @Composable
-private fun SheetButton(
-    icon: ImageVector,
-    label: String,
-    onClick: () -> Unit,
-) {
-    OutlinedButton(onClick = onClick) {
-        Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp))
-        Spacer(Modifier.size(Spacing.s))
-        Text(label)
-    }
-}
-
-@Composable
 private fun FiltersSheet(
     statuses: Set<ObjectStatus>,
     onEvent: (ObjectsListEvent) -> Unit,
     onDismiss: () -> Unit,
 ) {
     ProrabBottomSheet(title = stringResource(Res.string.objectslist_filters), onDismiss = onDismiss) {
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(Spacing.s),
-            verticalArrangement = Arrangement.spacedBy(Spacing.s),
-        ) {
-            ObjectStatus.entries.forEach { status ->
-                FilterChip(
-                    selected = status in statuses,
-                    onClick = { onEvent(ObjectsListEvent.StatusToggled(status)) },
-                    label = { Text(stringResource(status.label)) },
-                )
+        // The chips are 32dp tall and 48dp to touch; without this the rows of a wrapped list drift far apart.
+        CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+                verticalArrangement = Arrangement.spacedBy(Spacing.s),
+            ) {
+                ObjectStatus.entries.forEach { status ->
+                    FilterChip(
+                        selected = status in statuses,
+                        onClick = { onEvent(ObjectsListEvent.StatusToggled(status)) },
+                        label = { Text(stringResource(status.label)) },
+                    )
+                }
             }
         }
         if (statuses.isNotEmpty()) {

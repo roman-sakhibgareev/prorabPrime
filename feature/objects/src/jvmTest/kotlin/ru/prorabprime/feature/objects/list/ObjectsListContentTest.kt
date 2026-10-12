@@ -116,7 +116,7 @@ class ObjectsListContentTest {
         setContent { show(ObjectsListState(status = ObjectsListStatus.Content, items = cards)) }
 
         onNode(hasSetTextAction()).assertDoesNotExist()
-        onNodeWithContentDescription("Поиск").performClick()
+        onNodeWithText("Поиск").performClick()
         assertThat(events).containsExactly(ObjectsListEvent.SearchToggled)
     }
 
