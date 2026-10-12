@@ -940,3 +940,36 @@ for the same reason.
 finance history) are not migrated yet. The editor's single-object `ObjectSelector` stays a dropdown.
 
 **Review when:** a sheet must survive rotation or carry its own state, or the raw uses are touched for another reason.
+
+---
+
+## ADR-0027
+
+### The design system lives in code; Figma is not its source of truth
+
+**Accepted** · 2026-10-12
+
+**Context.** Screens had grown one by one: sizes of text, section headings, blocks of facts, chips and the search
+line were each set where they were used, so two screens said the same thing in two looks. Someone suggested drawing
+the system in Figma first. The account's seat in Figma is view-only (starter plan), so the connector can read a
+file but nothing here would be drawn into one.
+
+**Decision.** Tokens and components are code in `core/designsystem`. The type scale is fixed in `ProrabTypography`
+(screen title 24/28, section 20/24, card title 16/20, text 16/20, secondary text 14/20, labels 14/16 and 12/16,
+footnote 10/12), still in the platform's own font. Parts of a screen are a `SectionHeader` with an `InfoCard` under
+it; chips that open something are `ActionChip`; sheets are `ProrabBottomSheet`. `DesignSystemGallery` draws all of it
+on one page for a preview, and a test draws it in both themes so a token that breaks a component shows up in
+`verify`.
+
+**Alternatives rejected.**
+- *Figma tokens and Code Connect.* Needs an edit seat, and a file somebody keeps in step with the code; for one
+  developer that is a second place to forget.
+- *Bundling Inter.* About a megabyte of fonts for a different look and no gain in reading; Roboto has Cyrillic.
+- *Putting the gallery behind a settings item in debug builds.* It would pass a build flag through `:shared` into a
+  feature; a preview does the same job for the one person using it.
+
+**Consequences.** A new text size or color is added to the theme first, not at the call site. The gallery is not
+reachable on a device yet; it is looked at in the IDE preview. Existing screens that still use `titleMedium` as a
+heading move to `SectionHeader` when they are next touched, not all at once.
+
+**Review when:** a designer or a Figma file with an edit seat appears, or the gallery is wanted on a device.
