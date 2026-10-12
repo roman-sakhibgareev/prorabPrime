@@ -98,6 +98,17 @@ android {
         create("client") { dimension = "distribution" }
     }
 
+    signingConfigs {
+        if (releaseStoreFile != null) {
+            create("release") {
+                storeFile = rootProject.file(releaseStoreFile)
+                storePassword = signingValue("storePassword", "PRORAB_STORE_PASSWORD")
+                keyAlias = signingValue("keyAlias", "PRORAB_KEY_ALIAS")
+                keyPassword = signingValue("keyPassword", "PRORAB_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
             signingConfig = signingConfigs.findByName("release")
