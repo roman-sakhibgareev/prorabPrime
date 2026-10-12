@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -136,9 +137,15 @@ private fun PhotoTile(
                 modifier = Modifier.fillMaxSize().quarterTurns(photo.quarterTurns),
             )
         }
-        if (photo.isCover) CoverBadge(Modifier.align(Alignment.BottomStart).padding(Spacing.xs))
         if (photo.isPending) PendingBadge(Modifier.align(Alignment.TopEnd).padding(Spacing.xs))
-        photo.amount?.let { AmountBadge(it, Modifier.align(Alignment.BottomEnd).padding(Spacing.xs)) }
+        // The bottom edge keeps its badges at the end, side by side when a photo has both.
+        Row(
+            Modifier.align(Alignment.BottomEnd).padding(Spacing.xs),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
+        ) {
+            if (photo.isCover) CoverBadge()
+            photo.amount?.let { AmountBadge(it) }
+        }
         if (photo.hasNote) NoteBadge(Modifier.align(Alignment.TopStart).padding(Spacing.xs))
         DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
             if (canMakeCover && !photo.isCover) {
@@ -163,7 +170,7 @@ private fun PhotoTile(
 
 /** The sum read from a receipt, in the corner of its tile. */
 @Composable
-private fun AmountBadge(amount: String, modifier: Modifier) {
+private fun AmountBadge(amount: String, modifier: Modifier = Modifier) {
     Surface(color = MaterialTheme.colorScheme.primary, shape = MaterialTheme.shapes.small, modifier = modifier) {
         Text(
             amount,
@@ -190,7 +197,7 @@ private fun NoteBadge(modifier: Modifier) {
 }
 
 @Composable
-private fun CoverBadge(modifier: Modifier) {
+private fun CoverBadge(modifier: Modifier = Modifier) {
     Surface(color = MaterialTheme.colorScheme.primary, shape = MaterialTheme.shapes.small, modifier = modifier) {
         Box(Modifier.padding(horizontal = 6.dp, vertical = 2.dp), contentAlignment = Alignment.Center) {
             Icon(

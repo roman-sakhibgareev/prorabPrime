@@ -129,7 +129,7 @@ class TasksContentTest {
         onNodeWithContentDescription("Следующий день").performClick()
         onAllNodesWithContentDescription("Отметить сделанным")[1].performClick()
         onNodeWithText("Купить плитку").performClick()
-        onNodeWithContentDescription("Добавить задачу").performClick()
+        onNodeWithText("Добавить задачу", useUnmergedTree = true).performClick()
 
         assertThat(events).containsExactly(
             TasksEvent.PreviousDay,
@@ -183,11 +183,11 @@ class TasksContentTest {
     }
 
     @Test
-    fun `the filter button counts several objects, and the sheet can show all again`() = runComposeUiTest {
+    fun `the filter button counts several objects, and the sheet can reset them all`() = runComposeUiTest {
         show(state().copy(objects = objects, objectFilter = persistentSetOf("kitchen", "bath")))
 
         onNodeWithText("Объекты: 2").performClick()
-        onNodeWithText("Показать все").performClick()
+        onNodeWithText("Сбросить все").performClick()
 
         assertThat(events).containsExactly(TasksEvent.ObjectFilterCleared)
     }

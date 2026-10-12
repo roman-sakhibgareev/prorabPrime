@@ -2,6 +2,7 @@ package ru.prorabprime.feature.objects.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -16,6 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
+import ru.prorabprime.designsystem.theme.Sizes
+import ru.prorabprime.designsystem.theme.Spacing
 import ru.prorabprime.domain.model.ObjectStatus
 import ru.prorabprime.feature.objects.resources.Res
 import ru.prorabprime.feature.objects.resources.objects_status_change
@@ -48,16 +51,17 @@ internal fun StatusChip(
     }
     val chip: @Composable () -> Unit = {
         Row(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+            modifier = Modifier.padding(horizontal = if (onClick == null) 10.dp else Spacing.m, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            Text(stringResource(status.label), style = MaterialTheme.typography.labelMedium)
+            val style = MaterialTheme.typography.run { if (onClick == null) labelMedium else labelLarge }
+            Text(stringResource(status.label), style = style)
             if (onClick != null) {
                 Icon(
                     Icons.Default.Edit,
                     contentDescription = stringResource(Res.string.objects_status_change),
-                    modifier = Modifier.size(14.dp),
+                    modifier = Modifier.size(20.dp),
                 )
             }
         }
@@ -71,8 +75,9 @@ internal fun StatusChip(
             onClick = onClick,
             color = container,
             contentColor = content,
-            shape = MaterialTheme.shapes.small,
-            modifier = modifier,
+            shape = MaterialTheme.shapes.large,
+            // The same height as the other buttons, since this one is tapped.
+            modifier = modifier.height(Sizes.control),
         ) { chip() }
     }
 }

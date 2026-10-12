@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -43,11 +44,13 @@ import ru.prorabprime.designsystem.components.BusyScreen
 import ru.prorabprime.designsystem.components.Button
 import ru.prorabprime.designsystem.components.ErrorMessage
 import ru.prorabprime.designsystem.components.FilterChip
+import ru.prorabprime.designsystem.components.FilterChipGroup
 import ru.prorabprime.designsystem.components.LoadingBox
 import ru.prorabprime.designsystem.components.OutlinedButton
 import ru.prorabprime.designsystem.components.SectionHeader
 import ru.prorabprime.designsystem.components.TopAppBar
 import ru.prorabprime.designsystem.theme.ProrabTheme
+import ru.prorabprime.designsystem.theme.Sizes
 import ru.prorabprime.designsystem.theme.Spacing
 import ru.prorabprime.domain.model.ObjectField
 import ru.prorabprime.domain.model.ObjectId
@@ -224,13 +227,17 @@ private fun FormField(
     OutlinedTextField(
         value = state.form.valueOf(field),
         onValueChange = { onEvent(ObjectEditEvent.FieldChanged(field, it)) },
+        // The name sits in the empty field and moves up to the outline once there is text.
         label = { Text(stringResource(label)) },
+        textStyle = MaterialTheme.typography.bodyMedium,
         isError = problem != null,
         supportingText = problem?.let { { Text(stringResource(it.message)) } },
         singleLine = singleLine,
         minLines = if (singleLine) 1 else NOTES_MIN_LINES,
         keyboardOptions = keyboardOptions,
-        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        // A line shorter than Material's 56dp; the label still fits in it.
+        modifier = Modifier.fillMaxWidth().then(if (singleLine) Modifier.height(Sizes.field) else Modifier),
     )
 }
 
@@ -255,20 +262,13 @@ private fun PickOnMapButton(placed: Boolean, onClick: () -> Unit) {
 
 @Composable
 private fun StatusPicker(selected: ObjectStatus, onSelect: (ObjectStatus) -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-        Text(
-            stringResource(Res.string.objectedit_status),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
-            ObjectStatus.entries.forEach { status ->
-                FilterChip(
-                    selected = status == selected,
-                    onClick = { onSelect(status) },
-                    label = { Text(stringResource(status.label)) },
-                )
-            }
+    FilterChipGroup(stringResource(Res.string.objectedit_status)) {
+        ObjectStatus.entries.forEach { status ->
+            FilterChip(
+                selected = status == selected,
+                onClick = { onSelect(status) },
+                label = { Text(stringResource(status.label)) },
+            )
         }
     }
 }

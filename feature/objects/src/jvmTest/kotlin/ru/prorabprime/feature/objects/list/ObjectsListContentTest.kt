@@ -122,12 +122,12 @@ class ObjectsListContentTest {
     }
 
     @Test
-    fun `an open search takes the place of the chips and the cross at its end closes it`() = runComposeUiTest {
+    fun `an open search takes the place of the chips and the word at its end closes it`() = runComposeUiTest {
         setContent { show(ObjectsListState(status = ObjectsListStatus.Content, items = cards, searchOpen = true)) }
 
         onNodeWithText("Фильтры").assertDoesNotExist()
         onNodeWithText("Сортировка").assertDoesNotExist()
-        onNodeWithContentDescription("Закрыть поиск").performClick()
+        onNodeWithText("Отменить").performClick()
 
         assertThat(events).containsExactly(ObjectsListEvent.SearchToggled)
     }
@@ -155,7 +155,7 @@ class ObjectsListContentTest {
 
         onNodeWithText("Фильтры").performClick()
         onNode(hasText("На паузе") and hasClickAction()).performClick()
-        onNodeWithText("Сбросить").performClick()
+        onNodeWithText("Сбросить все").performClick()
 
         assertThat(events).containsExactly(
             ObjectsListEvent.StatusToggled(ObjectStatus.PAUSED),
@@ -171,7 +171,7 @@ class ObjectsListContentTest {
             onNodeWithContentDescription("Фильтры включены").assertDoesNotExist()
             onNodeWithText("Фильтры").performClick()
 
-            onNodeWithText("Сбросить").assertIsNotEnabled()
+            onNodeWithText("Сбросить все").assertIsNotEnabled()
         }
 
     @Test

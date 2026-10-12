@@ -54,10 +54,10 @@ import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
-import ru.prorabprime.designsystem.components.CompactTextField
 import ru.prorabprime.designsystem.components.EmptyMessage
 import ru.prorabprime.designsystem.components.ErrorMessage
 import ru.prorabprime.designsystem.components.FilterChip
+import ru.prorabprime.designsystem.components.FormTextField
 import ru.prorabprime.designsystem.components.LoadingBox
 import ru.prorabprime.designsystem.components.PendingMark
 import ru.prorabprime.designsystem.components.ServerImage
@@ -268,7 +268,8 @@ private fun ObjectCards(state: ObjectsListState, onOpenObject: (id: String) -> U
         columns = GridCells.Fixed(GRID_COLUMNS),
         modifier = Modifier.fillMaxSize(),
         // Room at the bottom so the FAB never covers the last tiles.
-        contentPadding = PaddingValues(start = Spacing.s, end = Spacing.s, bottom = 112.dp),
+        // The same side margin as the row of buttons above.
+        contentPadding = PaddingValues(start = Spacing.m, end = Spacing.m, bottom = 112.dp),
         horizontalArrangement = Arrangement.spacedBy(Spacing.s),
         verticalArrangement = Arrangement.spacedBy(Spacing.s),
     ) {
@@ -349,7 +350,7 @@ private fun CaptureSheet(
             }
             Text(stringResource(title), style = MaterialTheme.typography.titleMedium)
             // One line: the sheet is for choosing an object, the note is a side thing.
-            CompactTextField(
+            FormTextField(
                 value = capture.note,
                 onValueChange = { onEvent(ObjectsListEvent.CaptureNoteChanged(it.take(PHOTO_NOTE_LIMIT))) },
                 placeholder = stringResource(Res.string.objectslist_capture_note),

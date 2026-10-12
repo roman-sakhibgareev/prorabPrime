@@ -10,10 +10,11 @@
     <string name="objectslist_search">Адрес или название</string>
     <string name="objectslist_filters">Фильтры</string>
     <string name="objectslist_filters_active">Фильтры включены</string>
-    <string name="objectslist_filters_reset">Сбросить</string>
+    <string name="objectslist_filters_reset">Сбросить все</string>
+    <string name="objectslist_filters_status">Статус</string>
     <string name="objectslist_sort">Сортировка</string>
     <string name="objectslist_search_open">Поиск</string>
-    <string name="objectslist_search_close">Закрыть поиск</string>
+    <string name="objectslist_search_cancel">Отменить</string>
     <string name="objectslist_sort_address_asc">По адресу А–Я</string>
     <string name="objectslist_sort_address_desc">По адресу Я–А</string>
     <string name="objectslist_sort_created">По дате добавления</string>

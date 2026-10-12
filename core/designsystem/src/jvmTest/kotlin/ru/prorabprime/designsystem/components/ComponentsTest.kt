@@ -63,4 +63,19 @@ class ComponentsTest {
 
         assertThat(taps).isEqualTo(1)
     }
+
+    @Test
+    fun `a search line shows its cross only with text, and the cross clears the text`() = runComposeUiTest {
+        val text = mutableStateOf("")
+        setContent {
+            ProrabTheme { SearchField(text.value, onValueChange = { text.value = it }, placeholder = "Поиск") }
+        }
+
+        onNodeWithContentDescription("Очистить").assertDoesNotExist()
+        text.value = "asd"
+        onNodeWithContentDescription("Очистить").performClick()
+
+        assertThat(text.value).isEmpty()
+        onNodeWithContentDescription("Очистить").assertDoesNotExist()
+    }
 }

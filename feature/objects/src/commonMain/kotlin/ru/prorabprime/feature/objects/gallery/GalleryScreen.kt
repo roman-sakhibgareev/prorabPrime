@@ -6,6 +6,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -209,33 +210,31 @@ private fun Tile(
             modifier = Modifier.fillMaxSize().quarterTurns(photo.quarterTurns),
         )
         if (selected) Box(Modifier.fillMaxSize().background(colors.primary.copy(alpha = SELECTED_VEIL)))
-        if (photo.isCover && !selecting) {
-            Surface(
-                color = colors.primary,
-                shape = MaterialTheme.shapes.small,
-                modifier = Modifier.align(Alignment.BottomStart).padding(Spacing.xs),
-            ) {
-                Icon(
-                    Icons.Default.Star,
-                    contentDescription = stringResource(Res.string.objectdetails_cover),
-                    tint = colors.onPrimary,
-                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp).size(14.dp),
-                )
-            }
-        }
         if (photo.isPending && !selecting) PendingBadge(Modifier.align(Alignment.TopEnd).padding(Spacing.xs))
-        photo.amount?.let {
-            Surface(
-                color = colors.primary,
-                shape = MaterialTheme.shapes.small,
-                modifier = Modifier.align(Alignment.BottomEnd).padding(Spacing.xs),
-            ) {
-                Text(
-                    it,
-                    color = colors.onPrimary,
-                    style = MaterialTheme.typography.labelMedium,
-                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                )
+        // The bottom edge keeps its badges at the end, side by side when a photo has both.
+        Row(
+            Modifier.align(Alignment.BottomEnd).padding(Spacing.xs),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
+        ) {
+            if (photo.isCover && !selecting) {
+                Surface(color = colors.primary, shape = MaterialTheme.shapes.small) {
+                    Icon(
+                        Icons.Default.Star,
+                        contentDescription = stringResource(Res.string.objectdetails_cover),
+                        tint = colors.onPrimary,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp).size(14.dp),
+                    )
+                }
+            }
+            photo.amount?.let {
+                Surface(color = colors.primary, shape = MaterialTheme.shapes.small) {
+                    Text(
+                        it,
+                        color = colors.onPrimary,
+                        style = MaterialTheme.typography.labelMedium,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                    )
+                }
             }
         }
         if (selecting) {

@@ -973,3 +973,31 @@ reachable on a device yet; it is looked at in the IDE preview. Existing screens 
 heading move to `SectionHeader` when they are next touched, not all at once.
 
 **Review when:** a designer or a Figma file with an edit seat appears, or the gallery is wanted on a device.
+
+## ADR-0028
+
+### Controls share one height, and text is black or white
+
+**Accepted** · 2026-10-12
+
+**Context.** A button, the search line, a chip and a form field were each given a height where they were drawn
+(48, 44, 32 and 56 dp), so buttons standing in one row were not as tall as each other. Text had picked up green
+tints from the theme (`onPrimaryContainer`, `onSurface`), and labels were semi-bold, so a button looked like a
+heading.
+
+**Decision.** `Sizes.control` is the height of a button, an `ActionChip`, a `FilterChip` and the search line;
+`Sizes.field` is the height of a form field whose name sits inside it. Labels are 14sp in the regular weight.
+Text roles are black in the light theme and white in the dark one; only secondary text is a neutral gray. The
+`FilterChip` is a pill without an outline. `ActionChip` and the filter row collapse to icons when the sort chip
+needs the room (`CollapsingChips`), the sort chip keeping its words.
+
+**Alternatives rejected.**
+- *Material's own heights.* 56dp fields next to 40dp buttons, and a 32dp chip with a 48dp touch area that moves its
+  corner dot away from the chip.
+- *A tinted text color for secondary actions.* Green text on a green fill is what made labels hard to read.
+
+**Consequences.** A new control takes its height from `Sizes`, not from a literal. Previews render only with
+`ui-tooling` on the `androidRuntimeClasspath` of every Compose module, which the convention plugin now does.
+The other `OutlinedTextField`s of the app keep Material's height until their screens are next touched.
+
+**Review when:** a screen needs a control that cannot be this tall, or the type scale changes.

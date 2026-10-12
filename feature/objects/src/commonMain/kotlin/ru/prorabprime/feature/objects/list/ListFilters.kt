@@ -3,7 +3,6 @@ package ru.prorabprime.feature.objects.list
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,30 +12,30 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.layout.Measurable
+import androidx.compose.ui.layout.SubcomposeLayout
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import ru.prorabprime.designsystem.components.ActionChip
 import ru.prorabprime.designsystem.components.FilterChip
+import ru.prorabprime.designsystem.components.FilterChipGroup
 import ru.prorabprime.designsystem.components.ProrabBottomSheet
 import ru.prorabprime.designsystem.components.SearchField
+import ru.prorabprime.designsystem.components.SheetResetAction
+import ru.prorabprime.designsystem.components.TextButton
 import ru.prorabprime.designsystem.icons.ProrabIcons
 import ru.prorabprime.designsystem.theme.Spacing
 import ru.prorabprime.domain.model.ObjectSort
@@ -46,8 +45,9 @@ import ru.prorabprime.feature.objects.resources.Res
 import ru.prorabprime.feature.objects.resources.objectslist_filters
 import ru.prorabprime.feature.objects.resources.objectslist_filters_active
 import ru.prorabprime.feature.objects.resources.objectslist_filters_reset
+import ru.prorabprime.feature.objects.resources.objectslist_filters_status
 import ru.prorabprime.feature.objects.resources.objectslist_search
-import ru.prorabprime.feature.objects.resources.objectslist_search_close
+import ru.prorabprime.feature.objects.resources.objectslist_search_cancel
 import ru.prorabprime.feature.objects.resources.objectslist_search_open
 import ru.prorabprime.feature.objects.resources.objectslist_sort
 import ru.prorabprime.feature.objects.resources.objectslist_sort_address_asc
@@ -55,7 +55,7 @@ import ru.prorabprime.feature.objects.resources.objectslist_sort_address_desc
 import ru.prorabprime.feature.objects.resources.objectslist_sort_created
 import ru.prorabprime.feature.objects.resources.objectslist_sort_updated
 
-/** A search field's height (44dp) and a margin above and below it. */
+/** A search field's height (48dp) and a margin above and below it. */
 private val RowHeight = 60.dp
 
 private enum class ListSheet { FILTERS, SORT }
@@ -78,30 +78,15 @@ internal fun FilterRow(state: ObjectsListState, onEvent: (ObjectsListEvent) -> U
         ) {
             if (searching) {
                 SearchField(state.search, onEvent, Modifier.weight(1f))
-                IconButton(onClick = { onEvent(ObjectsListEvent.SearchToggled) }) {
-                    Icon(
-                        Icons.Default.Clear,
-                        contentDescription = stringResource(Res.string.objectslist_search_close),
-                    )
+                TextButton(onClick = { onEvent(ObjectsListEvent.SearchToggled) }) {
+                    Text(stringResource(Res.string.objectslist_search_cancel))
                 }
             } else {
-                ActionChip(
-                    stringResource(Res.string.objectslist_filters),
-                    onClick = { sheet = ListSheet.FILTERS },
-                    icon = ProrabIcons.Filter,
-                    badgeDescription = stringResource(Res.string.objectslist_filters_active)
-                        .takeIf { state.statuses.isNotEmpty() },
-                )
-                // The chip says how the list is sorted now; the sheet is where to change it.
-                ActionChip(
-                    stringResource(state.sort.label),
-                    onClick = { sheet = ListSheet.SORT },
-                    trailingIcon = Icons.Default.ArrowDropDown,
-                )
-                ActionChip(
-                    stringResource(Res.string.objectslist_search_open),
-                    onClick = { onEvent(ObjectsListEvent.SearchToggled) },
-                    icon = Icons.Default.Search,
+                ListChips(
+                    state,
+                    onEvent,
+                    onFilters = { sheet = ListSheet.FILTERS },
+                    onSort = { sheet = ListSheet.SORT },
                 )
             }
         }
@@ -129,29 +114,18 @@ private fun FiltersSheet(
     onDismiss: () -> Unit,
 ) {
     ProrabBottomSheet(title = stringResource(Res.string.objectslist_filters), onDismiss = onDismiss) {
-        // Always there, so the sheet does not change height; it only works when something is switched on.
-        val canReset = statuses.isNotEmpty()
-        Text(
+        SheetResetAction(
             stringResource(Res.string.objectslist_filters_reset),
-            style = MaterialTheme.typography.labelLarge,
-            color = if (canReset) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
-            modifier = Modifier
-                .clickable(enabled = canReset) { onEvent(ObjectsListEvent.FiltersCleared) }
-                .padding(vertical = Spacing.s),
+            enabled = statuses.isNotEmpty(),
+            onClick = { onEvent(ObjectsListEvent.FiltersCleared) },
         )
-        // The chips are 32dp tall and 48dp to touch; without this the rows of a wrapped list drift far apart.
-        CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(Spacing.s),
-                verticalArrangement = Arrangement.spacedBy(Spacing.s),
-            ) {
-                ObjectStatus.entries.forEach { status ->
-                    FilterChip(
-                        selected = status in statuses,
-                        onClick = { onEvent(ObjectsListEvent.StatusToggled(status)) },
-                        label = { Text(stringResource(status.label)) },
-                    )
-                }
+        FilterChipGroup(stringResource(Res.string.objectslist_filters_status)) {
+            ObjectStatus.entries.forEach { status ->
+                FilterChip(
+                    selected = status in statuses,
+                    onClick = { onEvent(ObjectsListEvent.StatusToggled(status)) },
+                    label = { Text(stringResource(status.label)) },
+                )
             }
         }
     }
@@ -199,3 +173,88 @@ internal val ObjectSort.label: StringResource
         ObjectSort.CREATED_NEWEST -> Res.string.objectslist_sort_created
         ObjectSort.UPDATED_NEWEST -> Res.string.objectslist_sort_updated
     }
+
+/** The three buttons of the closed row; see [CollapsingChips]. */
+@Composable
+private fun ListChips(
+    state: ObjectsListState,
+    onEvent: (ObjectsListEvent) -> Unit,
+    onFilters: () -> Unit,
+    onSort: () -> Unit,
+) {
+    val filtersLabel = stringResource(Res.string.objectslist_filters)
+    val filtersDot = stringResource(Res.string.objectslist_filters_active)
+        .takeIf { state.statuses.isNotEmpty() }
+    val searchLabel = stringResource(Res.string.objectslist_search_open)
+    // Sort, search, filters: the sort chip says how the list is ordered now, and its words always
+    // fit; when the others do not fit beside it they turn into their icons.
+    CollapsingChips(
+        sort = {
+            ActionChip(
+                stringResource(state.sort.label),
+                onClick = { onSort() },
+                trailingIcon = Icons.Default.ArrowDropDown,
+            )
+        },
+        search = { iconOnly ->
+            ActionChip(
+                searchLabel,
+                onClick = { onEvent(ObjectsListEvent.SearchToggled) },
+                icon = Icons.Default.Search,
+                iconOnly = iconOnly,
+            )
+        },
+        filters = { iconOnly ->
+            ActionChip(
+                filtersLabel,
+                onClick = { onFilters() },
+                icon = ProrabIcons.Filter,
+                badgeDescription = filtersDot,
+                iconOnly = iconOnly,
+            )
+        },
+    )
+}
+
+/**
+ * The sort chip, then search, then filters. Filters lose their word first, then search; the sort chip keeps
+ * its own, so [sort] gets whatever the two icons leave. Each part sees whether to draw as an icon only.
+ */
+@Composable
+private fun CollapsingChips(
+    sort: @Composable () -> Unit,
+    search: @Composable (iconOnly: Boolean) -> Unit,
+    filters: @Composable (iconOnly: Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val gap = Spacing.s
+    SubcomposeLayout(modifier) { constraints ->
+        val gapPx = gap.roundToPx()
+        val loose = Constraints()
+        // Words kept on both, then none on the filters, then none on either.
+        val steps = listOf(false to false, false to true, true to true)
+        var measurables = emptyList<Measurable>()
+        for (step in steps) {
+            val (searchIcon, filtersIcon) = step
+            measurables = subcompose(step) {
+                sort()
+                search(searchIcon)
+                filters(filtersIcon)
+            }
+            val width = measurables.sumOf { it.maxIntrinsicWidth(Int.MAX_VALUE) } + 2 * gapPx
+            if (width <= constraints.maxWidth) break
+        }
+        val tail = measurables.drop(1).map { it.measure(loose) }
+        val sortRoom = (constraints.maxWidth - tail.sumOf { it.width } - 2 * gapPx).coerceAtLeast(0)
+        val sortPlaceable = measurables.first().measure(Constraints(maxWidth = sortRoom))
+        val placeables = listOf(sortPlaceable) + tail
+        val height = placeables.maxOf { it.height }
+        layout(constraints.maxWidth, height) {
+            var x = 0
+            placeables.forEach {
+                it.placeRelative(x, (height - it.height) / 2)
+                x += it.width + gapPx
+            }
+        }
+    }
+}
