@@ -28,6 +28,8 @@ private fun ExpenseStats.toSummary() = SummaryUi(
     thisMonth = Money.format(thisMonthKopecks),
     materials = Money.format(receiptsKopecks),
     crew = Money.format(crewKopecks),
+    paid = Money.format(totalKopecks - unpaidKopecks),
+    unpaid = Money.format(unpaidKopecks),
     withoutAmount = withoutAmount,
 )
 
@@ -69,4 +71,5 @@ private fun ExpenseItem.toRow() = ExpenseRowUi(
     amount = amountKopecks?.let(Money::format),
     note = note,
     photoId = photoId?.value,
+    isUnpaid = !isPaid,
 )

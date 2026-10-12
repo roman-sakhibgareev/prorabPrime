@@ -42,6 +42,7 @@ internal data class ViewerPhoto(
     val dateInput: String = "",
     /** What the receipt knows, for the editor to start from. */
     val receipt: ReceiptInfo? = null,
+    val isReceiptPaid: Boolean = false,
 )
 
 internal data class PhotoViewerArgs(

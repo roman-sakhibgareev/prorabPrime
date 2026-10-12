@@ -37,6 +37,8 @@ import ru.prorabprime.feature.expenses.ExpensesNavKey
 import ru.prorabprime.feature.expenses.ExpensesScreen
 import ru.prorabprime.feature.finance.FinanceNavKey
 import ru.prorabprime.feature.finance.FinanceScreen
+import ru.prorabprime.feature.journal.JournalNavKey
+import ru.prorabprime.feature.journal.JournalScreen
 import ru.prorabprime.feature.map.MapNavKey
 import ru.prorabprime.feature.map.MapScreen
 import ru.prorabprime.feature.map.PlacePickerNavKey
@@ -126,7 +128,7 @@ private fun EntryProviderScope<NavKey>.objectEntries(backStack: NavBackStack<Nav
             onCreateObject = { backStack.add(ObjectEditNavKey()) },
             onOpenSettings = { backStack.add(SettingsNavKey) },
             onOpenMap = { backStack.add(MapNavKey) },
-            onOpenTasks = { backStack.add(TasksNavKey) },
+            onOpenTasks = { backStack.add(TasksNavKey()) },
             // The report is for the site, where there is room for it.
             onOpenExpenses = if (isWebClient) ({ backStack.add(ExpensesNavKey) }) else null,
         )
@@ -139,6 +141,8 @@ private fun EntryProviderScope<NavKey>.objectEntries(backStack: NavBackStack<Nav
             onOpenGallery = { backStack.add(GalleryNavKey(key.objectId, it)) },
             onOpenFinance = { backStack.add(FinanceNavKey(key.objectId)) },
             onOpenMaterials = { backStack.add(MaterialsNavKey(key.objectId)) },
+            onOpenJournal = { backStack.add(JournalNavKey(key.objectId)) },
+            onOpenCalendar = { backStack.add(TasksNavKey(key.objectId)) },
             onClose = { backStack.pop() },
         )
     }
@@ -181,7 +185,7 @@ private fun EntryProviderScope<NavKey>.toolEntries(backStack: NavBackStack<NavKe
     entry<MapNavKey> {
         MapScreen(onOpenObject = { backStack.add(ObjectDetailsNavKey(it)) }, onBack = { backStack.pop() })
     }
-    entry<TasksNavKey> { TasksScreen(onBack = { backStack.pop() }) }
+    entry<TasksNavKey> { key -> TasksScreen(objectId = key.objectId, onBack = { backStack.pop() }) }
     entry<ExpensesNavKey> {
         ExpensesScreen(
             onOpenReceipt = { objectId, photoId -> backStack.add(PhotoViewerNavKey(objectId, photoId)) },
@@ -190,6 +194,7 @@ private fun EntryProviderScope<NavKey>.toolEntries(backStack: NavBackStack<NavKe
         )
     }
     entry<MaterialsNavKey> { key -> MaterialsScreen(objectId = key.objectId, onBack = { backStack.pop() }) }
+    entry<JournalNavKey> { key -> JournalScreen(objectId = key.objectId, onBack = { backStack.pop() }) }
     entry<SettingsNavKey> {
         SettingsScreen(onBack = { backStack.pop() }, onOpenTrash = { backStack.add(TrashNavKey) })
     }
@@ -216,6 +221,7 @@ private val NAV_KEYS = SavedStateConfiguration {
             subclass(SettingsNavKey::class, SettingsNavKey.serializer())
             subclass(FinanceNavKey::class, FinanceNavKey.serializer())
             subclass(MaterialsNavKey::class, MaterialsNavKey.serializer())
+            subclass(JournalNavKey::class, JournalNavKey.serializer())
             subclass(MapNavKey::class, MapNavKey.serializer())
             subclass(PlacePickerNavKey::class, PlacePickerNavKey.serializer())
             subclass(TasksNavKey::class, TasksNavKey.serializer())

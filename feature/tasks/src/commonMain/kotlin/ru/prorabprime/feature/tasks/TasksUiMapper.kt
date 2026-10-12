@@ -5,6 +5,7 @@ import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableMap
 import ru.prorabprime.domain.model.LocalDay
+import ru.prorabprime.domain.model.ObjectSummary
 import ru.prorabprime.domain.model.Task
 
 /** `09:30` for a minute of the day. */
@@ -14,13 +15,22 @@ internal fun formatMinutes(minutes: Int): String {
     return "$hours:$rest"
 }
 
-internal fun Task.toUi(shownDay: LocalDay) = TaskUi(
+/** [objectTitles] names the objects by id; leave it empty where the object need not be said. */
+internal fun Task.toUi(shownDay: LocalDay, objectTitles: Map<String, String> = emptyMap()) = TaskUi(
     task = this,
     time = remindAtMinutes?.let(::formatMinutes),
     dayLabel = day.takeIf { it != shownDay }?.format(),
+    objectTitle = objectId?.let { objectTitles[it.value] },
 )
 
-internal fun List<Task>.toUi(shownDay: LocalDay): ImmutableList<TaskUi> = map { it.toUi(shownDay) }.toImmutableList()
+internal fun List<Task>.toUi(
+    shownDay: LocalDay,
+    objectTitles: Map<String, String> = emptyMap(),
+): ImmutableList<TaskUi> = map { it.toUi(shownDay, objectTitles) }.toImmutableList()
+
+/** The objects as the plan offers them, by their name or, lacking one, their address. */
+internal fun List<ObjectSummary>.toChoices(): ImmutableList<ObjectChoiceUi> =
+    map { ObjectChoiceUi(it.id.value, it.title?.takeIf(String::isNotBlank) ?: it.address) }.toImmutableList()
 
 internal fun LocalDay.firstOfMonth(): LocalDay = LocalDay.of(year, month, 1)
 

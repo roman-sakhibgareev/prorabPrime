@@ -14,6 +14,7 @@ import ru.prorabprime.feature.sync.resources.sync_kind_contact
 import ru.prorabprime.feature.sync.resources.sync_kind_cover
 import ru.prorabprime.feature.sync.resources.sync_kind_extra_work
 import ru.prorabprime.feature.sync.resources.sync_kind_material
+import ru.prorabprime.feature.sync.resources.sync_kind_note
 import ru.prorabprime.feature.sync.resources.sync_kind_object
 import ru.prorabprime.feature.sync.resources.sync_kind_payment
 import ru.prorabprime.feature.sync.resources.sync_kind_photo
@@ -23,6 +24,7 @@ import ru.prorabprime.feature.sync.resources.sync_reason_not_found
 import ru.prorabprime.feature.sync.resources.sync_reason_photo_too_large
 import ru.prorabprime.feature.sync.resources.sync_reason_photo_unsupported
 import ru.prorabprime.feature.sync.resources.sync_reason_server
+import ru.prorabprime.feature.sync.resources.sync_reason_storage_full
 import ru.prorabprime.feature.sync.resources.sync_reason_unknown
 import ru.prorabprime.feature.sync.resources.sync_reason_validation
 
@@ -43,6 +45,7 @@ private val ChangeKind.label: StringResource
         ChangeKind.PAYMENT -> Res.string.sync_kind_payment
         ChangeKind.EXTRA_WORK -> Res.string.sync_kind_extra_work
         ChangeKind.MATERIAL -> Res.string.sync_kind_material
+        ChangeKind.NOTE -> Res.string.sync_kind_note
         ChangeKind.TASK -> Res.string.sync_kind_task
     }
 
@@ -60,6 +63,7 @@ internal fun reasonText(reason: String): String = when {
     reason == "not_found" -> stringResource(Res.string.sync_reason_not_found)
     reason == "photo_too_large" -> stringResource(Res.string.sync_reason_photo_too_large)
     reason == "photo_unsupported" -> stringResource(Res.string.sync_reason_photo_unsupported)
+    reason == "storage_full" -> stringResource(Res.string.sync_reason_storage_full)
     reason.startsWith("server_") -> stringResource(Res.string.sync_reason_server, reason.removePrefix("server_"))
     else -> stringResource(Res.string.sync_reason_unknown)
 }

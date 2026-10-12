@@ -37,6 +37,8 @@ internal data class SummaryUi(
     val thisMonth: String = "",
     val materials: String = "",
     val crew: String = "",
+    val paid: String = "",
+    val unpaid: String = "",
     /** Receipts nobody has put a sum on; they are in the list but not in the figures. */
     val withoutAmount: Int = 0,
 )
@@ -65,6 +67,8 @@ internal data class ExpenseRowUi(
     val note: String?,
     /** The photo of a receipt, to open in the viewer. */
     val photoId: String?,
+    /** A receipt not yet paid for. */
+    val isUnpaid: Boolean = false,
 )
 
 /** An object to put a new expense on. */

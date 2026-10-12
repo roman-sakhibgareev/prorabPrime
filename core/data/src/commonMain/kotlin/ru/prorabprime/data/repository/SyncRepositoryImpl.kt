@@ -69,6 +69,7 @@ internal class SyncRepositoryImpl(
             "payment" -> db.payments.remove(id)
             "extra" -> db.extraWorks.remove(id)
             "material" -> db.materials.remove(id)
+            "note" -> db.notes.remove(id)
             "task" -> db.tasks.remove(id)
         }
     }
@@ -80,6 +81,7 @@ internal class SyncRepositoryImpl(
         db.payments.change { rows -> rows.values.removeAll { it.objectId == id } }
         db.extraWorks.change { rows -> rows.values.removeAll { it.objectId == id } }
         db.materials.change { rows -> rows.values.removeAll { it.objectId == id } }
+        db.notes.change { rows -> rows.values.removeAll { it.objectId == id } }
         db.terms.remove(id)
         db.history.remove(id)
     }
@@ -101,6 +103,7 @@ internal class SyncRepositoryImpl(
         is Operation.UpdatePayment -> db.payments.rows.value[op.id]?.objectId
         is Operation.UpdateExtraWork -> db.extraWorks.rows.value[op.id]?.objectId
         is Operation.UpdateMaterial -> db.materials.rows.value[op.id]?.objectId
+        is Operation.UpdateNote -> db.notes.rows.value[op.id]?.objectId
         else -> null
     }
 }

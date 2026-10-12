@@ -168,6 +168,35 @@ class PhotosAndContactsRepositoryTest {
     }
 
     @Test
+    fun `a receipt marked paid is kept at once, queued and sent, and a plain photo cannot be marked`() = runTest {
+        val server = phone.server
+        val receiptId = "77777777-7777-7777-7777-777777777777"
+        val dto = PhotoDto(
+            receiptId,
+            "/files/o/r.jpg",
+            "/files/o/r_thumb.jpg",
+            800,
+            600,
+            server.at,
+            kind = AttachmentKindDto.RECEIPT,
+        )
+        server.details = server.details.copy(photos = listOf(dto))
+        server.objects = listOf(server.details)
+        synced()
+        server.offline = true
+
+        phone.photos.setReceiptPaid(PhotoId(receiptId), true).getOrThrow()
+        assertThat(shownPhoto().isReceiptPaid).isTrue()
+        assertThat(phone.db.outbox.snapshot().single().operation).isEqualTo(Operation.SetReceiptPaid(receiptId, true))
+
+        server.offline = false
+        phone.engine.sync()
+        assertThat(server.writes.map { it.url.encodedPath }).contains("/api/photos/$receiptId/receipt-paid")
+        assertThat(phone.db.outbox.snapshot()).isEmpty()
+        assertThat(phone.photos.setReceiptPaid(PhotoId("nope"), true).isFailure).isTrue()
+    }
+
+    @Test
     fun `a sum cannot be set on a plain photo or on one that is not there`() = runTest {
         val server = phone.server
         val photoId = "77777777-7777-7777-7777-777777777777"

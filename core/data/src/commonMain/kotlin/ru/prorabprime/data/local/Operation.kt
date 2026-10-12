@@ -7,6 +7,7 @@ import ru.prorabprime.contract.ContactRequestDto
 import ru.prorabprime.contract.ExtraWorkRequestDto
 import ru.prorabprime.contract.FinanceTermsDto
 import ru.prorabprime.contract.MaterialRequestDto
+import ru.prorabprime.contract.NoteRequestDto
 import ru.prorabprime.contract.ObjectRequestDto
 import ru.prorabprime.contract.PaymentRequestDto
 import ru.prorabprime.contract.TaskRequestDto
@@ -24,6 +25,8 @@ internal object Keys {
     fun extra(id: String) = "extra:$id"
 
     fun material(id: String) = "material:$id"
+
+    fun note(id: String) = "note:$id"
 
     fun task(id: String) = "task:$id"
 
@@ -92,6 +95,14 @@ internal sealed interface Operation {
         val photoId: String,
         val amountKopecks: Long?,
         val purchasedAt: String?,
+    ) : Operation {
+        override val touched get() = listOf(Keys.photo(photoId))
+    }
+
+    @Serializable
+    data class SetReceiptPaid(
+        val photoId: String,
+        val paid: Boolean,
     ) : Operation {
         override val touched get() = listOf(Keys.photo(photoId))
     }
@@ -230,6 +241,29 @@ internal sealed interface Operation {
     }
 
     @Serializable
+    data class CreateNote(
+        val objectId: String,
+        val request: NoteRequestDto,
+    ) : Operation {
+        override val touched get() = listOf(Keys.note(request.id.orEmpty()))
+    }
+
+    @Serializable
+    data class UpdateNote(
+        val id: String,
+        val request: NoteRequestDto,
+    ) : Operation {
+        override val touched get() = listOf(Keys.note(id))
+    }
+
+    @Serializable
+    data class DeleteNote(
+        val id: String,
+    ) : Operation {
+        override val touched get() = listOf(Keys.note(id))
+    }
+
+    @Serializable
     data class CreateTask(
         val request: TaskRequestDto,
     ) : Operation {
@@ -278,6 +312,7 @@ internal fun Operation.isCreate(): Boolean = this is Operation.CreateObject ||
     this is Operation.CreatePayment ||
     this is Operation.CreateExtraWork ||
     this is Operation.CreateMaterial ||
+    this is Operation.CreateNote ||
     this is Operation.CreateTask
 
 /**

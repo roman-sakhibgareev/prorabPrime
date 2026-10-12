@@ -32,6 +32,8 @@ internal data class TaskUi(
     val time: String?,
     /** `25.09.2026` for a task of another day than the one shown, null for one of that day. */
     val dayLabel: String?,
+    /** The object it belongs to, when the screen shows the tasks of more than one; otherwise null. */
+    val objectTitle: String? = null,
 ) {
     val id: String get() = task.id.value
 }
@@ -44,8 +46,17 @@ internal data class TaskEditorUi(
     val day: LocalDay,
     val minutes: Int? = null,
     val done: Boolean = false,
+    /** The object the task belongs to; null for a task of no object. */
+    val objectId: String? = null,
     val errors: ImmutableMap<ObjectField, FieldProblem> = persistentMapOf(),
     val isSaving: Boolean = false,
+)
+
+/** An object the plan can be narrowed to, or a task assigned to. */
+@Immutable
+internal data class ObjectChoiceUi(
+    val id: String,
+    val title: String,
 )
 
 /** One day on screen, or a month grid above it. */
@@ -86,8 +97,17 @@ internal data class TasksState(
     val month: LocalDay = day.firstOfMonth(),
     val marks: ImmutableMap<LocalDay, DayMarkUi> = persistentMapOf(),
     val nextPlan: NextPlanUi? = null,
+    /** Set when the screen was opened for one object: it is the plan of that object only, with no filter. */
+    val scopedObjectId: String? = null,
+    /** The object the plan is narrowed to; null shows every object's tasks. */
+    val objectFilter: String? = scopedObjectId,
+    val objects: ImmutableList<ObjectChoiceUi> = persistentListOf(),
 ) {
     val isToday: Boolean get() = day == today
+    val isScoped: Boolean get() = scopedObjectId != null
+
+    /** The name of the object a scoped screen is about, once the objects have arrived. */
+    val scopedObjectTitle: String? get() = scopedObjectId?.let { id -> objects.find { it.id == id }?.title }
 }
 
 internal sealed interface TasksEvent {
@@ -101,6 +121,11 @@ internal sealed interface TasksEvent {
 
     /** The calendar button: opens the month grid above the day, or closes it. */
     data object MonthToggled : TasksEvent
+
+    /** Narrows the plan to one object, or (null) back to all of them. */
+    data class ObjectFilterPicked(
+        val objectId: String?,
+    ) : TasksEvent
 
     data object PreviousMonth : TasksEvent
 
@@ -140,6 +165,11 @@ internal sealed interface TaskEditorEvent : TasksEvent {
     /** Null takes the reminder away. */
     data class TimeChanged(
         val minutes: Int?,
+    ) : TaskEditorEvent
+
+    /** Null makes it a task of no object. */
+    data class ObjectChanged(
+        val objectId: String?,
     ) : TaskEditorEvent
 
     data object Save : TaskEditorEvent

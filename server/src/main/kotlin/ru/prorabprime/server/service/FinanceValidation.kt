@@ -39,7 +39,9 @@ fun validatePayment(request: PaymentRequestDto): Result<PaymentFields> {
         }
     }
     return if (errors.isEmpty() && paidOn != null) {
-        Result.success(PaymentFields(request.side, request.amountKopecks, request.method, paidOn, note))
+        Result.success(
+            PaymentFields(request.side, request.amountKopecks, request.method, paidOn, note, request.purpose),
+        )
     } else {
         ServiceError.Validation("Invalid payment fields", errors).asFailure()
     }

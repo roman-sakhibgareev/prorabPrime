@@ -37,6 +37,7 @@
 
     <!-- objectdetails -->
     <string name="objectdetails_back">Назад</string>
+    <string name="objectdetails_status_title">Статус объекта</string>
     <string name="objectdetails_edit">Редактировать</string>
     <string name="objectdetails_delete">Удалить объект</string>
     <string name="objectdetails_address">Адрес</string>
@@ -67,6 +68,8 @@
     <string name="objectdetails_add_receipt">Добавить чек</string>
     <string name="objectdetails_finance">Финансы объекта</string>
     <string name="objectdetails_materials">Материалы</string>
+    <string name="objectdetails_journal">Журнал</string>
+    <string name="objectdetails_calendar">Календарь</string>
     <string name="objectdetails_open_chat">Открыть чат</string>
     <string name="objectdetails_contacts">Контакты</string>
     <string name="objectdetails_contacts_empty">Пока нет контактов</string>
@@ -102,6 +105,8 @@
     <string name="photoviewer_back">Назад</string>
     <string name="photoviewer_position">%1$d из %2$d</string>
     <string name="photoviewer_rotate">Повернуть</string>
+    <string name="photoviewer_receipt_paid">Чек оплачен</string>
+    <string name="photoviewer_receipt_unpaid">Чек не оплачен</string>
     <string name="photoviewer_receipt_add">Указать сумму и дату</string>
     <string name="photoviewer_receipt_title">Сумма чека</string>
     <string name="photoviewer_receipt_amount">Сумма, ₽</string>
@@ -135,7 +140,8 @@
     <!-- common: object statuses, shared by the list and the details -->
     <string name="objects_status_planned">Запланирован</string>
     <string name="objects_status_in_progress">В работе</string>
-    <string name="objects_status_done">Сдан</string>
+    <string name="objects_status_done">Завершён</string>
+    <string name="objects_status_change">Изменить статус</string>
     <string name="objects_status_paused">На паузе</string>
     <string name="objectedit_created">Объект создан</string>
     <string name="objectedit_saved">Изменения сохранены</string>

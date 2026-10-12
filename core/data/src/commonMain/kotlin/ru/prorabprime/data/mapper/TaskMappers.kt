@@ -3,6 +3,7 @@ package ru.prorabprime.data.mapper
 import ru.prorabprime.contract.TaskDto
 import ru.prorabprime.contract.TaskRequestDto
 import ru.prorabprime.domain.model.LocalDay
+import ru.prorabprime.domain.model.ObjectId
 import ru.prorabprime.domain.model.Task
 import ru.prorabprime.domain.model.TaskDraft
 import ru.prorabprime.domain.model.TaskId
@@ -14,6 +15,7 @@ internal fun TaskDto.toDomain() = Task(
     day = LocalDay.parseIso(day) ?: LocalDay(0),
     remindAtMinutes = remindAtMinutes,
     done = done,
+    objectId = objectId?.let(::ObjectId),
 )
 
 /** The draft has been validated by now, so a missing day cannot reach here. */
@@ -22,4 +24,5 @@ internal fun TaskDraft.toRequestDto() = TaskRequestDto(
     day = requireNotNull(day).toIso(),
     remindAtMinutes = remindAtMinutes,
     done = done,
+    objectId = objectId?.value,
 )

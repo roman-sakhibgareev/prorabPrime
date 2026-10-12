@@ -13,6 +13,7 @@ import ru.prorabprime.domain.repository.ContactsRepository
 import ru.prorabprime.domain.repository.ObjectsRepository
 import ru.prorabprime.domain.repository.PhotosRepository
 import ru.prorabprime.domain.repository.SettingsRepository
+import ru.prorabprime.domain.usecase.ChangeObjectStatusUseCase
 import ru.prorabprime.domain.usecase.CreateObjectUseCase
 import ru.prorabprime.domain.usecase.DeleteContactUseCase
 import ru.prorabprime.domain.usecase.DeleteObjectUseCase
@@ -26,6 +27,7 @@ import ru.prorabprime.domain.usecase.SaveContactUseCase
 import ru.prorabprime.domain.usecase.SaveObjectSortUseCase
 import ru.prorabprime.domain.usecase.SetCoverPhotoUseCase
 import ru.prorabprime.domain.usecase.SetPhotoNoteUseCase
+import ru.prorabprime.domain.usecase.SetReceiptPaidUseCase
 import ru.prorabprime.domain.usecase.SetReceiptUseCase
 import ru.prorabprime.domain.usecase.UpdateObjectUseCase
 import ru.prorabprime.domain.usecase.UploadPhotoUseCase
@@ -63,6 +65,7 @@ class ObjectsModuleTest {
         factory { DeleteObjectUseCase(get()) }
         factory { CreateObjectUseCase(get()) }
         factory { UpdateObjectUseCase(get()) }
+        factory { ChangeObjectStatusUseCase(get()) }
         single<PhotosRepository> { FakePhotosRepository() }
         single<ContactsRepository> { FakeContactsRepository() }
         single { PickedPlaceStore() }
@@ -74,6 +77,7 @@ class ObjectsModuleTest {
         factory { RotatePhotoUseCase(get()) }
         factory { SetPhotoNoteUseCase(get()) }
         factory { SetReceiptUseCase(get()) }
+        factory { SetReceiptPaidUseCase(get()) }
         // What the ViewModel store supplies at runtime.
         factory { SavedStateHandle() }
         single<SnackbarNotifier> { FakeSnackbarNotifier() }

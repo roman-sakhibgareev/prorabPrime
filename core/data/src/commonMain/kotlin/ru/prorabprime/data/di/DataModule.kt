@@ -19,10 +19,12 @@ import ru.prorabprime.data.network.createHttpClient
 import ru.prorabprime.data.remote.GeocodeApi
 import ru.prorabprime.data.remote.KtorConnectionChecker
 import ru.prorabprime.data.remote.RemoteApi
+import ru.prorabprime.data.repository.AccountRepositoryImpl
 import ru.prorabprime.data.repository.ContactsRepositoryImpl
 import ru.prorabprime.data.repository.ExpensesRepositoryImpl
 import ru.prorabprime.data.repository.FinanceRepositoryImpl
 import ru.prorabprime.data.repository.MaterialsRepositoryImpl
+import ru.prorabprime.data.repository.NotesRepositoryImpl
 import ru.prorabprime.data.repository.ObjectsRepositoryImpl
 import ru.prorabprime.data.repository.PhotosRepositoryImpl
 import ru.prorabprime.data.repository.PlacesRepositoryImpl
@@ -34,10 +36,12 @@ import ru.prorabprime.data.sync.SyncCoordinator
 import ru.prorabprime.data.sync.SyncEngine
 import ru.prorabprime.domain.ConnectionChecker
 import ru.prorabprime.domain.model.PickedPlaceStore
+import ru.prorabprime.domain.repository.AccountRepository
 import ru.prorabprime.domain.repository.ContactsRepository
 import ru.prorabprime.domain.repository.ExpensesRepository
 import ru.prorabprime.domain.repository.FinanceRepository
 import ru.prorabprime.domain.repository.MaterialsRepository
+import ru.prorabprime.domain.repository.NotesRepository
 import ru.prorabprime.domain.repository.ObjectsRepository
 import ru.prorabprime.domain.repository.PhotosRepository
 import ru.prorabprime.domain.repository.PlacesRepository
@@ -46,11 +50,13 @@ import ru.prorabprime.domain.repository.SyncRepository
 import ru.prorabprime.domain.repository.TasksRepository
 import ru.prorabprime.domain.repository.TrashRepository
 import ru.prorabprime.domain.usecase.AddDefaultMaterialsUseCase
+import ru.prorabprime.domain.usecase.ChangeObjectStatusUseCase
 import ru.prorabprime.domain.usecase.CheckConnectionUseCase
 import ru.prorabprime.domain.usecase.CreateObjectUseCase
 import ru.prorabprime.domain.usecase.DeleteContactUseCase
 import ru.prorabprime.domain.usecase.DeleteExtraWorkUseCase
 import ru.prorabprime.domain.usecase.DeleteMaterialUseCase
+import ru.prorabprime.domain.usecase.DeleteNoteUseCase
 import ru.prorabprime.domain.usecase.DeleteObjectUseCase
 import ru.prorabprime.domain.usecase.DeletePaymentUseCase
 import ru.prorabprime.domain.usecase.DeletePhotoUseCase
@@ -58,6 +64,7 @@ import ru.prorabprime.domain.usecase.DeleteTaskUseCase
 import ru.prorabprime.domain.usecase.DiscardFailedChangeUseCase
 import ru.prorabprime.domain.usecase.FindAddressUseCase
 import ru.prorabprime.domain.usecase.GeocodeObjectUseCase
+import ru.prorabprime.domain.usecase.GetAccountUseCase
 import ru.prorabprime.domain.usecase.LoadTrashUseCase
 import ru.prorabprime.domain.usecase.ObserveDayTasksUseCase
 import ru.prorabprime.domain.usecase.ObserveExpensesUseCase
@@ -65,6 +72,7 @@ import ru.prorabprime.domain.usecase.ObserveFailedChangesUseCase
 import ru.prorabprime.domain.usecase.ObserveFinanceUseCase
 import ru.prorabprime.domain.usecase.ObserveMaterialsUseCase
 import ru.prorabprime.domain.usecase.ObserveNextTaskUseCase
+import ru.prorabprime.domain.usecase.ObserveNotesUseCase
 import ru.prorabprime.domain.usecase.ObserveObjectSortUseCase
 import ru.prorabprime.domain.usecase.ObserveObjectUseCase
 import ru.prorabprime.domain.usecase.ObserveObjectsUseCase
@@ -82,12 +90,14 @@ import ru.prorabprime.domain.usecase.SaveContactUseCase
 import ru.prorabprime.domain.usecase.SaveExtraWorkUseCase
 import ru.prorabprime.domain.usecase.SaveFinanceTermsUseCase
 import ru.prorabprime.domain.usecase.SaveMaterialUseCase
+import ru.prorabprime.domain.usecase.SaveNoteUseCase
 import ru.prorabprime.domain.usecase.SaveObjectSortUseCase
 import ru.prorabprime.domain.usecase.SavePaymentUseCase
 import ru.prorabprime.domain.usecase.SaveServerSettingsUseCase
 import ru.prorabprime.domain.usecase.SaveTaskUseCase
 import ru.prorabprime.domain.usecase.SetCoverPhotoUseCase
 import ru.prorabprime.domain.usecase.SetPhotoNoteUseCase
+import ru.prorabprime.domain.usecase.SetReceiptPaidUseCase
 import ru.prorabprime.domain.usecase.SetReceiptUseCase
 import ru.prorabprime.domain.usecase.SyncNowUseCase
 import ru.prorabprime.domain.usecase.UpdateObjectUseCase
@@ -124,16 +134,19 @@ val dataModule: Module = module {
     single { PickedPlaceStore() }
     single<FinanceRepository> { FinanceRepositoryImpl(get(), get()) }
     single<MaterialsRepository> { MaterialsRepositoryImpl(get(), get()) }
+    single<NotesRepository> { NotesRepositoryImpl(get(), get(), Clock.System) }
     single<TasksRepository> { TasksRepositoryImpl(get(), get()) }
     single<ExpensesRepository> { ExpensesRepositoryImpl(get()) }
     single<TrashRepository> { TrashRepositoryImpl(get(), get()) }
     single<ConnectionChecker> { KtorConnectionChecker(get()) }
+    single<AccountRepository> { AccountRepositoryImpl(get()) }
 
     factory { ObserveObjectsUseCase(get()) }
     factory { ObserveObjectUseCase(get()) }
     factory { RefreshObjectsUseCase(get()) }
     factory { CreateObjectUseCase(get()) }
     factory { UpdateObjectUseCase(get()) }
+    factory { ChangeObjectStatusUseCase(get()) }
     factory { DeleteObjectUseCase(get()) }
     factory { UploadPhotoUseCase(get(), get()) }
     factory { DeletePhotoUseCase(get()) }
@@ -141,6 +154,7 @@ val dataModule: Module = module {
     factory { RotatePhotoUseCase(get()) }
     factory { SetPhotoNoteUseCase(get()) }
     factory { SetReceiptUseCase(get()) }
+    factory { SetReceiptPaidUseCase(get()) }
     factory { SaveContactUseCase(get()) }
     factory { DeleteContactUseCase(get()) }
     factory { GeocodeObjectUseCase(get()) }
@@ -165,6 +179,9 @@ val dataModule: Module = module {
     factory { SaveMaterialUseCase(get()) }
     factory { DeleteMaterialUseCase(get()) }
     factory { AddDefaultMaterialsUseCase(get()) }
+    factory { ObserveNotesUseCase(get()) }
+    factory { SaveNoteUseCase(get()) }
+    factory { DeleteNoteUseCase(get()) }
     factory { ObserveDayTasksUseCase(get()) }
     factory { ObserveOverdueTasksUseCase(get()) }
     factory { ObserveTasksRangeUseCase(get()) }
@@ -174,6 +191,7 @@ val dataModule: Module = module {
     factory { ObserveServerSettingsUseCase(get()) }
     factory { SaveServerSettingsUseCase(get()) }
     factory { CheckConnectionUseCase(get()) }
+    factory { GetAccountUseCase(get()) }
     factory { ObserveObjectSortUseCase(get()) }
     factory { SaveObjectSortUseCase(get()) }
 }

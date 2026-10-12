@@ -3,6 +3,7 @@ package ru.prorabprime.feature.tasks
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -166,5 +167,57 @@ class TasksContentTest {
         onNodeWithText("Сохранить").performClick()
 
         assertThat(events).containsExactly(TaskEditorEvent.Save)
+    }
+
+    private val objects = persistentListOf(ObjectChoiceUi("kitchen", "Кухня"), ObjectChoiceUi("bath", "Мира, 3"))
+
+    @Test
+    fun `the plan of all objects offers a filter, and picking an object narrows it`() = runComposeUiTest {
+        show(state().copy(objects = objects))
+
+        onNodeWithText("Все объекты").performClick()
+        onNodeWithText("Кухня").performClick()
+
+        assertThat(events).containsExactly(TasksEvent.ObjectFilterPicked("kitchen"))
+    }
+
+    @Test
+    fun `a task row names its object`() = runComposeUiTest {
+        show(state().copy(tasks = persistentListOf(buy.copy(objectTitle = "Кухня")), objects = objects))
+
+        onNodeWithText("Кухня · 09:05").assertIsDisplayed()
+    }
+
+    @Test
+    fun `the calendar of one object is titled by it and has no filter`() = runComposeUiTest {
+        show(state().copy(scopedObjectId = "kitchen", objectFilter = "kitchen", objects = objects))
+
+        onNodeWithText("Календарь: Кухня").assertIsDisplayed()
+        assertThat(onAllNodesWithText("Все объекты").fetchSemanticsNodes()).isEmpty()
+    }
+
+    @Test
+    fun `the form offers the objects, and none of them for a calendar of one object`() = runComposeUiTest {
+        show(state().copy(objects = objects, editor = TaskEditorUi(day = today, objectId = "bath")))
+
+        onNodeWithText("Мира, 3").performClick()
+        onNodeWithText("Без объекта").performClick()
+
+        assertThat(events).containsExactly(TaskEditorEvent.ObjectChanged(null))
+    }
+
+    @Test
+    fun `a calendar of one object does not ask which object a task is for`() = runComposeUiTest {
+        show(
+            state().copy(
+                scopedObjectId = "kitchen",
+                objectFilter = "kitchen",
+                objects = objects,
+                editor = TaskEditorUi(day = today, objectId = "kitchen"),
+            ),
+        )
+
+        assertThat(onAllNodesWithText("Без объекта").fetchSemanticsNodes()).isEmpty()
+        onNodeWithText("Что сделать *").assertIsDisplayed()
     }
 }

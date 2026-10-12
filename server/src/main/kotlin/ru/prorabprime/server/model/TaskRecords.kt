@@ -10,10 +10,12 @@ data class TaskFields(
     val day: LocalDate,
     val remindAtMinutes: Int?,
     val done: Boolean,
+    val objectId: UUID? = null,
 )
 
 data class TaskRecord(
     val id: UUID,
+    val ownerId: OwnerId,
     val fields: TaskFields,
     val createdAt: Instant,
 )

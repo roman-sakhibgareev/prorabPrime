@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
@@ -27,6 +28,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -44,6 +46,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.jetbrains.compose.resources.StringResource
@@ -69,7 +72,9 @@ import ru.prorabprime.feature.objects.resources.photoviewer_position
 import ru.prorabprime.feature.objects.resources.photoviewer_receipt_add
 import ru.prorabprime.feature.objects.resources.photoviewer_receipt_amount
 import ru.prorabprime.feature.objects.resources.photoviewer_receipt_date
+import ru.prorabprime.feature.objects.resources.photoviewer_receipt_paid
 import ru.prorabprime.feature.objects.resources.photoviewer_receipt_title
+import ru.prorabprime.feature.objects.resources.photoviewer_receipt_unpaid
 import ru.prorabprime.feature.objects.resources.photoviewer_rotate
 
 @Composable
@@ -89,6 +94,7 @@ fun PhotoViewerScreen(
         onRotate = viewModel::rotate,
         onSaveNote = viewModel::saveNote,
         onSaveReceipt = viewModel::saveReceipt,
+        onSetPaid = viewModel::setPaid,
         modifier = modifier,
     )
 }
@@ -102,10 +108,11 @@ internal fun PhotoViewerContent(
     onSaveNote: (String, String) -> Unit,
     onSaveReceipt: (String, String, String) -> Unit,
     modifier: Modifier = Modifier,
+    onSetPaid: (String, Boolean) -> Unit = { _, _ -> },
 ) {
     Box(modifier.fillMaxSize().background(Color.Black)) {
         when (val status = state.status) {
-            PhotoViewerStatus.Content -> Pages(state, onBack, onRotate, onSaveNote, onSaveReceipt)
+            PhotoViewerStatus.Content -> Pages(state, onBack, onRotate, onSaveNote, onSaveReceipt, onSetPaid)
             PhotoViewerStatus.Loading -> LoadingBox()
             is PhotoViewerStatus.Error -> ErrorMessage(status.message, onRetry = onBack)
         }
@@ -120,6 +127,7 @@ private fun Pages(
     onRotate: (String) -> Unit,
     onSaveNote: (String, String) -> Unit,
     onSaveReceipt: (String, String, String) -> Unit,
+    onSetPaid: (String, Boolean) -> Unit,
 ) {
     val pager = rememberPagerState(initialPage = state.initialPage) { state.photos.size }
     // A zoomed photo takes the drag for panning; the pager only swipes at normal size.
@@ -163,6 +171,7 @@ private fun Pages(
                     photo = photo,
                     onSaveNote = { onSaveNote(photo.id, it) },
                     onSaveReceipt = { amount, date -> onSaveReceipt(photo.id, amount, date) },
+                    onSetPaid = { onSetPaid(photo.id, it) },
                     modifier = Modifier.align(Alignment.BottomCenter),
                 )
             }
@@ -176,6 +185,7 @@ private fun NoteBar(
     photo: ViewerPhoto,
     onSaveNote: (String) -> Unit,
     onSaveReceipt: (String, String) -> Unit,
+    onSetPaid: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     // Which editor is open means nothing beyond this bar.
@@ -194,6 +204,7 @@ private fun NoteBar(
                 description = Res.string.photoviewer_receipt_title,
                 onClick = { editing = Editor.Receipt },
             )
+            PaidLine(photo.isReceiptPaid, onSetPaid)
         }
         BarLine(
             text = photo.note ?: stringResource(Res.string.photoviewer_note_add),
@@ -219,6 +230,28 @@ private fun NoteBar(
 }
 
 private enum class Editor { Note, Receipt }
+
+/** A receipt's paid / not paid switch; the whole line is the target. */
+@Composable
+private fun PaidLine(paid: Boolean, onChange: (Boolean) -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .toggleable(value = paid, role = Role.Switch, onValueChange = onChange)
+            .padding(horizontal = Spacing.m, vertical = Spacing.xs),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = stringResource(
+                if (paid) Res.string.photoviewer_receipt_paid else Res.string.photoviewer_receipt_unpaid,
+            ),
+            color = Color.White,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.weight(1f),
+        )
+        Switch(checked = paid, onCheckedChange = null)
+    }
+}
 
 @Composable
 private fun BarLine(

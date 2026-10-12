@@ -20,6 +20,7 @@ import ru.prorabprime.domain.model.Payment
 import ru.prorabprime.domain.model.PaymentDraft
 import ru.prorabprime.domain.model.PaymentId
 import ru.prorabprime.domain.model.PaymentMethod
+import ru.prorabprime.domain.model.PaymentPurpose
 import ru.prorabprime.domain.model.PaymentRevision
 import ru.prorabprime.domain.model.PaymentSide
 import ru.prorabprime.domain.model.RevisionAction
@@ -95,6 +96,41 @@ class FinanceViewModelTest {
         assertThat(finance.clientPayments.map { it.id }).containsExactly("p1")
         assertThat(finance.crewPayments).isEmpty()
         assertThat(finance.extrasPending).isNotNull()
+    }
+
+    @Test
+    fun `the client's contract and extras are told apart, with what came in for each`() {
+        val forExtras = payment.copy(id = PaymentId("p2"), amountKopecks = 20_000, purpose = PaymentPurpose.EXTRAS)
+        repository.finance.value = Finance(
+            clientTotalKopecks = 1_000_000,
+            crewTotalKopecks = null,
+            client = SideSummary(1_050_000, 320_000, 730_000),
+            crew = SideSummary(null, 0, null),
+            extrasAgreedKopecks = 50_000,
+            extrasPendingKopecks = 0,
+            payments = persistentListOf(payment, forExtras),
+            extraWorks = persistentListOf(work),
+        )
+
+        val breakdown = state.finance!!.client.breakdown!!
+        assertThat(breakdown.contract).isEqualTo("10 000 ₽")
+        assertThat(breakdown.extras).isEqualTo("500 ₽")
+        assertThat(breakdown.receivedContract).isEqualTo("3 000 ₽")
+        assertThat(breakdown.receivedExtras).isEqualTo("200 ₽")
+        assertThat(state.finance!!.client.remaining).isEqualTo("7 300 ₽")
+        assertThat(state.finance!!.crew.breakdown).isNull()
+    }
+
+    @Test
+    fun `a client payment can be marked as for the extras`() {
+        withBooks()
+
+        viewModel.onEvent(PaymentEvent.Add(PaymentSide.CLIENT))
+        viewModel.onEvent(PaymentEvent.AmountChanged("200"))
+        viewModel.onEvent(PaymentEvent.PurposeChanged(PaymentPurpose.EXTRAS))
+        viewModel.onEvent(PaymentEvent.Save)
+
+        assertThat(repository.addedPayments.single().second.purpose).isEqualTo(PaymentPurpose.EXTRAS)
     }
 
     @Test

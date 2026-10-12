@@ -5,6 +5,7 @@ import java.util.UUID
 import kotlin.time.Instant
 import ru.prorabprime.contract.ExtraWorkStatusDto
 import ru.prorabprime.contract.PaymentMethodDto
+import ru.prorabprime.contract.PaymentPurposeDto
 import ru.prorabprime.contract.PaymentSideDto
 import ru.prorabprime.contract.RevisionActionDto
 
@@ -15,6 +16,7 @@ data class PaymentFields(
     val method: PaymentMethodDto,
     val paidOn: LocalDate,
     val note: String?,
+    val purpose: PaymentPurposeDto = PaymentPurposeDto.CONTRACT,
 )
 
 data class PaymentRecord(

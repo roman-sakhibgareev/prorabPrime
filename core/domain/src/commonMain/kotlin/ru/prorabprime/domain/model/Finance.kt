@@ -15,6 +15,12 @@ enum class PaymentSide {
     CREW,
 }
 
+/** What a client's payment went towards; a payment to the crew is always for the contract. */
+enum class PaymentPurpose {
+    CONTRACT,
+    EXTRAS,
+}
+
 enum class PaymentMethod {
     CASH,
     TRANSFER,
@@ -40,6 +46,7 @@ data class Payment(
     val method: PaymentMethod,
     val paidOn: LocalDay,
     val note: String?,
+    val purpose: PaymentPurpose = PaymentPurpose.CONTRACT,
     /** Made or changed on the phone and not yet accepted by the server. */
     val isPending: Boolean = false,
 )
@@ -81,6 +88,7 @@ data class PaymentRevision(
     val paidOn: LocalDay,
     val note: String?,
     val at: Instant,
+    val purpose: PaymentPurpose = PaymentPurpose.CONTRACT,
 )
 
 /** A payment as the form submits it; the amount and the day are null until they parse. */
@@ -90,8 +98,12 @@ data class PaymentDraft(
     val method: PaymentMethod = PaymentMethod.CASH,
     val paidOn: LocalDay? = null,
     val note: String? = null,
+    val purpose: PaymentPurpose = PaymentPurpose.CONTRACT,
 ) {
-    fun normalized(): PaymentDraft = copy(note = note?.trim()?.takeIf { it.isNotEmpty() })
+    fun normalized(): PaymentDraft = copy(
+        note = note?.trim()?.takeIf { it.isNotEmpty() },
+        purpose = if (side == PaymentSide.CLIENT) purpose else PaymentPurpose.CONTRACT,
+    )
 
     fun validate(): ImmutableMap<ObjectField, FieldProblem> {
         val problems = buildMap {

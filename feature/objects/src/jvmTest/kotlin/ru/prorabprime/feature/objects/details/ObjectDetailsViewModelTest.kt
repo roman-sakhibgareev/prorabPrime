@@ -13,8 +13,10 @@ import ru.prorabprime.domain.model.FieldProblem
 import ru.prorabprime.domain.model.LocalImageRef
 import ru.prorabprime.domain.model.ObjectField
 import ru.prorabprime.domain.model.ObjectId
+import ru.prorabprime.domain.model.ObjectStatus
 import ru.prorabprime.domain.model.PhotoId
 import ru.prorabprime.domain.model.PhotoRejection
+import ru.prorabprime.domain.usecase.ChangeObjectStatusUseCase
 import ru.prorabprime.domain.usecase.DeleteContactUseCase
 import ru.prorabprime.domain.usecase.DeleteObjectUseCase
 import ru.prorabprime.domain.usecase.DeletePhotoUseCase
@@ -67,6 +69,7 @@ class ObjectDetailsViewModelTest {
                 setCoverPhoto = SetCoverPhotoUseCase(photos),
                 saveContact = SaveContactUseCase(contacts),
                 deleteContact = DeleteContactUseCase(contacts),
+                changeStatus = ChangeObjectStatusUseCase(objects),
             ),
             notifier = notifier,
         )
@@ -219,6 +222,18 @@ class ObjectDetailsViewModelTest {
 
         assertThat(photos.covers).containsExactly(id to PhotoId("p2"))
         assertThat(notifier.shown).containsExactly(UiText.Resource(Res.string.objectdetails_cover_set))
+    }
+
+    @Test
+    fun `picking a status updates the object and keeps its other fields`() {
+        withObject()
+
+        viewModel.onEvent(ObjectDetailsEvent.StatusPicked(ObjectStatus.DONE))
+
+        val (updatedId, draft) = objects.updated.single()
+        assertThat(updatedId).isEqualTo(id)
+        assertThat(draft.status).isEqualTo(ObjectStatus.DONE)
+        assertThat(draft.title).isEqualTo("Кухня")
     }
 
     @Test

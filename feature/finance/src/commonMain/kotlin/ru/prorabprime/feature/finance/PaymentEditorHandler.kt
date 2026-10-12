@@ -43,6 +43,8 @@ internal class PaymentEditorHandler(
 
             is PaymentEvent.MethodChanged -> edit { it.copy(method = event.method) }
 
+            is PaymentEvent.PurposeChanged -> edit { it.copy(purpose = event.purpose) }
+
             is PaymentEvent.DayChanged -> edit {
                 it.copy(day = event.day, errors = it.without(ObjectField.PAYMENT_DATE))
             }
@@ -86,6 +88,7 @@ internal class PaymentEditorHandler(
                 method = payment.method,
                 day = payment.paidOn,
                 note = payment.note.orEmpty(),
+                purpose = payment.purpose,
             ),
         )
     }
@@ -99,6 +102,7 @@ internal class PaymentEditorHandler(
             method = editor.method,
             paidOn = editor.day,
             note = editor.note,
+            purpose = editor.purpose,
         )
         edit { it.copy(isSaving = true) }
         scope.launchCatching(TAG, onFailure = { onSaveFailure(it.asAppError()) }) {

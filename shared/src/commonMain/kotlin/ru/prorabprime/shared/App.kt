@@ -7,6 +7,7 @@ import ru.prorabprime.data.di.dataModule
 import ru.prorabprime.designsystem.theme.ProrabTheme
 import ru.prorabprime.feature.expenses.expensesModule
 import ru.prorabprime.feature.finance.financeModule
+import ru.prorabprime.feature.journal.journalModule
 import ru.prorabprime.feature.map.mapModule
 import ru.prorabprime.feature.materials.materialsModule
 import ru.prorabprime.feature.objects.objectsModule
@@ -37,6 +38,7 @@ val appModules: List<Module> =
         settingsModule,
         financeModule,
         materialsModule,
+        journalModule,
         mapModule,
         tasksModule,
         syncModule,

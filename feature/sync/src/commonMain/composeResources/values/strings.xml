@@ -26,11 +26,13 @@
     <string name="sync_kind_payment">платёж</string>
     <string name="sync_kind_extra_work">дополнительная работа</string>
     <string name="sync_kind_material">материал</string>
+    <string name="sync_kind_note">запись журнала</string>
     <string name="sync_kind_task">дело</string>
 
     <string name="sync_reason_validation">Сервер не принял данные</string>
     <string name="sync_reason_not_found">Записи больше нет на сервере</string>
     <string name="sync_reason_photo_too_large">Фото слишком большое</string>
+    <string name="sync_reason_storage_full">На сервере закончилось место для фото</string>
     <string name="sync_reason_photo_unsupported">Такой формат фото не поддерживается</string>
     <string name="sync_reason_server">Ошибка сервера (%1$s)</string>
     <string name="sync_reason_unknown">Не удалось отправить</string>

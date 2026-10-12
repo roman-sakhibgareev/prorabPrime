@@ -3,8 +3,10 @@ package ru.prorabprime.server.repository
 import java.util.UUID
 import kotlin.time.toJavaInstant
 import kotlin.time.toKotlinInstant
+import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
@@ -13,12 +15,14 @@ import org.jetbrains.exposed.v1.jdbc.update
 import org.jetbrains.exposed.v1.jdbc.upsert
 import ru.prorabprime.contract.ExtraWorkStatusDto
 import ru.prorabprime.contract.PaymentMethodDto
+import ru.prorabprime.contract.PaymentPurposeDto
 import ru.prorabprime.contract.PaymentSideDto
 import ru.prorabprime.contract.RevisionActionDto
 import ru.prorabprime.server.db.DbExecutor
 import ru.prorabprime.server.model.ExtraWorkFields
 import ru.prorabprime.server.model.ExtraWorkRecord
 import ru.prorabprime.server.model.FinanceTerms
+import ru.prorabprime.server.model.OwnerId
 import ru.prorabprime.server.model.PaymentFields
 import ru.prorabprime.server.model.PaymentRecord
 import ru.prorabprime.server.model.PaymentRevisionRecord
@@ -55,8 +59,12 @@ class ExposedPaymentRepository(
             .map { it.toPaymentRecord() }
     }
 
-    override suspend fun find(id: UUID): PaymentRecord? = db.query {
-        PaymentsTable.selectAll().where { PaymentsTable.id eq id }.singleOrNull()?.toPaymentRecord()
+    /** The one payment [id] names, if its object belongs to [owner]. */
+    private fun mine(owner: OwnerId, id: UUID): Op<Boolean> =
+        (PaymentsTable.id eq id) and PaymentsTable.objectId.ownedBy(owner)
+
+    override suspend fun find(owner: OwnerId, id: UUID): PaymentRecord? = db.query {
+        PaymentsTable.selectAll().where { mine(owner, id) }.singleOrNull()?.toPaymentRecord()
     }
 
     override suspend fun insert(payment: PaymentRecord) {
@@ -69,23 +77,29 @@ class ExposedPaymentRepository(
                 it[method] = payment.fields.method.name
                 it[paidOn] = payment.fields.paidOn
                 it[note] = payment.fields.note
+                it[purpose] = payment.fields.purpose.name
                 it[createdAt] = payment.createdAt.toJavaInstant()
             }
         }
     }
 
-    override suspend fun update(id: UUID, fields: PaymentFields): Boolean = db.query {
-        PaymentsTable.update({ PaymentsTable.id eq id }) {
+    override suspend fun update(
+        owner: OwnerId,
+        id: UUID,
+        fields: PaymentFields,
+    ): Boolean = db.query {
+        PaymentsTable.update({ mine(owner, id) }) {
             it[side] = fields.side.name
             it[amountKopecks] = fields.amountKopecks
             it[method] = fields.method.name
             it[paidOn] = fields.paidOn
             it[note] = fields.note
+            it[purpose] = fields.purpose.name
         } > 0
     }
 
-    override suspend fun delete(id: UUID): Boolean = db.query {
-        PaymentsTable.deleteWhere { PaymentsTable.id eq id } > 0
+    override suspend fun delete(owner: OwnerId, id: UUID): Boolean = db.query {
+        PaymentsTable.deleteWhere { mine(owner, id) } > 0
     }
 
     override suspend fun addRevision(revision: PaymentRevisionRecord) {
@@ -100,6 +114,7 @@ class ExposedPaymentRepository(
                 it[method] = revision.fields.method.name
                 it[paidOn] = revision.fields.paidOn
                 it[note] = revision.fields.note
+                it[purpose] = revision.fields.purpose.name
                 it[at] = revision.at.toJavaInstant()
             }
         }
@@ -124,8 +139,12 @@ class ExposedExtraWorkRepository(
             .map { it.toExtraWorkRecord() }
     }
 
-    override suspend fun find(id: UUID): ExtraWorkRecord? = db.query {
-        ExtraWorksTable.selectAll().where { ExtraWorksTable.id eq id }.singleOrNull()?.toExtraWorkRecord()
+    /** The one extra work [id] names, if its object belongs to [owner]. */
+    private fun mine(owner: OwnerId, id: UUID): Op<Boolean> =
+        (ExtraWorksTable.id eq id) and ExtraWorksTable.objectId.ownedBy(owner)
+
+    override suspend fun find(owner: OwnerId, id: UUID): ExtraWorkRecord? = db.query {
+        ExtraWorksTable.selectAll().where { mine(owner, id) }.singleOrNull()?.toExtraWorkRecord()
     }
 
     override suspend fun insert(work: ExtraWorkRecord) {
@@ -141,16 +160,20 @@ class ExposedExtraWorkRepository(
         }
     }
 
-    override suspend fun update(id: UUID, fields: ExtraWorkFields): Boolean = db.query {
-        ExtraWorksTable.update({ ExtraWorksTable.id eq id }) {
+    override suspend fun update(
+        owner: OwnerId,
+        id: UUID,
+        fields: ExtraWorkFields,
+    ): Boolean = db.query {
+        ExtraWorksTable.update({ mine(owner, id) }) {
             it[title] = fields.title
             it[amountKopecks] = fields.amountKopecks
             it[status] = fields.status.name
         } > 0
     }
 
-    override suspend fun delete(id: UUID): Boolean = db.query {
-        ExtraWorksTable.deleteWhere { ExtraWorksTable.id eq id } > 0
+    override suspend fun delete(owner: OwnerId, id: UUID): Boolean = db.query {
+        ExtraWorksTable.deleteWhere { mine(owner, id) } > 0
     }
 }
 
@@ -163,6 +186,7 @@ private fun ResultRow.toPaymentRecord() = PaymentRecord(
         method = PaymentMethodDto.valueOf(this[PaymentsTable.method]),
         paidOn = this[PaymentsTable.paidOn],
         note = this[PaymentsTable.note],
+        purpose = PaymentPurposeDto.valueOf(this[PaymentsTable.purpose]),
     ),
     createdAt = this[PaymentsTable.createdAt].toKotlinInstant(),
 )
@@ -178,6 +202,7 @@ private fun ResultRow.toRevisionRecord() = PaymentRevisionRecord(
         method = PaymentMethodDto.valueOf(this[PaymentHistoryTable.method]),
         paidOn = this[PaymentHistoryTable.paidOn],
         note = this[PaymentHistoryTable.note],
+        purpose = PaymentPurposeDto.valueOf(this[PaymentHistoryTable.purpose]),
     ),
     at = this[PaymentHistoryTable.at].toKotlinInstant(),
 )

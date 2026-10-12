@@ -6,6 +6,9 @@
     <string name="expenses_this_month">В этом месяце</string>
     <string name="expenses_materials">Материалы</string>
     <string name="expenses_crew">Бригада</string>
+    <string name="expenses_paid">Оплачено</string>
+    <string name="expenses_unpaid">Не оплачено</string>
+    <string name="expenses_receipt_unpaid">Чек не оплачен</string>
     <string name="expenses_without_amount">Чеков без суммы: %1$d. Откройте чек и впишите сумму, тогда он попадёт в итоги.</string>
     <string name="expenses_by_object">По объектам</string>
     <string name="expenses_by_month">По месяцам</string>

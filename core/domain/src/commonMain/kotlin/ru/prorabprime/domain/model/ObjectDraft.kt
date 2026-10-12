@@ -76,6 +76,7 @@ enum class ObjectField {
     TASK_TITLE,
     TASK_DAY,
     TASK_TIME,
+    NOTE_TEXT,
 }
 
 enum class FieldProblem {

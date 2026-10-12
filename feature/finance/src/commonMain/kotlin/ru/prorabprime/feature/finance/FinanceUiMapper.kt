@@ -6,6 +6,7 @@ import ru.prorabprime.domain.model.ExtraWork
 import ru.prorabprime.domain.model.Finance
 import ru.prorabprime.domain.model.Money
 import ru.prorabprime.domain.model.Payment
+import ru.prorabprime.domain.model.PaymentPurpose
 import ru.prorabprime.domain.model.PaymentRevision
 import ru.prorabprime.domain.model.PaymentSide
 import ru.prorabprime.domain.model.SideSummary
@@ -13,7 +14,7 @@ import ru.prorabprime.domain.model.SideSummary
 internal fun Finance.toUi() = FinanceUi(
     clientTotalKopecks = clientTotalKopecks,
     crewTotalKopecks = crewTotalKopecks,
-    client = client.toCard(),
+    client = client.toCard(breakdown = breakdown()),
     crew = crew.toCard(),
     clientPayments = payments.filter { it.side == PaymentSide.CLIENT }.map { it.toUi() }.toImmutableList(),
     crewPayments = payments.filter { it.side == PaymentSide.CREW }.map { it.toUi() }.toImmutableList(),
@@ -22,11 +23,24 @@ internal fun Finance.toUi() = FinanceUi(
     extrasPending = extrasPendingKopecks.takeIf { it > 0 }?.let(Money::format),
 )
 
-private fun SideSummary.toCard() = SideCardUi(
+private fun Finance.breakdown(): BreakdownUi {
+    fun received(purpose: PaymentPurpose) = payments
+        .filter { it.side == PaymentSide.CLIENT && it.purpose == purpose }
+        .sumOf { it.amountKopecks }
+    return BreakdownUi(
+        contract = clientTotalKopecks?.let(Money::format),
+        extras = Money.format(extrasAgreedKopecks),
+        receivedContract = Money.format(received(PaymentPurpose.CONTRACT)),
+        receivedExtras = Money.format(received(PaymentPurpose.EXTRAS)),
+    )
+}
+
+private fun SideSummary.toCard(breakdown: BreakdownUi? = null) = SideCardUi(
     agreed = agreedKopecks?.let(Money::format),
     paid = Money.format(paidKopecks),
     remaining = remainingKopecks?.let { Money.format(if (it < 0) -it else it) },
     isOverpaid = (remainingKopecks ?: 0) < 0,
+    breakdown = breakdown,
 )
 
 private fun Payment.toUi() = PaymentUi(this, Money.format(amountKopecks), paidOn.format())

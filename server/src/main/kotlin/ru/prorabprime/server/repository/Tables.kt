@@ -8,6 +8,7 @@ import org.jetbrains.exposed.v1.javatime.timestamp
 /** Mirrors `V1__init.sql` and later migrations; Flyway owns the schema, these only read and write it. */
 object ObjectsTable : Table("objects") {
     val id = javaUUID("id")
+    val ownerId = javaUUID("owner_id")
     val title = varchar("title", 200).nullable()
     val address = varchar("address", 500)
     val status = varchar("status", 20)
@@ -43,6 +44,7 @@ object PhotosTable : Table("photos") {
     val receiptAmountKopecks = long("receipt_amount_kopecks").nullable()
     val receiptAt = varchar("receipt_at", 20).nullable()
     val receiptQr = text("receipt_qr").nullable()
+    val receiptPaid = bool("receipt_paid")
     val createdAt = timestamp("created_at")
 
     /** Set while the photo waits in the trash. */
@@ -79,6 +81,7 @@ object PaymentsTable : Table("payments") {
     val method = varchar("method", 10)
     val paidOn = date("paid_on")
     val note = varchar("note", 500).nullable()
+    val purpose = varchar("purpose", 10)
     val createdAt = timestamp("created_at")
 
     override val primaryKey = PrimaryKey(id)
@@ -94,6 +97,7 @@ object PaymentHistoryTable : Table("payment_history") {
     val method = varchar("method", 10)
     val paidOn = date("paid_on")
     val note = varchar("note", 500).nullable()
+    val purpose = varchar("purpose", 10)
     val at = timestamp("at")
 
     override val primaryKey = PrimaryKey(id)
@@ -121,12 +125,41 @@ object MaterialsTable : Table("materials") {
     override val primaryKey = PrimaryKey(id)
 }
 
+object NotesTable : Table("object_notes") {
+    val id = javaUUID("id")
+    val objectId = javaUUID("object_id")
+    val text = varchar("text", 2000)
+    val createdAt = timestamp("created_at")
+
+    override val primaryKey = PrimaryKey(id)
+}
+
 object TasksTable : Table("tasks") {
     val id = javaUUID("id")
+    val ownerId = javaUUID("owner_id")
     val title = varchar("title", 300)
     val day = date("day")
     val remindAtMinutes = integer("remind_at_minutes").nullable()
     val done = bool("done")
+    val objectId = javaUUID("object_id").nullable()
+    val createdAt = timestamp("created_at")
+
+    override val primaryKey = PrimaryKey(id)
+}
+
+object UsersTable : Table("users") {
+    val id = javaUUID("id")
+    val name = varchar("name", 100)
+    val createdAt = timestamp("created_at")
+
+    override val primaryKey = PrimaryKey(id)
+}
+
+object ApiTokensTable : Table("api_tokens") {
+    val id = javaUUID("id")
+    val userId = javaUUID("user_id")
+    val tokenHash = char("token_hash", 64)
+    val tokenSource = varchar("source", 10)
     val createdAt = timestamp("created_at")
 
     override val primaryKey = PrimaryKey(id)

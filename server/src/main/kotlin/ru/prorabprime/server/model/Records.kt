@@ -27,6 +27,7 @@ data class Coordinates(
 
 data class ObjectRecord(
     val id: UUID,
+    val ownerId: OwnerId,
     val fields: ObjectFields,
     val coverPhotoId: UUID?,
     val createdAt: Instant,
@@ -93,6 +94,7 @@ data class PhotoRecord(
     val kind: AttachmentKindDto = AttachmentKindDto.PHOTO,
     val note: String? = null,
     val receipt: ReceiptData? = null,
+    val receiptPaid: Boolean = false,
 )
 
 /** What a receipt's fiscal QR code says. */

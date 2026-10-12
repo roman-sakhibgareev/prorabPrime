@@ -139,4 +139,4 @@ internal class FinanceRepositoryImpl(
 internal fun nextOrder(orders: List<Long>): Long = (orders.maxOrNull() ?: -1L) + 1
 
 private fun ru.prorabprime.contract.PaymentRequestDto.toRow(id: String) =
-    PaymentDto(id, side, amountKopecks, method, paidOn, note)
+    PaymentDto(id, side, amountKopecks, method, paidOn, note, purpose)

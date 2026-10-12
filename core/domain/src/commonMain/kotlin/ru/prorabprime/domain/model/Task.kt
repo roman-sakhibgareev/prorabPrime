@@ -11,6 +11,8 @@ data class Task(
     val day: LocalDay,
     val remindAtMinutes: Int?,
     val done: Boolean,
+    /** The object the task belongs to, or null for a task of the general plan. */
+    val objectId: ObjectId? = null,
     /** Made or changed on the phone and not yet accepted by the server. */
     val isPending: Boolean = false,
 )
@@ -21,6 +23,7 @@ data class TaskDraft(
     val day: LocalDay? = null,
     val remindAtMinutes: Int? = null,
     val done: Boolean = false,
+    val objectId: ObjectId? = null,
 ) {
     fun normalized(): TaskDraft = copy(title = title.trim())
 

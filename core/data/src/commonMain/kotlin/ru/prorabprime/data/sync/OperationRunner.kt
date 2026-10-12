@@ -27,6 +27,8 @@ internal class OperationRunner(
         is Operation.SetReceipt ->
             remote.setReceipt(operation.photoId, operation.amountKopecks, operation.purchasedAt).goneIsDone()
 
+        is Operation.SetReceiptPaid -> remote.setReceiptPaid(operation.photoId, operation.paid).goneIsDone()
+
         is Operation.SetPhotoNote -> remote.setPhotoNote(operation.photoId, operation.note).goneIsDone()
 
         is Operation.RotatePhoto ->
@@ -61,6 +63,12 @@ internal class OperationRunner(
         is Operation.DeleteMaterial -> remote.deleteMaterial(operation.id).goneIsDone()
 
         is Operation.AddDefaultMaterials -> remote.addDefaultMaterials(operation.objectId)
+
+        is Operation.CreateNote -> remote.createNote(operation.objectId, operation.request)
+
+        is Operation.UpdateNote -> remote.updateNote(operation.id, operation.request)
+
+        is Operation.DeleteNote -> remote.deleteNote(operation.id).goneIsDone()
 
         is Operation.CreateTask -> remote.createTask(operation.request)
 

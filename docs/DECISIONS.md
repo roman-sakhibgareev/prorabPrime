@@ -39,6 +39,8 @@ entries below are the points where this project departs from it or goes beyond i
 | [0018](#adr-0018) | A photo is turned by the server, which makes new files named by the client | Accepted |
 | [0019](#adr-0019) | A deleted object or photo waits thirty days in a trash kept by the server | Accepted |
 | [0020](#adr-0020) | The server speaks HTTP; HTTPS is a proxy in front of it | Accepted |
+| [0021](#adr-0021) | Several accounts on one server, a token per account, every query scoped by the owner | Accepted, **amends** 0005 |
+| [0022](#adr-0022) | An account has a room for pictures, one gigabyte unless set otherwise | Accepted, **amends** 0021 |
 
 ---
 
@@ -715,3 +717,165 @@ address cannot use this and must take a tunnel instead.
 **Review when:** the server moves to a VPS (then Caddy simply moves with it), or a second person gets access
 and one token is no longer enough.
 
+---
+
+## ADR-0021
+
+### Several accounts on one server, a token per account, every query scoped by the owner
+
+**Accepted** · 2026-10-02 · **amends** ADR-0005
+
+**Context.** The server had one database and one `API_TOKEN`: whoever held the token saw and changed
+everything. To let anyone but the owner use the app (a friend, a store reviewer, later strangers) without
+running a server of their own, each person needs their own data on the one server.
+
+**Decision.**
+- *Accounts.* A `users` table (id, unique name). An account is made by the owner from a command of the server
+  (`ru.prorabprime.server.admin`), not over HTTP: there is no sign-up page and no password in the app.
+- *Tokens.* An `api_tokens` table maps a token to a user. A token is 32 random bytes, shown once when made and
+  stored only as its SHA-256 (the token is random and long, so a plain hash is enough; a slow one would only
+  cost every request). The app is unchanged: it still sends one `Authorization: Bearer` token.
+- *`API_TOKEN` stays.* At every start it is registered as a token of the first account (the one migration
+  `V13` makes, named `owner`, which takes all the data that existed). A token of source `ENV` that is no longer
+  the configured one is removed, so changing `API_TOKEN` in `.env` still revokes the old value, as before.
+  Tokens made by the command are never touched by this.
+- *Ownership.* `owner_id` on `objects` and `tasks`, the two things that hang on no other. Everything else hangs
+  on an object and is reached through it.
+- *Scoping is in the repositories, not the routes.* Every repository call by id, and every list, takes an
+  `OwnerId` (a value class, so it is never confused with an object id); the Exposed implementations filter by
+  it, the children (photos, contacts, payments, ...) through the owner of their object. A route has no way to
+  ask for a record without naming whose it is, and the account comes from the authenticated principal only.
+  Listings by an object id are reached only after the service has found that object for the owner.
+- *Another account's id is a conflict, not a leak.* A client may choose the id of what it creates (ADR-0017).
+  An id already used by someone else makes the insert fail on the primary key, which is answered `409`;
+  a lookup by the same id as another account's finds nothing (`404`).
+- *Files.* `/files/{objectId}/...` first checks the object is the caller's.
+- *Not scoped, on purpose.* The trash's expiry job (it works over every account), the geocoder (a function of the
+  address) and `/health`.
+
+**Alternatives rejected.**
+- *The owner id taken from the coroutine context inside the repositories.* Fewer signatures, but a hidden
+  input; a call outside a request would fail at run time instead of at compile time.
+- *PostgreSQL row-level security.* It is the strongest guard, but it does not apply to a superuser, which is what
+  the compose file's `POSTGRES_USER` and the embedded test database are.
+- *Passwords or a sign-in call.* More to build and to get wrong (hashing, reset, throttling) for an app whose
+  users get an account from a person they know.
+- *One database per user.* Strong separation, but a migration run, a connection pool and a backup per person.
+- *The same token for everyone with the owner's data copied.* No isolation at all.
+
+**Consequences.** Every repository signature gained an owner, and every test of a route now has two accounts to
+check against. The person who runs the server can still read everything in the database and on disk: this
+separates people inside the app, it is not privacy from the operator (said in the README). A lost token is
+replaced by the owner with a new one. There are no quotas on files; one account can fill the disk.
+
+**Review when:** accounts are made by strangers (then a sign-up flow, throttling and quotas), or a second
+server instance is needed (the stores are not shared).
+
+---
+
+## ADR-0022
+
+### An account has a room for pictures, one gigabyte unless set otherwise
+
+**Accepted** · 2026-10-02 · **amends** ADR-0021
+
+**Context.** ADR-0021 left one account free to fill the server's disk. With a second person, and a store
+reviewer, on the owner's computer, that is the one way an account can harm the others.
+
+**Decision.**
+- *What is counted:* the `size_bytes` of the original files of every photo and receipt of the account's objects,
+  **the ones in the trash included**: their files stay on disk for thirty days. Thumbnails are not counted
+  (they are a few kilobytes each and their size is not stored); the number is therefore a little under what the
+  disk really holds.
+- *The limit* is `ACCOUNT_QUOTA_MB` (default 1024, `off` for none), the same for every account.
+- *Enforced on upload* only: a photo that would take the account past the limit is refused with `507` and the
+  error code `QUOTA_EXCEEDED`, before anything is written. A retry of an upload the account already made is not
+  refused for the room it already took (the id is found first). Two uploads at the same moment may overshoot by
+  one photo; that is accepted over a lock.
+- *Shown to the account* by `GET /api/account` (its name, the bytes used, the limit), which the app puts in the
+  settings. The app maps `507` to its own message, so the refused change does not read as a broken server.
+
+**Alternatives rejected.**
+- *A limit per account in the database.* A column and a command to change it, for three people who can all be
+  told the same number. One setting is enough until accounts differ.
+- *Counting the disk with a directory walk.* Exact, but a walk of every file on each upload and each look at
+  the settings; the database already knows the sizes.
+- *Refusing at the object level too (a limit on objects).* Photos are what weighs; text is not worth a rule.
+
+**Consequences.** Emptying the trash is how an account gets room back before thirty days. A change refused for
+room waits in the phone's list of refused changes until the user frees room and retries. Lowering the limit
+below what an account holds refuses its uploads but takes nothing away.
+
+**Review when:** accounts need different limits, or the thumbnails or the web client's files become a real share
+of the disk.
+
+
+---
+
+## ADR-0023
+
+### A client's payment says whether it was for the contract or for the extras
+
+**Accepted** · 2026-10-02
+
+**Context.** The finance screen added the agreed extras to the contract sum and showed one total, so the client
+could not see what the contract came to, what the extras came to, and what had been paid towards each.
+
+**Decision.**
+- A payment has a `purpose`: `CONTRACT` or `EXTRAS`, stored with it (`payments.purpose`, default `CONTRACT`,
+  also on the history rows). It is only meaningful for the client's side; a payment to the crew is normalized to
+  `CONTRACT`.
+- The server's overview is unchanged: the client's agreed sum is still the contract plus the agreed extras, and
+  `paid` is still everything received. The split is made on the phone from the payments list, so the contract
+  and the offline path stay as they were.
+- The card shows the contract sum, the extras sum, what was received for each, and the total left.
+
+**Alternatives rejected.**
+- *Paying the contract first and the rest to the extras, worked out.* No new field, but it states a fact nobody
+  entered: a client who pays an extra early would show as paying down the contract.
+- *Linking each payment to one extra work.* More exact, but an advance rarely names a work; a two-way choice is
+  what the foreman can answer when the money is handed over.
+
+**Consequences.** Old payments read as for the contract. A DTO without the field decodes as `CONTRACT`, so an
+older app keeps working against this server and the other way round.
+
+**Review when:** payments need to be tied to a single extra work, or a third kind of payment appears.
+
+
+---
+
+## ADR-0024
+
+### An object has a journal of notes, and its tasks are the plan's tasks
+
+**Accepted** · 2026-10-12
+
+**Context.** The foreman wants to keep, inside each object, what was done and what not to forget ("walls
+plastered", "order the plaster"), to set tasks with an alarm from the card of an object, and to see every such
+task in the one calendar.
+
+**Decision.**
+- A note is its own record: `object_notes` (`id`, `object_id`, `text` up to 2000, `created_at`), deleted with its
+  object. The phone writes it first (ADR-0017) and sends the time it was written; the server keeps that time but
+  never one from the future. A note's text can change; its time cannot.
+- A task may belong to an object: `tasks.object_id`, null for a task of no object, deleted with the object. The
+  server checks the object is the account's own (`404` otherwise). The tasks already reach the phone whole, so the
+  calendar of one object, and the filter by object in the general one, are made on the phone.
+- The journal is a screen of its own (`:feature:journal`) that holds notes only. The calendar of an object is the
+  existing tasks screen opened for that object: it shows that object's tasks, and a task made there belongs to it.
+- Where a note falls on a day is worked out on the device's wall clock (`LocalMoment`), not in UTC.
+
+**Alternatives rejected.**
+- *One kind of record, a note with an optional reminder that makes a task.* One list to read, but a plain line of
+  the log and a thing to do are different to the person writing them, and every note would drag the task's day and
+  time fields along.
+- *A chat-like wall with photos and voice.* The most polished, but large and unasked for before anyone has used a
+  plain log; it can be added on top of notes later.
+- *A second calendar screen for objects.* The same screen filtered says the same, and a fix to one is a fix to both.
+
+**Consequences.** A task that is ticked or edited keeps its object. A task of an object in the trash stays in the
+general calendar without the object's name until the object is restored or deleted for good. The journal does not
+show the object's tasks; they are in its calendar.
+
+**Review when:** the journal needs photos or tasks in the same feed, or the foreman asks to see an object's open
+tasks on its journal page.

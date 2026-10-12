@@ -7,18 +7,22 @@ import ru.prorabprime.domain.model.AppError
 import ru.prorabprime.domain.model.FieldProblem
 import ru.prorabprime.domain.model.LocalDay
 import ru.prorabprime.domain.model.ObjectField
+import ru.prorabprime.domain.model.ObjectId
 import ru.prorabprime.domain.model.TaskDraft
 import ru.prorabprime.domain.model.TaskId
 import ru.prorabprime.domain.usecase.DeleteTaskUseCase
 import ru.prorabprime.domain.usecase.ObserveDayTasksUseCase
 import ru.prorabprime.domain.usecase.ObserveNextTaskUseCase
+import ru.prorabprime.domain.usecase.ObserveObjectsUseCase
 import ru.prorabprime.domain.usecase.ObserveOverdueTasksUseCase
 import ru.prorabprime.domain.usecase.ObserveTasksRangeUseCase
 import ru.prorabprime.domain.usecase.SaveTaskUseCase
+import ru.prorabprime.testing.FakeObjectsRepository
 import ru.prorabprime.testing.FakeSnackbarNotifier
 import ru.prorabprime.testing.FakeTasksRepository
 import ru.prorabprime.testing.MainDispatcherRule
 import ru.prorabprime.testing.aTask
+import ru.prorabprime.testing.anObjectSummary
 import ru.prorabprime.ui.toUiText
 
 class TasksViewModelTest {
@@ -27,11 +31,14 @@ class TasksViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val repository = FakeTasksRepository()
+    private val objectsRepository = FakeObjectsRepository()
     private val notifier = FakeSnackbarNotifier()
     private val today = LocalDay.of(2026, 9, 25)
 
+    private var scopedObjectId: String? = null
+
     private val viewModel by lazy {
-        val holder = TasksStateHolder(today)
+        val holder = TasksStateHolder(today, scopedObjectId)
         TasksViewModel(
             stateHolder = holder,
             errorHandler = TasksErrorHandler(holder, notifier),
@@ -42,6 +49,7 @@ class TasksViewModelTest {
                 observeNext = ObserveNextTaskUseCase(repository),
                 saveTask = SaveTaskUseCase(repository),
                 deleteTask = DeleteTaskUseCase(repository),
+                observeObjects = ObserveObjectsUseCase(objectsRepository),
             ),
         )
     }
@@ -286,5 +294,108 @@ class TasksViewModelTest {
         assertThat(formatMinutes(0)).isEqualTo("00:00")
         assertThat(formatMinutes(9 * 60 + 5)).isEqualTo("09:05")
         assertThat(formatMinutes(23 * 60 + 59)).isEqualTo("23:59")
+    }
+
+    private fun withObjectTasks() {
+        objectsRepository.objects.value = listOf(
+            anObjectSummary("kitchen", title = "Кухня", address = "Тверская, 5"),
+            anObjectSummary("bath", title = null, address = "Мира, 3"),
+        )
+        repository.tasks.value = listOf(
+            aTask("k1", "Заказать плитку", today, remindAtMinutes = 600, objectId = ObjectId("kitchen")),
+            aTask("b1", "Сантехник", today, objectId = ObjectId("bath")),
+            aTask("any", "Позвонить маме", today),
+            aTask("k2", "Забыл на кухне", today.plusDays(-1), objectId = ObjectId("kitchen")),
+        )
+    }
+
+    @Test
+    fun `the plan of all objects names the object of each task, and offers them by name or address`() {
+        withObjectTasks()
+
+        assertThat(state.objects.map { it.title }).containsExactly("Кухня", "Мира, 3").inOrder()
+        assertThat(state.tasks.associate { it.id to it.objectTitle })
+            .containsExactly("k1", "Кухня", "b1", "Мира, 3", "any", null)
+        assertThat(state.isScoped).isFalse()
+    }
+
+    @Test
+    fun `narrowing to an object keeps its tasks, its leftovers and its marks, and all brings the rest back`() {
+        withObjectTasks()
+        viewModel.onEvent(TasksEvent.MonthToggled)
+
+        viewModel.onEvent(TasksEvent.ObjectFilterPicked("kitchen"))
+
+        assertThat(state.objectFilter).isEqualTo("kitchen")
+        assertThat(state.tasks.map { it.id }).containsExactly("k1")
+        assertThat(state.overdue.map { it.id }).containsExactly("k2")
+        assertThat(state.marks[today]).isEqualTo(DayMarkUi(open = 1, done = 0))
+
+        viewModel.onEvent(TasksEvent.ObjectFilterPicked(null))
+
+        assertThat(state.tasks.map { it.id }).containsExactly("k1", "b1", "any")
+        assertThat(state.marks[today]).isEqualTo(DayMarkUi(open = 3, done = 0))
+    }
+
+    @Test
+    fun `the nearest plan is the nearest of the object the plan is narrowed to`() {
+        objectsRepository.objects.value = listOf(anObjectSummary("kitchen", title = "Кухня"))
+        repository.tasks.value = listOf(
+            aTask("other", "Чужое", today.plusDays(2)),
+            aTask("mine", "Моё", today.plusDays(5), objectId = ObjectId("kitchen")),
+        )
+        assertThat(state.nextPlan).isEqualTo(NextPlanUi(today.plusDays(2), "Чужое", 2))
+
+        viewModel.onEvent(TasksEvent.ObjectFilterPicked("kitchen"))
+
+        assertThat(state.nextPlan).isEqualTo(NextPlanUi(today.plusDays(5), "Моё", 5))
+    }
+
+    @Test
+    fun `a screen opened for one object shows only its tasks, names no object, and ignores the filter`() {
+        scopedObjectId = "kitchen"
+        withObjectTasks()
+
+        assertThat(state.isScoped).isTrue()
+        assertThat(state.scopedObjectTitle).isEqualTo("Кухня")
+        assertThat(state.tasks.map { it.id }).containsExactly("k1")
+        assertThat(state.tasks.single().objectTitle).isNull()
+
+        viewModel.onEvent(TasksEvent.ObjectFilterPicked(null))
+        viewModel.onEvent(TasksEvent.ObjectFilterPicked("bath"))
+
+        assertThat(state.objectFilter).isEqualTo("kitchen")
+        assertThat(state.tasks.map { it.id }).containsExactly("k1")
+    }
+
+    @Test
+    fun `a new task starts on the object the plan is narrowed to and is saved with it`() {
+        withObjectTasks()
+        viewModel.onEvent(TasksEvent.ObjectFilterPicked("kitchen"))
+
+        viewModel.onEvent(TaskEditorEvent.Add)
+        assertThat(state.editor).isEqualTo(TaskEditorUi(day = today, objectId = "kitchen"))
+        viewModel.onEvent(TaskEditorEvent.TitleChanged("Привезти плитку"))
+        viewModel.onEvent(TaskEditorEvent.ObjectChanged("bath"))
+        viewModel.onEvent(TaskEditorEvent.Save)
+
+        assertThat(
+            repository.added,
+        ).containsExactly(TaskDraft("Привезти плитку", today, null, objectId = ObjectId("bath")))
+    }
+
+    @Test
+    fun `a tick and an edit keep the object the task belongs to`() {
+        withObjectTasks()
+
+        viewModel.onEvent(TasksEvent.DoneToggled("k1"))
+        viewModel.onEvent(TaskEditorEvent.Edit("b1"))
+        assertThat(state.editor?.objectId).isEqualTo("bath")
+        viewModel.onEvent(TaskEditorEvent.Save)
+
+        assertThat(repository.updated).containsExactly(
+            TaskId("k1") to TaskDraft("Заказать плитку", today, 600, done = true, objectId = ObjectId("kitchen")),
+            TaskId("b1") to TaskDraft("Сантехник", today, null, objectId = ObjectId("bath")),
+        ).inOrder()
     }
 }

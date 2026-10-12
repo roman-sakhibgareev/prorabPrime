@@ -136,6 +136,20 @@ class FinanceMaterialsTasksRepositoryTest {
     }
 
     @Test
+    fun `a task of an object is kept with the object and queued with it`() = runTest {
+        offlineAndSynced()
+        phone.tasks.add(TaskDraft("Заказать плитку", today, objectId = objectId)).getOrThrow()
+        phone.tasks.add(TaskDraft("Общая", today)).getOrThrow()
+
+        val ofObject = phone.tasks.observeByObject(objectId).first().getOrThrow()
+        val queued = phone.db.outbox.snapshot().map { it.operation }.filterIsInstance<Operation.CreateTask>()
+
+        assertThat(ofObject.map { it.title }).containsExactly("Заказать плитку")
+        assertThat(ofObject.single().objectId).isEqualTo(objectId)
+        assertThat(queued.map { it.request.objectId }).containsExactly(objectId.value, null)
+    }
+
+    @Test
     fun `a range holds the tasks of its days, done or not, and nothing outside them`() = runTest {
         offlineAndSynced()
         phone.tasks.add(TaskDraft("До", today.plusDays(-1))).getOrThrow()

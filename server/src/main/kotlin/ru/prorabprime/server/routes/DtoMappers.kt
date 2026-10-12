@@ -56,6 +56,7 @@ fun PhotoRecord.toDto() = PhotoDto(
     kind = kind,
     note = note,
     receipt = receipt?.let { ReceiptDto(it.amountKopecks, it.purchasedAt) },
+    receiptPaid = receiptPaid,
 )
 
 fun ContactRecord.toDto() = ContactDto(

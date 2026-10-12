@@ -15,6 +15,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
+import ru.prorabprime.contract.AccountDto
 import ru.prorabprime.contract.ApiMultipart
 import ru.prorabprime.contract.ApiParams
 import ru.prorabprime.contract.ApiPaths
@@ -26,12 +27,15 @@ import ru.prorabprime.contract.FinanceDto
 import ru.prorabprime.contract.FinanceTermsDto
 import ru.prorabprime.contract.MaterialDto
 import ru.prorabprime.contract.MaterialRequestDto
+import ru.prorabprime.contract.NoteDto
+import ru.prorabprime.contract.NoteRequestDto
 import ru.prorabprime.contract.ObjectDetailsDto
 import ru.prorabprime.contract.ObjectRequestDto
 import ru.prorabprime.contract.ObjectSummaryDto
 import ru.prorabprime.contract.PaymentRequestDto
 import ru.prorabprime.contract.PaymentRevisionDto
 import ru.prorabprime.contract.PhotoNoteRequestDto
+import ru.prorabprime.contract.ReceiptPaidRequestDto
 import ru.prorabprime.contract.ReceiptRequestDto
 import ru.prorabprime.contract.RotatePhotoRequestDto
 import ru.prorabprime.contract.SetCoverRequestDto
@@ -51,6 +55,8 @@ internal class RemoteApi(
 ) {
     // --- What the phone copies down.
 
+    suspend fun account(): Result<AccountDto> = apiCall { client.get(SERVER_BASE + ApiPaths.ACCOUNT).body() }
+
     suspend fun objects(): Result<List<ObjectSummaryDto>> = apiCall { client.get(url(ApiPaths.OBJECTS)).body() }
 
     suspend fun objectDetails(id: String): Result<ObjectDetailsDto> =
@@ -64,6 +70,9 @@ internal class RemoteApi(
 
     suspend fun materials(objectId: String): Result<List<MaterialDto>> =
         apiCall { client.get(url(ApiPaths.OBJECT_MATERIALS, objectId)).body() }
+
+    suspend fun notes(objectId: String): Result<List<NoteDto>> =
+        apiCall { client.get(url(ApiPaths.OBJECT_NOTES, objectId)).body() }
 
     /** Tasks from [from] to [to] (`yyyy-MM-dd`, each end inclusive, either may be open). */
     suspend fun tasks(
@@ -120,6 +129,9 @@ internal class RemoteApi(
         purchasedAt: String?,
     ): Result<Unit> = put(url(ApiPaths.PHOTO_RECEIPT, id), ReceiptRequestDto(amountKopecks, purchasedAt))
 
+    suspend fun setReceiptPaid(id: String, paid: Boolean): Result<Unit> =
+        put(url(ApiPaths.PHOTO_RECEIPT_PAID, id), ReceiptPaidRequestDto(paid))
+
     suspend fun setPhotoNote(id: String, note: String?): Result<Unit> =
         put(url(ApiPaths.PHOTO_NOTE, id), PhotoNoteRequestDto(note))
 
@@ -168,6 +180,13 @@ internal class RemoteApi(
 
     suspend fun addDefaultMaterials(objectId: String): Result<Unit> =
         apiCall<HttpResponse> { client.post(url(ApiPaths.OBJECT_MATERIAL_DEFAULTS, objectId)) }.map { }
+
+    suspend fun createNote(objectId: String, request: NoteRequestDto): Result<Unit> =
+        post(url(ApiPaths.OBJECT_NOTES, objectId), request)
+
+    suspend fun updateNote(id: String, request: NoteRequestDto): Result<Unit> = put(url(ApiPaths.NOTE, id), request)
+
+    suspend fun deleteNote(id: String): Result<Unit> = delete(url(ApiPaths.NOTE, id))
 
     suspend fun createTask(request: TaskRequestDto): Result<Unit> = post(SERVER_BASE + ApiPaths.TASKS, request)
 

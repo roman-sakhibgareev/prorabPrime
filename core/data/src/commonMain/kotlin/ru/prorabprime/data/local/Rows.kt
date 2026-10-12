@@ -7,6 +7,7 @@ import ru.prorabprime.contract.ContactDto
 import ru.prorabprime.contract.ExtraWorkDto
 import ru.prorabprime.contract.FinanceTermsDto
 import ru.prorabprime.contract.MaterialDto
+import ru.prorabprime.contract.NoteDto
 import ru.prorabprime.contract.ObjectStatusDto
 import ru.prorabprime.contract.PaymentDto
 import ru.prorabprime.contract.PaymentRevisionDto
@@ -63,6 +64,7 @@ internal data class PhotoRow(
     /** From the QR code on a receipt, read by the server; null for a photo and for a receipt it could not read. */
     val receiptAmountKopecks: Long? = null,
     val receiptAt: String? = null,
+    val receiptPaid: Boolean = false,
 )
 
 @Serializable
@@ -84,6 +86,12 @@ internal data class MaterialRow(
     val objectId: String,
     val order: Long,
     val dto: MaterialDto,
+)
+
+@Serializable
+internal data class NoteRow(
+    val objectId: String,
+    val dto: NoteDto,
 )
 
 @Serializable

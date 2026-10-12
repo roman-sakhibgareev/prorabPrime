@@ -141,6 +141,7 @@ internal class ObjectsRepositoryImpl(
             db.payments.rows.value.values.filter { it.objectId == objectId }.map { Keys.payment(it.dto.id) }.toSet() +
             db.extraWorks.rows.value.values.filter { it.objectId == objectId }.map { Keys.extra(it.dto.id) }.toSet() +
             db.materials.rows.value.values.filter { it.objectId == objectId }.map { Keys.material(it.dto.id) }.toSet() +
+            db.notes.rows.value.values.filter { it.objectId == objectId }.map { Keys.note(it.dto.id) }.toSet() +
             setOf(Keys.terms(objectId), Keys.materialsOf(objectId))
 
     private suspend fun removeChildRows(objectId: String) {
@@ -149,6 +150,7 @@ internal class ObjectsRepositoryImpl(
         db.payments.change { rows -> rows.values.removeAll { it.objectId == objectId } }
         db.extraWorks.change { rows -> rows.values.removeAll { it.objectId == objectId } }
         db.materials.change { rows -> rows.values.removeAll { it.objectId == objectId } }
+        db.notes.change { rows -> rows.values.removeAll { it.objectId == objectId } }
         db.terms.remove(objectId)
         db.history.remove(objectId)
     }
@@ -250,6 +252,14 @@ internal class PhotosRepositoryImpl(
         if (row.kind != AttachmentKindDto.RECEIPT) return AppError.NotFound.asFailure()
         db.outbox.enqueue(Operation.SetReceipt(id.value, receipt?.amountKopecks, receipt?.purchasedAt))
         db.photos.upsert(row.copy(receiptAmountKopecks = receipt?.amountKopecks, receiptAt = receipt?.purchasedAt))
+        return Result.success(Unit)
+    }
+
+    override suspend fun setReceiptPaid(id: PhotoId, paid: Boolean): Result<Unit> {
+        val row = db.photos.rows.value[id.value] ?: return AppError.NotFound.asFailure()
+        if (row.kind != AttachmentKindDto.RECEIPT) return AppError.NotFound.asFailure()
+        db.outbox.enqueue(Operation.SetReceiptPaid(id.value, paid))
+        db.photos.upsert(row.copy(receiptPaid = paid))
         return Result.success(Unit)
     }
 

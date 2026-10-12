@@ -39,6 +39,7 @@ internal fun PhotoRow.toDomain(blobs: BlobStore) = Photo(
     quarterTurns = quarterTurns,
     note = note,
     receipt = receiptAmountKopecks?.let { ReceiptInfo(it, receiptAt) },
+    isReceiptPaid = receiptPaid,
 )
 
 internal fun ObjectRow.toSummary(
