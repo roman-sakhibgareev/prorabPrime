@@ -50,6 +50,11 @@ object ProrabIcons {
         icon("Sort", "M3,18h6v-2H3V18zM3,6v2h18V6H3zM3,13h12v-2H3V13z")
     }
 
+    /** Three lines of falling length: a filter. */
+    val Filter: ImageVector by lazy {
+        icon("Filter", "M10,18h4v-2h-4V18zM3,6v2h18V6H3zM6,13h12v-2H6V13z")
+    }
+
     /** A location pin: an address on the map. */
     val Pin: ImageVector by lazy {
         icon(
