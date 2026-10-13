@@ -5,12 +5,13 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import java.time.ZoneId
 import ru.prorabprime.domain.model.Reminder
 import ru.prorabprime.domain.repository.ReminderScheduler
 
 /**
- * Reminders as alarm-clock alarms: exact, and needing no special permission. What is set is also
+ * Reminders as alarm-clock alarms: exact, under `USE_EXACT_ALARM`. What is set is also
  * written to a [ReminderStore], which [restore] sets again after a reboot.
  */
 class AndroidReminderScheduler(
@@ -41,7 +42,12 @@ class AndroidReminderScheduler(
 
     private fun schedule(alarm: StoredAlarm) {
         val shown = PendingIntent.getActivity(context, 0, launchIntent(), FLAGS)
-        alarms.setAlarmClock(AlarmManager.AlarmClockInfo(alarm.atMillis, shown), receiverIntent(alarm))
+        // A device that refuses exact alarms must cost the reminder, not crash the app.
+        try {
+            alarms.setAlarmClock(AlarmManager.AlarmClockInfo(alarm.atMillis, shown), receiverIntent(alarm))
+        } catch (_: SecurityException) {
+            Log.w("ProrabReminders", "Exact alarms are not allowed; reminder for ${alarm.taskId} not set")
+        }
     }
 
     private fun cancel(alarm: StoredAlarm) = alarms.cancel(receiverIntent(alarm))
