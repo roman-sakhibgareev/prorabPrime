@@ -480,15 +480,17 @@ applies: this is an app for one business, far below its limits.
 **Context.** A task may have a reminder time, and the customer called the feature "alarms". Android
 decides how exact an alarm is and whether the app may set exact ones.
 
-**Decision.** Reminders use `AlarmManager.setAlarmClock`: exact, needing no special permission, and
-shown as an alarm in the status bar. A receiver posts a notification; Android 13+ gets the
+**Decision.** Reminders use `AlarmManager.setAlarmClock`: exact, and
+shown as an alarm in the status bar. Newer Android throws `SecurityException` from it without
+`SCHEDULE_EXACT_ALARM` or `USE_EXACT_ALARM`, so the manifest declares `USE_EXACT_ALARM` (granted at
+install, no prompt) and the scheduler logs and skips an alarm that is still refused. A receiver posts a notification; Android 13+ gets the
 notification permission request on start. `AndroidReminderScheduler.sync` makes the set of alarms
 equal to the open tasks with a time ahead of now, and writes that set to `SharedPreferences`; a boot
 receiver sets the remembered alarms again, with no network. `KeepRemindersUseCase` follows the tasks
 for as long as the process lives, and a failed load leaves the alarms as they were.
 
 **Alternatives rejected.**
-- *`setExactAndAllowWhileIdle`.* Needs `SCHEDULE_EXACT_ALARM`, which the user must grant on Android 14.
+- *`setExactAndAllowWhileIdle`.* Needs `SCHEDULE_EXACT_ALARM`, which the user must grant on Android 14; `USE_EXACT_ALARM` avoids that prompt.
 - *WorkManager.* Not exact; it would remind late.
 - *Re-fetch from the server on boot.* The phone may not be on the owner's Wi-Fi yet.
 

@@ -10,6 +10,8 @@
     <!-- Reminders of the day's tasks: a notification when one rings (Android 13+ asks), and a reboot sets them again. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Newer Android requires it even for setAlarmClock; granted at install, no user prompt (ADR-0015). -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
 
     <application
         android:name=".ProrabApplication"
