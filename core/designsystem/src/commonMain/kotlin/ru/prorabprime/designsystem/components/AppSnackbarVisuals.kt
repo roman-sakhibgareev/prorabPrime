@@ -1,5 +1,6 @@
 package ru.prorabprime.designsystem.components
 
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarData
@@ -9,7 +10,8 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarVisuals
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import kotlinx.coroutines.withTimeoutOrNull
 import ru.prorabprime.ui.AppMessage
 import ru.prorabprime.ui.MessageKind
 
@@ -20,13 +22,19 @@ class AppSnackbarVisuals(
 ) : SnackbarVisuals {
     override val actionLabel: String? = null
     override val withDismissAction: Boolean = false
-    override val duration: SnackbarDuration = SnackbarDuration.Short
+
+    // Material's Short is 4s; the timeout in [show] ends it sooner.
+    override val duration: SnackbarDuration = SnackbarDuration.Indefinite
 }
 
-suspend fun SnackbarHostState.show(message: AppMessage, text: String) =
-    showSnackbar(AppSnackbarVisuals(text, message.kind))
+private const val SHOWN_MILLIS = 2500L
 
-/** Green when it went well, red when it did not. */
+/** Shows the message for [SHOWN_MILLIS], or until the user swipes it down. */
+suspend fun SnackbarHostState.show(message: AppMessage, text: String) {
+    withTimeoutOrNull(SHOWN_MILLIS) { showSnackbar(AppSnackbarVisuals(text, message.kind)) }
+}
+
+/** In the theme's green when it went well, red when it did not; a swipe down dismisses it. */
 @Composable
 fun AppSnackbarHost(state: SnackbarHostState, modifier: Modifier = Modifier) {
     SnackbarHost(state, modifier) { data -> AppSnackbar(data) }
@@ -35,12 +43,21 @@ fun AppSnackbarHost(state: SnackbarHostState, modifier: Modifier = Modifier) {
 @Composable
 private fun AppSnackbar(data: SnackbarData) {
     val success = (data.visuals as? AppSnackbarVisuals)?.kind == MessageKind.Success
+    val colors = MaterialTheme.colorScheme
     Snackbar(
         snackbarData = data,
-        containerColor = if (success) SuccessGreen else MaterialTheme.colorScheme.error,
-        contentColor = if (success) Color.White else MaterialTheme.colorScheme.onError,
+        modifier = Modifier.pointerInput(data) {
+            var dragged = 0f
+            detectVerticalDragGestures(
+                onDragStart = { dragged = 0f },
+                onVerticalDrag = { _, delta -> dragged += delta },
+                onDragEnd = { if (dragged > SWIPE_DISMISS_PX) data.dismiss() },
+            )
+        },
+        containerColor = if (success) colors.primary else colors.error,
+        contentColor = if (success) colors.onPrimary else colors.onError,
         shape = MaterialTheme.shapes.small,
     )
 }
 
-private val SuccessGreen = Color(0xFF2E7D32)
+private const val SWIPE_DISMISS_PX = 40f

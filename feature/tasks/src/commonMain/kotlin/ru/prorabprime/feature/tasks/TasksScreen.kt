@@ -3,6 +3,7 @@ package ru.prorabprime.feature.tasks
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -183,7 +184,7 @@ private fun TaskList(state: TasksState, onEvent: (TasksEvent) -> Unit) {
         EmptyDay(state.nextPlan) { onEvent(TasksEvent.DayPicked(it)) }
         return
     }
-    LazyColumn(Modifier.fillMaxSize()) {
+    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = FabClearance)) {
         if (state.overdue.isNotEmpty()) {
             item(key = "overdue-title") {
                 Text(

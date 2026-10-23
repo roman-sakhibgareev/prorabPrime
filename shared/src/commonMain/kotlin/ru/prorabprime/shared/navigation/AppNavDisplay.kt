@@ -36,6 +36,8 @@ import ru.prorabprime.designsystem.theme.Spacing
 import ru.prorabprime.domain.AnalyticsTracker
 import ru.prorabprime.feature.expenses.ExpensesNavKey
 import ru.prorabprime.feature.expenses.ExpensesScreen
+import ru.prorabprime.feature.finance.FinanceJournalNavKey
+import ru.prorabprime.feature.finance.FinanceJournalScreen
 import ru.prorabprime.feature.finance.FinanceNavKey
 import ru.prorabprime.feature.finance.FinanceScreen
 import ru.prorabprime.feature.journal.JournalNavKey
@@ -136,6 +138,7 @@ private fun EntryProviderScope<NavKey>.objectEntries(backStack: NavBackStack<Nav
             onOpenSettings = { backStack.add(SettingsNavKey) },
             onOpenMap = { backStack.add(MapNavKey) },
             onOpenTasks = { backStack.add(TasksNavKey()) },
+            onOpenFinanceJournal = { backStack.add(FinanceJournalNavKey) },
             // The report is for the site, where there is room for it.
             onOpenExpenses = if (isWebClient) ({ backStack.add(ExpensesNavKey) }) else null,
         )
@@ -189,6 +192,7 @@ private fun EntryProviderScope<NavKey>.objectEntries(backStack: NavBackStack<Nav
 /** The screens that stand apart from one object: money, materials, the map, the plan, the settings. */
 private fun EntryProviderScope<NavKey>.toolEntries(backStack: NavBackStack<NavKey>) {
     entry<FinanceNavKey> { key -> FinanceScreen(objectId = key.objectId, onBack = { backStack.pop() }) }
+    entry<FinanceJournalNavKey> { FinanceJournalScreen(onBack = { backStack.pop() }) }
     entry<MapNavKey> {
         MapScreen(onOpenObject = { backStack.add(ObjectDetailsNavKey(it)) }, onBack = { backStack.pop() })
     }
@@ -227,6 +231,7 @@ private val NAV_KEYS = SavedStateConfiguration {
             subclass(GalleryNavKey::class, GalleryNavKey.serializer())
             subclass(SettingsNavKey::class, SettingsNavKey.serializer())
             subclass(FinanceNavKey::class, FinanceNavKey.serializer())
+            subclass(FinanceJournalNavKey::class, FinanceJournalNavKey.serializer())
             subclass(MaterialsNavKey::class, MaterialsNavKey.serializer())
             subclass(JournalNavKey::class, JournalNavKey.serializer())
             subclass(MapNavKey::class, MapNavKey.serializer())

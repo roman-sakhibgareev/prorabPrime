@@ -55,6 +55,11 @@ object ProrabIcons {
         icon("Filter", "M10,18h4v-2h-4V18zM3,6v2h18V6H3zM6,13h12v-2H6V13z")
     }
 
+    /** Lines of text on a page: a note. */
+    val Note: ImageVector by lazy {
+        icon("Note", "M3,18h12v-2H3V18zM3,6v2h18V6H3zM3,13h18v-2H3V13z")
+    }
+
     /** A location pin: an address on the map. */
     val Pin: ImageVector by lazy {
         icon(
@@ -70,6 +75,16 @@ object ProrabIcons {
             "M21,18v1c0,1.1 -0.9,2 -2,2H5c-1.11,0 -2,-0.9 -2,-2V5c0,-1.1 0.89,-2 2,-2h14c1.1,0 2,0.9 2,2v1h-9c" +
                 "-1.11,0 -2,0.9 -2,2v8c0,1.1 0.89,2 2,2h9zM12,16h10V8H12v8zM16,13.5c-0.83,0 -1.5,-0.67 -1.5,-1.5s" +
                 "0.67,-1.5 1.5,-1.5 1.5,0.67 1.5,1.5 -0.67,1.5 -1.5,1.5z",
+        )
+    }
+
+    /** Banknotes: payments. */
+    val Payments: ImageVector by lazy {
+        icon(
+            "Payments",
+            "M19,14V6c0,-1.1 -0.9,-2 -2,-2H3C1.9,4 1,4.9 1,6v8c0,1.1 0.9,2 2,2h14C18.1,16 19,15.1 19," +
+                "14zM10,15c-1.66,0 -3,-1.34 -3,-3s1.34,-3 3,-3 3,1.34 3,3 -1.34,3 -3,3z" +
+                "M23,9v11c0,1.1 -0.9,2 -2,2H4v-2h17V9H23z",
         )
     }
 

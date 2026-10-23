@@ -81,6 +81,7 @@ import ru.prorabprime.feature.objects.resources.objectslist_capture_title_receip
 import ru.prorabprime.feature.objects.resources.objectslist_empty
 import ru.prorabprime.feature.objects.resources.objectslist_empty_action
 import ru.prorabprime.feature.objects.resources.objectslist_expenses
+import ru.prorabprime.feature.objects.resources.objectslist_finance_journal
 import ru.prorabprime.feature.objects.resources.objectslist_map
 import ru.prorabprime.feature.objects.resources.objectslist_nothing_found
 import ru.prorabprime.feature.objects.resources.objectslist_settings
@@ -99,6 +100,7 @@ fun ObjectsListScreen(
     onOpenSettings: () -> Unit,
     onOpenMap: () -> Unit,
     onOpenTasks: () -> Unit,
+    onOpenFinanceJournal: () -> Unit,
     modifier: Modifier = Modifier,
     /** Null where the report is not offered. */
     onOpenExpenses: (() -> Unit)? = null,
@@ -109,6 +111,7 @@ fun ObjectsListScreen(
         onOpenSettings,
         onOpenMap,
         onOpenTasks,
+        onOpenFinanceJournal,
         onOpenExpenses,
         modifier,
         koinViewModel(),
@@ -122,6 +125,7 @@ private fun ObjectsListScreen(
     onOpenSettings: () -> Unit,
     onOpenMap: () -> Unit,
     onOpenTasks: () -> Unit,
+    onOpenFinanceJournal: () -> Unit,
     onOpenExpenses: (() -> Unit)?,
     modifier: Modifier,
     viewModel: ObjectsListViewModel,
@@ -141,6 +145,7 @@ private fun ObjectsListScreen(
         onOpenSettings = onOpenSettings,
         onOpenMap = onOpenMap,
         onOpenTasks = onOpenTasks,
+        onOpenFinanceJournal = onOpenFinanceJournal,
         onOpenExpenses = onOpenExpenses,
         onOpenPhotoCamera = photoCamera::takePhoto,
         onOpenReceiptCamera = receiptCamera::takePhoto,
@@ -161,12 +166,13 @@ internal fun ObjectsListContent(
     onOpenReceiptCamera: () -> Unit = {},
     onOpenMap: () -> Unit = {},
     onOpenTasks: () -> Unit = {},
+    onOpenFinanceJournal: () -> Unit = {},
     onOpenExpenses: (() -> Unit)? = null,
 ) {
     Scaffold(
         modifier = modifier,
         topBar = {
-            ListTopBar(onCreateObject, onOpenSettings, onOpenMap, onOpenTasks, onOpenExpenses)
+            ListTopBar(onCreateObject, onOpenSettings, onOpenMap, onOpenTasks, onOpenFinanceJournal, onOpenExpenses)
         },
         floatingActionButton = {
             // Side by side under the thumb: a photo of the object, then a receipt. The button sets the kind.
@@ -194,6 +200,7 @@ private fun ListTopBar(
     onOpenSettings: () -> Unit,
     onOpenMap: () -> Unit,
     onOpenTasks: () -> Unit,
+    onOpenFinanceJournal: () -> Unit,
     onOpenExpenses: (() -> Unit)?,
 ) {
     TopAppBar(
@@ -201,6 +208,12 @@ private fun ListTopBar(
         actions = {
             IconButton(onClick = onOpenTasks) {
                 Icon(ProrabIcons.CalendarMonth, contentDescription = stringResource(Res.string.objectslist_tasks))
+            }
+            IconButton(onClick = onOpenFinanceJournal) {
+                Icon(
+                    ProrabIcons.Payments,
+                    contentDescription = stringResource(Res.string.objectslist_finance_journal),
+                )
             }
             onOpenExpenses?.let { open ->
                 IconButton(onClick = open) {

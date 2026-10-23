@@ -988,7 +988,8 @@ tints from the theme (`onPrimaryContainer`, `onSurface`), and labels were semi-b
 heading.
 
 **Decision.** `Sizes.control` is the height of a button, an `ActionChip`, a `FilterChip` and the search line;
-`Sizes.field` is the height of a form field whose name sits inside it. Labels are 14sp in the regular weight.
+`Sizes.field` is the minimum height (56dp) of a form field whose name sits inside it; it was 52dp as a fixed
+height, which clipped the text (amended in release 1.4.0). Labels are 14sp in the regular weight.
 Text roles are black in the light theme and white in the dark one; only secondary text is a neutral gray. The
 `FilterChip` is a pill without an outline. `ActionChip` and the filter row collapse to icons when the sort chip
 needs the room (`CollapsingChips`), the sort chip keeping its words.
@@ -1042,3 +1043,39 @@ new kind of fact, the privacy page.
 
 **Review when:** AppMetrica stops being reachable or changes its terms for the store's audience, a need appears for
 data that must stay on the owner's server, or Sentry becomes usable in Russia and is wanted for grouping and alerts.
+
+## ADR-0030
+
+### The finance journal is a view of the phone's copy, in `:feature:finance`
+
+**Accepted** · 2026-10-23
+
+**Context.** The foreman enters payments per object and wants one list over all objects ("18 Oct, object X, N rub")
+with income and expense totals, without opening each object. The phone's local database already holds every
+object's payments (the app is offline-first), and the payment form already exists in `:feature:finance`.
+
+**Decision.** The journal is built from the phone's copy by `PaymentJournalRepository` (a read model like
+`ExpensesRepository`), filtered and totalled by pure functions in `:core:domain` (`JournalFilter`, `totals`). There
+is no new server endpoint, DTO or migration, so older clients and the 1.3.2 server are untouched. Editing and
+deleting go through the existing `SavePaymentUseCase` and `DeletePaymentUseCase`, so they are queued and synced as
+before. The screen lives in `:feature:finance` as a second entry (`FinanceJournalNavKey`, `FinanceJournalScreen`)
+because the payment form is `internal` there and a feature may not depend on another; `PaymentEditorHandler` now
+talks to a narrow `PaymentFormHost` instead of the object screen's state holder, and the journal passes no object
+id, so it can change and delete payments but not add them. "Cash" is the method `CASH`; every other method is
+non-cash. "Income" is a payment from the client, "expense" a payment to the crew; receipts are not in the journal
+(they are on the expenses screen).
+
+**Alternatives rejected.**
+- *A server endpoint listing payments of all objects.* Needs the network, a contract change and a deploy, for data
+  the phone already has.
+- *A new feature module with a copy of the form.* Two forms to keep in step, or a form moved to
+  `:core:designsystem` with its state, which is a larger change than the feature needs.
+- *Reusing `FinanceState` for the journal.* Mixes one object's books with a cross-object list and makes every
+  `FinanceState` field optional for one of its two screens.
+
+**Consequences.** `:feature:finance` exposes two NavKeys and two entry composables. The journal shows only objects
+the phone has (a payment of an unknown object is skipped). The period filter is a calendar month or all time, not
+an arbitrary range.
+
+**Review when:** payments need adding from the journal, an arbitrary date range is asked for, or the list grows
+so long that filtering all of it on each change is slow.

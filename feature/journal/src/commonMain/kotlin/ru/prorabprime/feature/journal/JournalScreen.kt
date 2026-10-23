@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
@@ -195,9 +196,12 @@ private fun NoteRow(note: NoteUi, onEvent: (JournalEvent) -> Unit) {
 
 @Composable
 private fun Composer(state: JournalState, onEvent: (JournalEvent) -> Unit) {
+    // The bar is lifted by the keyboard; the navigation bar is padded inside it, and drops out once the keyboard
+    // has taken that room, since imePadding has already consumed it.
     Surface(tonalElevation = 3.dp, modifier = Modifier.imePadding()) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.m, vertical = Spacing.s),
+            modifier = Modifier.navigationBarsPadding().fillMaxWidth()
+                .padding(horizontal = Spacing.m, vertical = Spacing.s),
             horizontalArrangement = Arrangement.spacedBy(Spacing.s),
             verticalAlignment = Alignment.Bottom,
         ) {

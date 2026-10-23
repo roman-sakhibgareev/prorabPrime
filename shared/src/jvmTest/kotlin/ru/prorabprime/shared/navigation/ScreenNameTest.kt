@@ -4,6 +4,7 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import ru.prorabprime.domain.model.AnalyticsEvent
 import ru.prorabprime.domain.model.AppScreen
+import ru.prorabprime.feature.finance.FinanceJournalNavKey
 import ru.prorabprime.feature.objects.details.ObjectDetailsNavKey
 import ru.prorabprime.feature.objects.list.ObjectsListNavKey
 import ru.prorabprime.feature.settings.SettingsNavKey
@@ -15,6 +16,7 @@ class ScreenNameTest {
     fun `a screen is named by a fixed word`() {
         assertThat(ObjectsListNavKey.screen()).isEqualTo(AppScreen.ObjectsList)
         assertThat(SettingsNavKey.screen()).isEqualTo(AppScreen.Settings)
+        assertThat(FinanceJournalNavKey.screen()).isEqualTo(AppScreen.FinanceJournal)
     }
 
     @Test

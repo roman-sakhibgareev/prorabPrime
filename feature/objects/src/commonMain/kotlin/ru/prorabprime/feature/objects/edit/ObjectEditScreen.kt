@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -236,8 +236,7 @@ private fun FormField(
         minLines = if (singleLine) 1 else NOTES_MIN_LINES,
         keyboardOptions = keyboardOptions,
         shape = MaterialTheme.shapes.large,
-        // A line shorter than Material's 56dp; the label still fits in it.
-        modifier = Modifier.fillMaxWidth().then(if (singleLine) Modifier.height(Sizes.field) else Modifier),
+        modifier = Modifier.fillMaxWidth().heightIn(min = Sizes.field),
     )
 }
 
