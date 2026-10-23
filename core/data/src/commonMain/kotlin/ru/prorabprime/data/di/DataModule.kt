@@ -100,14 +100,15 @@ import ru.prorabprime.domain.usecase.SetCoverPhotoUseCase
 import ru.prorabprime.domain.usecase.SetPhotoNoteUseCase
 import ru.prorabprime.domain.usecase.SetReceiptPaidUseCase
 import ru.prorabprime.domain.usecase.SetReceiptUseCase
+import ru.prorabprime.domain.usecase.ShareImagesUseCase
 import ru.prorabprime.domain.usecase.SyncNowUseCase
 import ru.prorabprime.domain.usecase.UpdateObjectUseCase
 import ru.prorabprime.domain.usecase.UploadPhotoUseCase
 
 /**
  * Everything platform-neutral. A platform module supplies the rest: the `HttpClientEngine`,
- * the `SettingsRepository`, the `ImageCompressor` and the `AnalyticsTracker` (`:app` on Android, a no-op in the
- * browser).
+ * the `SettingsRepository`, the `ImageCompressor`, the `ImageSharer` and the `AnalyticsTracker` (`:app` on Android,
+ * a no-op in the browser).
  */
 val dataModule: Module = module {
     single {
@@ -151,6 +152,7 @@ val dataModule: Module = module {
     factory { ChangeObjectStatusUseCase(get(), get()) }
     factory { DeleteObjectUseCase(get(), get()) }
     factory { UploadPhotoUseCase(get(), get(), get()) }
+    factory { ShareImagesUseCase(get()) }
     factory { DeletePhotoUseCase(get()) }
     factory { SetCoverPhotoUseCase(get()) }
     factory { RotatePhotoUseCase(get()) }

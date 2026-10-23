@@ -91,6 +91,13 @@ Rules:
   defaults) and `MainActivity`; the AppMetrica SDK and its `AnalyticsTracker` implementation live here and nowhere
   else (ADR-0029). Neither holds screens, ViewModels, use cases or
   feature-specific DI modules.
+- **Sharing pictures** is the port `ImageSharer` (`:core:domain`), reached through `ShareImagesUseCase`, which drops
+  blank and repeated paths and refuses more than `MAX_SHARED_IMAGES` (10) with `ShareResult.TooMany`. `:app` binds it
+  to the Android share sheet: it copies each picture from Coil's disk cache (fetching through the same loader if it
+  was never seen; one still on the phone is copied from where it waits) into `cacheDir/shared-images`, exposes the
+  copies through a `FileProvider` that serves that folder only, and starts `ACTION_SEND` / `ACTION_SEND_MULTIPLE` in a
+  chooser with a read grant. No storage permission is needed, and no file is handed out by path. The browser binds
+  `ImageSharer.Unsupported`. A caller passes the `Photo.path` of each picture, not its thumbnail.
 - `:core:data` owns the repository implementations, the Ktor client and its plugins,
   the DTO↔domain mappers, the error mapper and the settings store.
 - `:core:designsystem` (theme, tokens, shared components) and `:core:ui`

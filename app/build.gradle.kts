@@ -156,10 +156,16 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.koin.bom))
     implementation(libs.koin.android)
+    // FileProvider, for the pictures handed to the share sheet.
+    implementation(libs.androidx.core.ktx)
     // Coil's singleton loader is built here, over the app's HttpClient (ADR-0003, ADR-0008).
     implementation(platform(libs.coil.bom))
     implementation(libs.coil)
     implementation(libs.coil.network.ktor3)
     // Crash reports and analytics; only :app knows the SDK (ADR-0029).
     implementation(libs.appmetrica)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.truth)
+    testImplementation(libs.kotlinx.coroutines.test)
 }

@@ -50,7 +50,10 @@ class ProrabApplication :
             // Debug builds only: the logger reflects on every definition it prints.
             if (BuildConfig.DEBUG) androidLogger()
             androidContext(this@ProrabApplication)
-            modules(appModules + androidDataModule(defaults) + analyticsModule(analytics))
+            modules(
+                appModules + androidDataModule(defaults) + analyticsModule(analytics) +
+                    imageSharerModule(this@ProrabApplication, SingletonImageLoader.get(this@ProrabApplication)),
+            )
         }
         analytics?.let(::followAnalyticsConsent)
         keepReminders()

@@ -8,6 +8,7 @@ import ru.prorabprime.data.image.WebImageCompressor
 import ru.prorabprime.data.settings.LocalStorageSettingsRepository
 import ru.prorabprime.domain.AnalyticsTracker
 import ru.prorabprime.domain.ImageCompressor
+import ru.prorabprime.domain.ImageSharer
 import ru.prorabprime.domain.model.ServerSettings
 import ru.prorabprime.domain.repository.SettingsRepository
 
@@ -20,4 +21,6 @@ fun webDataModule(defaults: ServerSettings): Module = module {
     // The browser reports nothing.
     single<AnalyticsTracker> { AnalyticsTracker.None }
     single<ImageCompressor> { WebImageCompressor() }
+    // The browser can share files only on some devices; until that is wired in, the web offers no sharing.
+    single<ImageSharer> { ImageSharer.Unsupported }
 }

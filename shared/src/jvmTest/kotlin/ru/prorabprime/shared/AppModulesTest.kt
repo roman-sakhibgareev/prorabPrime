@@ -11,9 +11,11 @@ import org.koin.dsl.module
 import ru.prorabprime.data.di.memoryStorageModule
 import ru.prorabprime.domain.AnalyticsTracker
 import ru.prorabprime.domain.ImageCompressor
+import ru.prorabprime.domain.ImageSharer
 import ru.prorabprime.domain.repository.ExpensesRepository
 import ru.prorabprime.domain.repository.ObjectsRepository
 import ru.prorabprime.domain.repository.SettingsRepository
+import ru.prorabprime.domain.usecase.ShareImagesUseCase
 import ru.prorabprime.domain.usecase.UploadPhotoUseCase
 import ru.prorabprime.testing.FakeImageCompressor
 import ru.prorabprime.testing.FakeSettingsRepository
@@ -30,6 +32,7 @@ class AppModulesTest {
         single<SettingsRepository> { FakeSettingsRepository() }
         single<ImageCompressor> { FakeImageCompressor() }
         single<AnalyticsTracker> { AnalyticsTracker.None }
+        single<ImageSharer> { ImageSharer.Unsupported }
     }
 
     @Test
@@ -39,6 +42,7 @@ class AppModulesTest {
         assertThat(koin.get<HttpClient>()).isNotNull()
         assertThat(koin.get<ObjectsRepository>()).isNotNull()
         assertThat(koin.get<UploadPhotoUseCase>()).isNotNull()
+        assertThat(koin.get<ShareImagesUseCase>()).isNotNull()
         assertThat(koin.get<SnackbarNotifier>()).isNotNull()
         assertThat(koin.get<ExpensesRepository>()).isNotNull()
     }
