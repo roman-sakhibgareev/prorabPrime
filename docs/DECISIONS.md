@@ -988,7 +988,8 @@ tints from the theme (`onPrimaryContainer`, `onSurface`), and labels were semi-b
 heading.
 
 **Decision.** `Sizes.control` is the height of a button, an `ActionChip`, a `FilterChip` and the search line;
-`Sizes.field` is the height of a form field whose name sits inside it. Labels are 14sp in the regular weight.
+`Sizes.field` is the minimum height (56dp) of a form field whose name sits inside it; it was 52dp as a fixed
+height, which clipped the text (amended in release 1.4.0). Labels are 14sp in the regular weight.
 Text roles are black in the light theme and white in the dark one; only secondary text is a neutral gray. The
 `FilterChip` is a pill without an outline. `ActionChip` and the filter row collapse to icons when the sort chip
 needs the room (`CollapsingChips`), the sort chip keeping its words.
