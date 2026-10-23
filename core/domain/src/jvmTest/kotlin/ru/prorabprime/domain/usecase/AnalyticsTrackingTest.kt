@@ -13,6 +13,7 @@ import ru.prorabprime.domain.model.ObjectDraft
 import ru.prorabprime.domain.model.ObjectId
 import ru.prorabprime.domain.model.ObjectStatus
 import ru.prorabprime.domain.model.PaymentDraft
+import ru.prorabprime.domain.model.PhotoId
 import ru.prorabprime.domain.model.TaskDraft
 import ru.prorabprime.testing.FakeAnalyticsTracker
 import ru.prorabprime.testing.FakeFinanceRepository
@@ -86,6 +87,21 @@ class AnalyticsTrackingTest {
         assertThat(tracker.events).containsExactly(
             AnalyticsEvent.PhotoAdded(AttachmentKind.PHOTO),
             AnalyticsEvent.PhotoAdded(AttachmentKind.RECEIPT),
+        ).inOrder()
+    }
+
+    @Test
+    fun `marking a receipt paid or unpaid is told, a refused mark is not`() = runTest {
+        val setPaid = SetReceiptPaidUseCase(photos, tracker)
+
+        setPaid(PhotoId("p1"), true)
+        setPaid(PhotoId("p1"), false)
+        photos.error = AppError.NotFound
+        setPaid(PhotoId("p1"), true)
+
+        assertThat(tracker.events).containsExactly(
+            AnalyticsEvent.ReceiptPaidChanged(paid = true),
+            AnalyticsEvent.ReceiptPaidChanged(paid = false),
         ).inOrder()
     }
 

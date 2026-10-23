@@ -156,7 +156,7 @@ val dataModule: Module = module {
     factory { RotatePhotoUseCase(get()) }
     factory { SetPhotoNoteUseCase(get()) }
     factory { SetReceiptUseCase(get()) }
-    factory { SetReceiptPaidUseCase(get()) }
+    factory { SetReceiptPaidUseCase(get(), get()) }
     factory { SaveContactUseCase(get()) }
     factory { DeleteContactUseCase(get()) }
     factory { GeocodeObjectUseCase(get()) }

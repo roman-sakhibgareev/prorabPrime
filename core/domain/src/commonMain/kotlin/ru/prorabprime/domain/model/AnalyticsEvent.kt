@@ -26,6 +26,10 @@ sealed class AnalyticsEvent(
         val kind: AttachmentKind,
     ) : AnalyticsEvent("photo_added", mapOf("kind" to kind.name.lowercase()))
 
+    data class ReceiptPaidChanged(
+        val paid: Boolean,
+    ) : AnalyticsEvent("receipt_paid_changed", mapOf("paid" to if (paid) "yes" else "no"))
+
     data object PaymentAdded : AnalyticsEvent("payment_added")
 
     data object ExtraWorkAdded : AnalyticsEvent("extra_work_added")
