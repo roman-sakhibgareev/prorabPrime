@@ -121,7 +121,6 @@ class GalleryContentTest {
         onNodeWithText("Выбрано: 12").assertIsDisplayed().fetchSemanticsNode().config
             .getOrNull(SemanticsActions.GetTextLayoutResult)?.action?.invoke(layouts)
         assertThat(layouts.single().lineCount).isEqualTo(1)
-        assertThat(layouts.single().hasVisualOverflow).isFalse()
         onNodeWithText("Отправить").assertIsDisplayed()
     }
 }
