@@ -8,14 +8,17 @@ import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import ru.prorabprime.domain.model.ObjectId
 import ru.prorabprime.domain.repository.FinanceRepository
+import ru.prorabprime.domain.repository.PaymentJournalRepository
 import ru.prorabprime.domain.usecase.DeleteExtraWorkUseCase
 import ru.prorabprime.domain.usecase.DeletePaymentUseCase
 import ru.prorabprime.domain.usecase.ObserveFinanceUseCase
 import ru.prorabprime.domain.usecase.ObservePaymentHistoryUseCase
+import ru.prorabprime.domain.usecase.ObservePaymentJournalUseCase
 import ru.prorabprime.domain.usecase.SaveExtraWorkUseCase
 import ru.prorabprime.domain.usecase.SaveFinanceTermsUseCase
 import ru.prorabprime.domain.usecase.SavePaymentUseCase
 import ru.prorabprime.testing.FakeFinanceRepository
+import ru.prorabprime.testing.FakePaymentJournalRepository
 import ru.prorabprime.testing.FakeSnackbarNotifier
 import ru.prorabprime.testing.MainDispatcherRule
 import ru.prorabprime.ui.SnackbarNotifier
@@ -28,7 +31,9 @@ class FinanceModuleTest {
 
     private val fakes = module {
         single<FinanceRepository> { FakeFinanceRepository() }
+        single<PaymentJournalRepository> { FakePaymentJournalRepository() }
         factory { ObserveFinanceUseCase(get()) }
+        factory { ObservePaymentJournalUseCase(get()) }
         factory { ObservePaymentHistoryUseCase(get()) }
         factory { SaveFinanceTermsUseCase(get()) }
         factory { SavePaymentUseCase(get()) }
@@ -43,5 +48,12 @@ class FinanceModuleTest {
         val koin = koinApplication { modules(fakes, financeModule) }.koin
 
         assertThat(koin.get<FinanceViewModel> { parametersOf(ObjectId("o1")) }).isNotNull()
+    }
+
+    @Test
+    fun `resolves the journal ViewModel`() {
+        val koin = koinApplication { modules(fakes, financeModule) }.koin
+
+        assertThat(koin.get<FinanceJournalViewModel>()).isNotNull()
     }
 }

@@ -26,6 +26,7 @@ import ru.prorabprime.data.repository.FinanceRepositoryImpl
 import ru.prorabprime.data.repository.MaterialsRepositoryImpl
 import ru.prorabprime.data.repository.NotesRepositoryImpl
 import ru.prorabprime.data.repository.ObjectsRepositoryImpl
+import ru.prorabprime.data.repository.PaymentJournalRepositoryImpl
 import ru.prorabprime.data.repository.PhotosRepositoryImpl
 import ru.prorabprime.data.repository.PlacesRepositoryImpl
 import ru.prorabprime.data.repository.SyncRepositoryImpl
@@ -43,6 +44,7 @@ import ru.prorabprime.domain.repository.FinanceRepository
 import ru.prorabprime.domain.repository.MaterialsRepository
 import ru.prorabprime.domain.repository.NotesRepository
 import ru.prorabprime.domain.repository.ObjectsRepository
+import ru.prorabprime.domain.repository.PaymentJournalRepository
 import ru.prorabprime.domain.repository.PhotosRepository
 import ru.prorabprime.domain.repository.PlacesRepository
 import ru.prorabprime.domain.repository.SettingsRepository
@@ -79,6 +81,7 @@ import ru.prorabprime.domain.usecase.ObserveObjectUseCase
 import ru.prorabprime.domain.usecase.ObserveObjectsUseCase
 import ru.prorabprime.domain.usecase.ObserveOverdueTasksUseCase
 import ru.prorabprime.domain.usecase.ObservePaymentHistoryUseCase
+import ru.prorabprime.domain.usecase.ObservePaymentJournalUseCase
 import ru.prorabprime.domain.usecase.ObserveServerSettingsUseCase
 import ru.prorabprime.domain.usecase.ObserveSyncStatusUseCase
 import ru.prorabprime.domain.usecase.ObserveTasksRangeUseCase
@@ -140,6 +143,7 @@ val dataModule: Module = module {
     single<NotesRepository> { NotesRepositoryImpl(get(), get(), Clock.System) }
     single<TasksRepository> { TasksRepositoryImpl(get(), get()) }
     single<ExpensesRepository> { ExpensesRepositoryImpl(get()) }
+    single<PaymentJournalRepository> { PaymentJournalRepositoryImpl(get()) }
     single<TrashRepository> { TrashRepositoryImpl(get(), get()) }
     single<ConnectionChecker> { KtorConnectionChecker(get()) }
     single<AccountRepository> { AccountRepositoryImpl(get()) }
@@ -169,6 +173,7 @@ val dataModule: Module = module {
     factory { RetryFailedChangesUseCase(get()) }
     factory { DiscardFailedChangeUseCase(get()) }
     factory { ObserveFinanceUseCase(get()) }
+    factory { ObservePaymentJournalUseCase(get()) }
     factory { ObservePaymentHistoryUseCase(get()) }
     factory { SaveFinanceTermsUseCase(get()) }
     factory { SavePaymentUseCase(get(), get()) }

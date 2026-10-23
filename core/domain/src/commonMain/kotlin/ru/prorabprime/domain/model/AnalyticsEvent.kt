@@ -50,6 +50,7 @@ enum class AppScreen {
     Gallery,
     Settings,
     Finance,
+    FinanceJournal,
     Materials,
     Journal,
     Map,

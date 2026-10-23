@@ -23,9 +23,10 @@ import ru.prorabprime.ui.launchCatching
 
 /** The payment form: opening, typing, saving, and asking before a delete. */
 internal class PaymentEditorHandler(
-    private val objectId: ObjectId,
+    /** Null where payments can only be changed, not added: the journal of every object. */
+    private val objectId: ObjectId?,
     private val scope: CoroutineScope,
-    private val stateHolder: IFinanceStateHolder,
+    private val stateHolder: PaymentFormHost,
     private val errorHandler: IFinanceErrorHandler,
     private val savePayment: SavePaymentUseCase,
     private val deletePayment: DeletePaymentUseCase,
@@ -33,7 +34,9 @@ internal class PaymentEditorHandler(
 ) {
     fun onEvent(event: PaymentEvent) {
         when (event) {
-            is PaymentEvent.Add -> stateHolder.openEditor(FinanceEditorUi.Payment(side = event.side, day = today()))
+            is PaymentEvent.Add -> if (objectId != null) {
+                stateHolder.openEditor(FinanceEditorUi.Payment(side = event.side, day = today()))
+            }
 
             is PaymentEvent.Edit -> open(event.paymentId)
 
@@ -77,9 +80,7 @@ internal class PaymentEditorHandler(
     private fun FinanceEditorUi.Payment.without(field: ObjectField) = (errors - field).toImmutableMap()
 
     private fun open(paymentId: String) {
-        val payment = stateHolder.state.value.finance?.let { finance ->
-            (finance.clientPayments + finance.crewPayments).find { it.id == paymentId }
-        }?.payment ?: return
+        val payment = stateHolder.payment(paymentId) ?: return
         stateHolder.openEditor(
             FinanceEditorUi.Payment(
                 paymentId = paymentId,
@@ -94,8 +95,8 @@ internal class PaymentEditorHandler(
     }
 
     private fun save() {
-        val editor = stateHolder.state.value.editor as? FinanceEditorUi.Payment ?: return
-        if (editor.isSaving) return
+        val editor = stateHolder.editor as? FinanceEditorUi.Payment ?: return
+        if (editor.isSaving || (editor.paymentId == null && objectId == null)) return
         val draft = PaymentDraft(
             side = editor.side,
             amountKopecks = Money.parseRubles(editor.amountText),
@@ -106,10 +107,10 @@ internal class PaymentEditorHandler(
         )
         edit { it.copy(isSaving = true) }
         scope.launchCatching(TAG, onFailure = { onSaveFailure(it.asAppError()) }) {
-            val result = if (editor.paymentId == null) {
-                savePayment.create(objectId, draft)
-            } else {
+            val result = if (editor.paymentId != null) {
                 savePayment.update(PaymentId(editor.paymentId), draft)
+            } else {
+                savePayment.create(checkNotNull(objectId), draft)
             }
             result
                 .onSuccess {
