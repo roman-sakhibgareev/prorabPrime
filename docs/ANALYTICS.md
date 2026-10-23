@@ -11,7 +11,7 @@ so this table and that class are the same list: change one, change the other.
 
 | Event | When | Props |
 | --- | --- | --- |
-| `screen_view` | a screen comes to the front, going forward or back | `screen`: `ObjectsList`, `ObjectDetails`, `ObjectEdit`, `PhotoViewer`, `Gallery`, `Settings`, `Finance`, `Materials`, `Journal`, `Map`, `PlacePicker`, `Tasks`, `Expenses`, `Trash`, `Other` |
+| `screen_view` | a screen comes to the front, going forward or back | `screen`: `ObjectsList`, `ObjectDetails`, `ObjectEdit`, `PhotoViewer`, `Gallery`, `Settings`, `Finance`, `FinanceJournal`, `Materials`, `Journal`, `Map`, `PlacePicker`, `Tasks`, `Expenses`, `Trash`, `Other` |
 | `object_created` | an object was made (on the phone, whether or not the server has it yet) | `status`: `planned`, `in_progress`, `done`, `paused` |
 | `object_status_changed` | the status of an object was changed from its card | `to`: the same four |
 | `object_deleted` | an object was moved to the trash | none |

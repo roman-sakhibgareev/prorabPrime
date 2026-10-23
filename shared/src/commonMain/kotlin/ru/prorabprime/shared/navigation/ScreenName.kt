@@ -5,6 +5,7 @@ import ru.prorabprime.domain.AnalyticsTracker
 import ru.prorabprime.domain.model.AnalyticsEvent
 import ru.prorabprime.domain.model.AppScreen
 import ru.prorabprime.feature.expenses.ExpensesNavKey
+import ru.prorabprime.feature.finance.FinanceJournalNavKey
 import ru.prorabprime.feature.finance.FinanceNavKey
 import ru.prorabprime.feature.journal.JournalNavKey
 import ru.prorabprime.feature.map.MapNavKey
@@ -38,6 +39,7 @@ internal val SCREENS = mapOf(
     GalleryNavKey::class to AppScreen.Gallery,
     SettingsNavKey::class to AppScreen.Settings,
     FinanceNavKey::class to AppScreen.Finance,
+    FinanceJournalNavKey::class to AppScreen.FinanceJournal,
     MaterialsNavKey::class to AppScreen.Materials,
     JournalNavKey::class to AppScreen.Journal,
     MapNavKey::class to AppScreen.Map,

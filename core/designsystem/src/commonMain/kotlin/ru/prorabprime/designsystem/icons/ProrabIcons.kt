@@ -73,6 +73,16 @@ object ProrabIcons {
         )
     }
 
+    /** Banknotes: payments. */
+    val Payments: ImageVector by lazy {
+        icon(
+            "Payments",
+            "M19,14V6c0,-1.1 -0.9,-2 -2,-2H3C1.9,4 1,4.9 1,6v8c0,1.1 0.9,2 2,2h14C18.1,16 19,15.1 19," +
+                "14zM10,15c-1.66,0 -3,-1.34 -3,-3s1.34,-3 3,-3 3,1.34 3,3 -1.34,3 -3,3z" +
+                "M23,9v11c0,1.1 -0.9,2 -2,2H4v-2h17V9H23z",
+        )
+    }
+
     val CheckCircle: ImageVector by lazy {
         icon(
             "CheckCircle",
