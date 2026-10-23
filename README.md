@@ -20,6 +20,14 @@ The user interface is in Russian, because the client is.
 
 ## What it does
 
+<p>
+  <img src="docs/screenshots/objects.webp" width="170" alt="Objects list">
+  <img src="docs/screenshots/finance.webp" width="170" alt="Finance of an object">
+  <img src="docs/screenshots/payments-journal.webp" width="170" alt="Combined payments journal">
+  <img src="docs/screenshots/tasks.webp" width="170" alt="Day plan">
+  <img src="docs/screenshots/settings.webp" width="170" alt="Settings with the analytics switch">
+</p>
+
 - **Objects.** A grid of sites with search, status filters and sorting. Each object has a card with its
   client and other contacts (tap to call), a link to its chat, and a status.
 - **Photos and receipts.** A large camera button shoots first and asks which object the picture belongs to.
