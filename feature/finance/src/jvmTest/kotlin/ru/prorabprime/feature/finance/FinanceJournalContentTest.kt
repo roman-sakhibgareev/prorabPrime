@@ -1,8 +1,12 @@
 package ru.prorabprime.feature.finance
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -100,6 +104,18 @@ class FinanceJournalContentTest {
             FinanceJournalEvent.PeriodChanged(JournalPeriod.Month(2025, 12)),
             FinanceJournalEvent.PeriodChanged(JournalPeriod.Month(2026, 2)),
         ).inOrder()
+    }
+
+    @Test
+    fun `switching the period does not move the rows below the chips`() = runComposeUiTest {
+        var state by mutableStateOf(content)
+        setContent { ProrabTheme { FinanceJournalContent(state, {}, {}, today = today) } }
+        val allTime = onNodeWithText("Все объекты").getUnclippedBoundsInRoot().top
+
+        state = content.copy(filter = JournalFilter(period = JournalPeriod.Month(2026, 10)))
+        waitForIdle()
+
+        assertThat(onNodeWithText("Все объекты").getUnclippedBoundsInRoot().top).isEqualTo(allTime)
     }
 
     @Test
