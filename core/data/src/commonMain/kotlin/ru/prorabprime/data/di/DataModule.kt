@@ -105,7 +105,8 @@ import ru.prorabprime.domain.usecase.UploadPhotoUseCase
 
 /**
  * Everything platform-neutral. A platform module supplies the rest: the `HttpClientEngine`,
- * the `SettingsRepository`, the `ImageCompressor` and the `AnalyticsTracker` (`androidDataModule` on Android).
+ * the `SettingsRepository`, the `ImageCompressor` and the `AnalyticsTracker` (`:app` on Android, a no-op in the
+ * browser).
  */
 val dataModule: Module = module {
     single {

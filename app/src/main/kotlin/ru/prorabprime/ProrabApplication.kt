@@ -42,12 +42,14 @@ class ProrabApplication :
 
     override fun onCreate() {
         super.onCreate()
+        // First, so a crash in the start-up below is reported too.
+        val analytics = startAppMetrica(this, BuildConfig.APPMETRICA_API_KEY)
         val defaults = ServerSettings(BuildConfig.DEFAULT_SERVER_URL, BuildConfig.DEFAULT_API_TOKEN)
         startKoin {
             // Debug builds only: the logger reflects on every definition it prints.
             if (BuildConfig.DEBUG) androidLogger()
             androidContext(this@ProrabApplication)
-            modules(appModules + androidDataModule(defaults))
+            modules(appModules + androidDataModule(defaults) + analyticsModule(analytics))
         }
         keepReminders()
         keepInSync()

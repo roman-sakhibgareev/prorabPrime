@@ -18,7 +18,6 @@ import ru.prorabprime.data.local.FilePersistence
 import ru.prorabprime.data.local.Persistence
 import ru.prorabprime.data.reminders.AndroidReminderScheduler
 import ru.prorabprime.data.settings.DataStoreSettingsRepository
-import ru.prorabprime.domain.AnalyticsTracker
 import ru.prorabprime.domain.ImageCompressor
 import ru.prorabprime.domain.model.LocalDay
 import ru.prorabprime.domain.model.ServerSettings
@@ -37,7 +36,6 @@ fun androidDataModule(defaults: ServerSettings): Module = module {
     single<SettingsRepository> { DataStoreSettingsRepository(get(), defaults) }
     single<Persistence> { FilePersistence(androidContext().filesDir.resolve("offline")) }
     single<BlobStore> { FileBlobStore(androidContext().filesDir.resolve("offline-blobs")) }
-    single<AnalyticsTracker> { AnalyticsTracker.None }
     single<ImageCompressor> { AndroidImageCompressor(androidContext(), Dispatchers.IO) }
     single<ReminderScheduler> { AndroidReminderScheduler(androidContext()) }
     factory { KeepRemindersUseCase(get(), get()) { LocalDay.ofInstant(Clock.System.now()) } }
