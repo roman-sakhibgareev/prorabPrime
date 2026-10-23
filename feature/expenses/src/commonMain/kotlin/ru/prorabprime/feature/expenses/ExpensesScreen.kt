@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -54,6 +55,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import ru.prorabprime.designsystem.components.EmptyMessage
 import ru.prorabprime.designsystem.components.ErrorMessage
 import ru.prorabprime.designsystem.components.LoadingBox
+import ru.prorabprime.designsystem.components.TextButton
 import ru.prorabprime.designsystem.components.TopAppBar
 import ru.prorabprime.designsystem.theme.Corners
 import ru.prorabprime.designsystem.theme.Spacing
@@ -78,11 +80,12 @@ import ru.prorabprime.feature.expenses.resources.expenses_no_amount
 import ru.prorabprime.feature.expenses.resources.expenses_paid
 import ru.prorabprime.feature.expenses.resources.expenses_receipt_unpaid
 import ru.prorabprime.feature.expenses.resources.expenses_rows_empty
+import ru.prorabprime.feature.expenses.resources.expenses_select
 import ru.prorabprime.feature.expenses.resources.expenses_select_close
 import ru.prorabprime.feature.expenses.resources.expenses_selected
 import ru.prorabprime.feature.expenses.resources.expenses_selection_mark_paid
 import ru.prorabprime.feature.expenses.resources.expenses_selection_mark_unpaid
-import ru.prorabprime.feature.expenses.resources.expenses_share
+import ru.prorabprime.feature.expenses.resources.expenses_share_label
 import ru.prorabprime.feature.expenses.resources.expenses_status_all
 import ru.prorabprime.feature.expenses.resources.expenses_status_paid
 import ru.prorabprime.feature.expenses.resources.expenses_status_unpaid
@@ -129,6 +132,13 @@ internal fun ExpensesContent(
                     navigationIcon = {
                         IconButton(onClick = onBack) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(Res.string.expenses_back))
+                        }
+                    },
+                    actions = {
+                        if (state.rows.any { it.isSelectable }) {
+                            TextButton(onClick = { onEvent(ExpensesEvent.SelectionStarted) }) {
+                                Text(stringResource(Res.string.expenses_select))
+                            }
                         }
                     },
                 )
@@ -187,8 +197,10 @@ private fun SelectionBar(state: ExpensesState, onEvent: (ExpensesEvent) -> Unit)
                 }
                 Icon(Icons.Default.Check, stringResource(label))
             }
-            IconButton(onClick = { onEvent(ExpensesEvent.ShareClicked) }, enabled = enabled && !state.isSharing) {
-                Icon(Icons.Default.Share, stringResource(Res.string.expenses_share))
+            TextButton(onClick = { onEvent(ExpensesEvent.ShareClicked) }, enabled = enabled && !state.isSharing) {
+                Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(SHARE_ICON))
+                Spacer(Modifier.width(Spacing.xs))
+                Text(stringResource(Res.string.expenses_share_label))
             }
         },
     )
@@ -456,6 +468,7 @@ private val BAR_HEIGHT = 6.dp
 /** The width of a check, so the text of a row that has none stays in line with the ones that do. */
 private val SELECT_PLACEHOLDER = 48.dp
 private const val DIMMED = 0.4f
+private val SHARE_ICON = 18.dp
 
 /** Room under the last row, so the plus button never covers it. */
 private val FAB_CLEARANCE = 88.dp

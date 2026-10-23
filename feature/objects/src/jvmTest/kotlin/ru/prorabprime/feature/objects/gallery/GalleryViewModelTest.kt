@@ -4,13 +4,17 @@ import com.google.common.truth.Truth.assertThat
 import kotlinx.collections.immutable.persistentListOf
 import org.junit.Rule
 import org.junit.Test
+import ru.prorabprime.domain.ShareResult
 import ru.prorabprime.domain.model.AppError
 import ru.prorabprime.domain.model.AttachmentKind
 import ru.prorabprime.domain.model.ObjectId
 import ru.prorabprime.domain.model.PhotoId
 import ru.prorabprime.domain.model.ReceiptInfo
+import ru.prorabprime.domain.model.ServerFilePath
 import ru.prorabprime.domain.usecase.DeletePhotoUseCase
 import ru.prorabprime.domain.usecase.ObserveObjectUseCase
+import ru.prorabprime.domain.usecase.ShareImagesUseCase
+import ru.prorabprime.testing.FakeImageSharer
 import ru.prorabprime.testing.FakeObjectsRepository
 import ru.prorabprime.testing.FakePhotosRepository
 import ru.prorabprime.testing.FakeSnackbarNotifier
@@ -41,10 +45,13 @@ class GalleryViewModelTest {
         )
     }
 
+    private val sharer = FakeImageSharer()
+
     private fun viewModel(receipts: Boolean = false) = GalleryViewModel(
         GalleryArgs("o1", receipts),
         ObserveObjectUseCase(objects),
         DeletePhotoUseCase(photos),
+        ShareImagesUseCase(sharer),
         notifier,
     )
 
@@ -132,6 +139,65 @@ class GalleryViewModelTest {
         assertThat(notifier.shown).containsExactly(AppError.Network.toUiText())
         assertThat(viewModel.state.value.selecting).isTrue()
         assertThat(viewModel.state.value.selected).containsExactly("p1", "p3")
+    }
+
+    @Test
+    fun `sharing sends the full-size pictures in the order of the grid, and leaves selecting`() {
+        val viewModel = viewModel()
+        viewModel.onEvent(GalleryEvent.PhotoToggled("p3"))
+        viewModel.onEvent(GalleryEvent.PhotoToggled("p1"))
+
+        viewModel.onEvent(GalleryEvent.ShareClicked)
+
+        val sent = sharer.shared.single()
+        assertThat(sent).hasSize(2)
+        assertThat(sent).containsExactly(
+            viewModel.state.value.photos[0].path,
+            viewModel.state.value.photos[2].path,
+        ).inOrder()
+        assertThat(viewModel.state.value.selecting).isFalse()
+        assertThat(viewModel.state.value.isSharing).isFalse()
+        assertThat(notifier.errors).isEmpty()
+    }
+
+    @Test
+    fun `sharing with nothing picked does nothing`() {
+        val viewModel = viewModel()
+        viewModel.onEvent(GalleryEvent.SelectingToggled)
+
+        viewModel.onEvent(GalleryEvent.ShareClicked)
+
+        assertThat(sharer.shared).isEmpty()
+    }
+
+    @Test
+    fun `a share that cannot be made keeps the picking and says why`() {
+        val results = listOf(ShareResult.Failed, ShareResult.Unsupported, ShareResult.NothingToShare)
+        results.forEach { result ->
+            sharer.result = { result }
+            val viewModel = viewModel()
+            viewModel.onEvent(GalleryEvent.PhotoToggled("p1"))
+
+            viewModel.onEvent(GalleryEvent.ShareClicked)
+
+            assertThat(viewModel.state.value.selecting).isTrue()
+            assertThat(viewModel.state.value.selected).containsExactly("p1")
+            assertThat(viewModel.state.value.isSharing).isFalse()
+        }
+        assertThat(notifier.errors).hasSize(results.size)
+    }
+
+    @Test
+    fun `more pictures than one share carries is said at once`() {
+        val viewModel = viewModel()
+        viewModel.onEvent(GalleryEvent.SelectingToggled)
+        viewModel.onEvent(GalleryEvent.SelectAllToggled)
+        sharer.result = { ShareResult.TooMany(2) }
+
+        viewModel.onEvent(GalleryEvent.ShareClicked)
+
+        assertThat(notifier.errors).hasSize(1)
+        assertThat(viewModel.state.value.selected).hasSize(3)
     }
 
     @Test

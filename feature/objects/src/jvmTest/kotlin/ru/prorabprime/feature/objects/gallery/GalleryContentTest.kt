@@ -24,6 +24,7 @@ class GalleryContentTest {
     private fun tile(id: String, amount: String? = null) = GalleryPhotoUi(
         id,
         ServerFilePath("/files/$id.jpg"),
+        ServerFilePath("/files/$id-full.jpg"),
         isCover = false,
         isPending = false,
         quarterTurns = 0,
@@ -79,11 +80,13 @@ class GalleryContentTest {
 
         onNodeWithText("Выбрано: 2").assertIsDisplayed()
         onNodeWithText("Выбрать все").performClick()
+        onNodeWithText("Отправить").performClick()
         onNodeWithContentDescription("Удалить выбранные").performClick()
         onNodeWithContentDescription("Отменить выбор").performClick()
 
         assertThat(events).containsExactly(
             GalleryEvent.SelectAllToggled,
+            GalleryEvent.ShareClicked,
             GalleryEvent.DeleteClicked,
             GalleryEvent.SelectingToggled,
         ).inOrder()

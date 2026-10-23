@@ -22,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -76,6 +77,7 @@ import ru.prorabprime.feature.objects.resources.photoviewer_receipt_paid
 import ru.prorabprime.feature.objects.resources.photoviewer_receipt_title
 import ru.prorabprime.feature.objects.resources.photoviewer_receipt_unpaid
 import ru.prorabprime.feature.objects.resources.photoviewer_rotate
+import ru.prorabprime.feature.objects.resources.photoviewer_share
 
 @Composable
 fun PhotoViewerScreen(
@@ -95,6 +97,7 @@ fun PhotoViewerScreen(
         onSaveNote = viewModel::saveNote,
         onSaveReceipt = viewModel::saveReceipt,
         onSetPaid = viewModel::setPaid,
+        onShare = viewModel::share,
         modifier = modifier,
     )
 }
@@ -109,10 +112,11 @@ internal fun PhotoViewerContent(
     onSaveReceipt: (String, String, String) -> Unit,
     modifier: Modifier = Modifier,
     onSetPaid: (String, Boolean) -> Unit = { _, _ -> },
+    onShare: (String) -> Unit = {},
 ) {
     Box(modifier.fillMaxSize().background(Color.Black)) {
         when (val status = state.status) {
-            PhotoViewerStatus.Content -> Pages(state, onBack, onRotate, onSaveNote, onSaveReceipt, onSetPaid)
+            PhotoViewerStatus.Content -> Pages(state, onBack, onRotate, onSaveNote, onSaveReceipt, onSetPaid, onShare)
             PhotoViewerStatus.Loading -> LoadingBox()
             is PhotoViewerStatus.Error -> ErrorMessage(status.message, onRetry = onBack)
         }
@@ -128,6 +132,7 @@ private fun Pages(
     onSaveNote: (String, String) -> Unit,
     onSaveReceipt: (String, String, String) -> Unit,
     onSetPaid: (String, Boolean) -> Unit,
+    onShare: (String) -> Unit,
 ) {
     val pager = rememberPagerState(initialPage = state.initialPage) { state.photos.size }
     // A zoomed photo takes the drag for panning; the pager only swipes at normal size.
@@ -157,6 +162,9 @@ private fun Pages(
                 }
             },
             actions = {
+                IconButton(onClick = { current?.let { onShare(it.id) } }) {
+                    Icon(Icons.Default.Share, stringResource(Res.string.photoviewer_share), tint = Color.White)
+                }
                 IconButton(onClick = { current?.let { onRotate(it.id) } }) {
                     Icon(Icons.Default.Refresh, stringResource(Res.string.photoviewer_rotate), tint = Color.White)
                 }

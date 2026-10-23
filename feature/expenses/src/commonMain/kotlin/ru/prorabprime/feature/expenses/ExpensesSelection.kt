@@ -34,6 +34,7 @@ internal class ExpensesSelection(
     fun onEvent(event: ExpensesEvent) {
         when (event) {
             is ExpensesEvent.RowLongPressed -> if (state.value.selecting) toggle(event.id) else start(event.id)
+            ExpensesEvent.SelectionStarted -> begin()
             is ExpensesEvent.RowToggled -> toggle(event.id)
             ExpensesEvent.SelectionClosed -> close()
             ExpensesEvent.ShareClicked -> share()
@@ -47,6 +48,11 @@ internal class ExpensesSelection(
         if (!new.selecting) return new
         val visible = new.rows.filter { it.isSelectable }.map { it.id }.toSet()
         return new.copy(selected = new.selected.filter { it in visible }.toImmutableSet())
+    }
+
+    private fun begin() {
+        if (state.value.rows.none { it.isSelectable }) return
+        state.update { it.copy(selecting = true, selected = persistentSetOf()) }
     }
 
     private fun start(id: String) {

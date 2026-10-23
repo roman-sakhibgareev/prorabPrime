@@ -257,6 +257,21 @@ class ExpensesViewModelTest {
     }
 
     @Test
+    fun `the select button starts picking with nothing picked, and nothing to pick starts nothing`() {
+        val vm = viewModel()
+        repository.result.value = Result.success(Expenses(items))
+
+        vm.onEvent(ExpensesEvent.SelectionStarted)
+        assertThat(vm.state.value.selecting).isTrue()
+        assertThat(vm.state.value.selected).isEmpty()
+
+        vm.onEvent(ExpensesEvent.SelectionClosed)
+        repository.result.value = Result.success(Expenses(emptyList()))
+        vm.onEvent(ExpensesEvent.SelectionStarted)
+        assertThat(vm.state.value.selecting).isFalse()
+    }
+
+    @Test
     fun `a payment and a receipt without a picture cannot be picked`() {
         repository.result.value = Result.success(Expenses(items))
         val vm = viewModel()

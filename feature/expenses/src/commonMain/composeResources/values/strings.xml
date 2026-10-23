@@ -53,8 +53,9 @@
     <string name="expenses_error_invalid">Неверное значение</string>
     <string name="expenses_empty">Расходов пока нет. Нажмите «+», чтобы записать выплату бригаде или добавить чек.</string>
     <string name="expenses_selected">Выбрано: %1$d</string>
+    <string name="expenses_select">Выбрать</string>
+    <string name="expenses_share_label">Отправить</string>
     <string name="expenses_select_close">Отменить выбор</string>
-    <string name="expenses_share">Отправить выбранные чеки</string>
     <string name="expenses_selection_mark_paid">Отметить выбранные оплаченными</string>
     <string name="expenses_selection_mark_unpaid">Вернуть выбранные в неоплаченные</string>
     <string name="expenses_select_limit">За один раз можно отправить не больше чеков: %1$d</string>

@@ -7,11 +7,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -19,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -55,6 +58,7 @@ import ru.prorabprime.feature.objects.resources.gallery_empty
 import ru.prorabprime.feature.objects.resources.gallery_select
 import ru.prorabprime.feature.objects.resources.gallery_select_all
 import ru.prorabprime.feature.objects.resources.gallery_selected
+import ru.prorabprime.feature.objects.resources.gallery_share
 import ru.prorabprime.feature.objects.resources.gallery_title_photos
 import ru.prorabprime.feature.objects.resources.gallery_title_receipts
 import ru.prorabprime.feature.objects.resources.objectdetails_cover
@@ -148,6 +152,14 @@ private fun Actions(state: GalleryState, onEvent: (GalleryEvent) -> Unit) {
     if (state.selecting) {
         TextButton(onClick = { onEvent(GalleryEvent.SelectAllToggled) }) {
             Text(stringResource(Res.string.gallery_select_all))
+        }
+        TextButton(
+            onClick = { onEvent(GalleryEvent.ShareClicked) },
+            enabled = state.selected.isNotEmpty() && !state.isSharing,
+        ) {
+            Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(SHARE_ICON))
+            Spacer(Modifier.width(Spacing.xs))
+            Text(stringResource(Res.string.gallery_share))
         }
         IconButton(onClick = { onEvent(GalleryEvent.DeleteClicked) }, enabled = state.selected.isNotEmpty()) {
             Icon(Icons.Default.Delete, stringResource(Res.string.gallery_delete))
@@ -251,6 +263,7 @@ private fun Tile(
 private const val COLUMNS = 3
 private val GAP = 2.dp
 private val CHECK_SIZE = 24.dp
+private val SHARE_ICON = 18.dp
 private const val SELECTED_VEIL = 0.45f
 
 private fun titleOf(state: GalleryState) =
