@@ -22,7 +22,7 @@ import ru.prorabprime.ui.di.uiModule
 @Composable
 fun App() {
     ProrabTheme {
-        AppNavDisplay(notifier = koinInject())
+        AppNavDisplay(notifier = koinInject(), tracker = koinInject())
     }
 }
 
