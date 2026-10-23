@@ -6,6 +6,7 @@ import org.koin.core.module.Module
 import org.koin.dsl.module
 import ru.prorabprime.data.image.WebImageCompressor
 import ru.prorabprime.data.settings.LocalStorageSettingsRepository
+import ru.prorabprime.domain.AnalyticsTracker
 import ru.prorabprime.domain.ImageCompressor
 import ru.prorabprime.domain.model.ServerSettings
 import ru.prorabprime.domain.repository.SettingsRepository
@@ -16,5 +17,7 @@ fun webDataModule(defaults: ServerSettings): Module = module {
     includes(memoryStorageModule)
     single<HttpClientEngine> { Js.create() }
     single<SettingsRepository> { LocalStorageSettingsRepository(defaults) }
+    // The browser reports nothing.
+    single<AnalyticsTracker> { AnalyticsTracker.None }
     single<ImageCompressor> { WebImageCompressor() }
 }
