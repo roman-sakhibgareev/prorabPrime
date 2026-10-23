@@ -3,16 +3,20 @@ package ru.prorabprime.feature.expenses
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.v2.runComposeUiTest
 import com.google.common.truth.Truth.assertThat
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.persistentSetOf
 import org.junit.Test
 import ru.prorabprime.designsystem.theme.ProrabTheme
 import ru.prorabprime.domain.model.ExpenseKind
@@ -33,8 +37,11 @@ class ExpensesContentTest {
         byObject = persistentListOf(BarUi("o1", "Кухня", "400 000 ₽", 1f, "3", "o1")),
         byMonth = persistentListOf(BarUi("2026-10", "Октябрь 2026", "100 000 ₽", 0.5f)),
         rows = persistentListOf(
-            ExpenseRowUi("r1", "o1", "Кухня", "03.10.2026", true, "79 000 ₽", "Плитка", "p1", isUnpaid = true),
-            ExpenseRowUi("r2", "o1", "Кухня", "04.10.2026", true, null, null, "p2"),
+            ExpenseRowUi(
+                "r1", "o1", "Кухня", "03.10.2026", true, "79 000 ₽", "Плитка", "p1",
+                isUnpaid = true, isSelectable = true,
+            ),
+            ExpenseRowUi("r2", "o1", "Кухня", "04.10.2026", true, null, null, "p2", isSelectable = true),
             ExpenseRowUi("c1", "o1", "Кухня", "10.10.2026", false, "21 000 ₽", null, null),
         ),
         allRows = 3,
@@ -136,6 +143,54 @@ class ExpensesContentTest {
 
         assertThat(events).containsExactly(ExpensesEvent.ReceiptPaidChanged("p2", paid = false))
         onNodeWithContentDescription("Отметить чек оплаченным").assertDoesNotExist()
+    }
+
+    @Test
+    fun `a long press on a row asks to start picking`() = runComposeUiTest {
+        setContent { show(state) }
+
+        onNodeWithText("Плитка").performTouchInput { longClick() }
+
+        assertThat(events).containsExactly(ExpensesEvent.RowLongPressed("r1"))
+        assertThat(receipts).isEmpty()
+    }
+
+    private val picking = state.copy(selecting = true, selected = persistentSetOf("r1"))
+
+    @Test
+    fun `while picking a tap toggles the row instead of opening it, and the bar shows the count`() = runComposeUiTest {
+        setContent { show(picking) }
+
+        onNodeWithText("Выбрано: 1").assertIsDisplayed()
+        onNodeWithText("Плитка").performClick()
+
+        assertThat(events).containsExactly(ExpensesEvent.RowToggled("r1"))
+        assertThat(receipts).isEmpty()
+        onNodeWithContentDescription("Добавить расход").assertDoesNotExist()
+        onNodeWithContentDescription("Отметить чек оплаченным").assertDoesNotExist()
+    }
+
+    @Test
+    fun `the bar closes picking, shares and marks the picked receipts`() = runComposeUiTest {
+        setContent { show(picking) }
+
+        onNodeWithContentDescription("Отправить выбранные чеки").performClick()
+        onNodeWithContentDescription("Отметить выбранные оплаченными").performClick()
+        onNodeWithContentDescription("Отменить выбор").performClick()
+
+        assertThat(events).containsExactly(
+            ExpensesEvent.ShareClicked,
+            ExpensesEvent.SelectionPaidClicked,
+            ExpensesEvent.SelectionClosed,
+        ).inOrder()
+    }
+
+    @Test
+    fun `with nothing picked or a share under way the actions are off`() = runComposeUiTest {
+        setContent { show(picking.copy(selected = persistentSetOf())) }
+
+        onNodeWithContentDescription("Отправить выбранные чеки").assertIsNotEnabled()
+        onNodeWithContentDescription("Отметить выбранные оплаченными").assertIsNotEnabled()
     }
 
     @Test

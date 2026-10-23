@@ -5,6 +5,7 @@ import ru.prorabprime.domain.usecase.ObserveObjectsUseCase
 import ru.prorabprime.domain.usecase.SavePaymentUseCase
 import ru.prorabprime.domain.usecase.SetReceiptPaidUseCase
 import ru.prorabprime.domain.usecase.SetReceiptUseCase
+import ru.prorabprime.domain.usecase.ShareImagesUseCase
 import ru.prorabprime.domain.usecase.UploadPhotoUseCase
 
 /** The use cases the expenses screen calls, in one collaborator to keep the ViewModel constructor short. */
@@ -15,4 +16,5 @@ internal class ExpensesActions(
     val uploadPhoto: UploadPhotoUseCase,
     val setReceipt: SetReceiptUseCase,
     val setReceiptPaid: SetReceiptPaidUseCase,
+    val shareImages: ShareImagesUseCase,
 )

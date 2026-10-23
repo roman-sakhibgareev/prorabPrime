@@ -20,10 +20,12 @@ import ru.prorabprime.domain.usecase.ObserveObjectsUseCase
 import ru.prorabprime.domain.usecase.SavePaymentUseCase
 import ru.prorabprime.domain.usecase.SetReceiptPaidUseCase
 import ru.prorabprime.domain.usecase.SetReceiptUseCase
+import ru.prorabprime.domain.usecase.ShareImagesUseCase
 import ru.prorabprime.domain.usecase.UploadPhotoUseCase
 import ru.prorabprime.testing.FakeExpensesRepository
 import ru.prorabprime.testing.FakeFinanceRepository
 import ru.prorabprime.testing.FakeImageCompressor
+import ru.prorabprime.testing.FakeImageSharer
 import ru.prorabprime.testing.FakeObjectsRepository
 import ru.prorabprime.testing.FakePhotosRepository
 import ru.prorabprime.testing.FakeSnackbarNotifier
@@ -52,6 +54,7 @@ class ExpenseFormTest {
                 uploadPhoto = UploadPhotoUseCase(FakeImageCompressor(), photos),
                 setReceipt = SetReceiptUseCase(photos),
                 setReceiptPaid = SetReceiptPaidUseCase(photos),
+                shareImages = ShareImagesUseCase(FakeImageSharer()),
             ),
             notifier,
         ) { today }

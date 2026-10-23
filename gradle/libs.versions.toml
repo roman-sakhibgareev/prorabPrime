@@ -118,6 +118,8 @@ compose-mp-foundation = { module = "org.jetbrains.compose.foundation:foundation"
 compose-mp-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "composeMultiplatform" }
 compose-mp-ui-tooling-preview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "composeMultiplatform" }
 compose-mp-ui-tooling = { module = "org.jetbrains.compose.ui:ui-tooling", version.ref = "composeMultiplatform" }
+# Back press inside a screen; already on the classpath through Navigation 3, at this version.
+compose-mp-ui-backhandler = { module = "org.jetbrains.compose.ui:ui-backhandler", version.ref = "composeMultiplatform" }
 compose-mp-ui-test = { module = "org.jetbrains.compose.ui:ui-test", version.ref = "composeMultiplatform" }
 compose-mp-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "composeMultiplatformMaterial3" }
 # Frozen at 1.7.3 upstream (the icon set moved to Material Symbols), but still the multiplatform

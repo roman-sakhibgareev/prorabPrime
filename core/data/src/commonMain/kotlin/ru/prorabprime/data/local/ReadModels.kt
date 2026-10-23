@@ -24,7 +24,7 @@ import ru.prorabprime.domain.model.ServerFilePath
 internal fun PhotoRow.thumbPath(blobs: BlobStore): ServerFilePath? =
     thumbUrl?.let(::ServerFilePath) ?: localBlob?.let(blobs::pathOf)?.let(::localFilePath)
 
-private fun PhotoRow.fullPath(blobs: BlobStore): ServerFilePath? =
+internal fun PhotoRow.fullPath(blobs: BlobStore): ServerFilePath? =
     url?.let(::ServerFilePath) ?: localBlob?.let(blobs::pathOf)?.let(::localFilePath)
 
 internal fun PhotoRow.toDomain(blobs: BlobStore) = Photo(

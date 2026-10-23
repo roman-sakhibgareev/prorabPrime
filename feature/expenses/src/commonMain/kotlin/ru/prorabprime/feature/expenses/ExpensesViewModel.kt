@@ -35,6 +35,8 @@ internal class ExpensesViewModel(
 
     private val form = ExpenseFormHandler(viewModelScope, _state, actions, notifier, today)
 
+    private val selection = ExpensesSelection(viewModelScope, _state, actions, notifier) { expenses }
+
     /** What was last read, so a new filter can be applied without reading again. */
     private var expenses: Expenses? = null
 
@@ -61,9 +63,20 @@ internal class ExpensesViewModel(
     fun onEvent(event: ExpensesEvent) {
         when (event) {
             is ExpensesEvent.FilterSelected -> selectFilter(event.filter)
+
             is ExpensesEvent.PaymentFilterSelected -> selectPaymentFilter(event.filter)
+
             is ExpensesEvent.ReceiptPaidChanged -> setPaid(event)
+
             ExpensesEvent.AddClicked -> form.open()
+
+            is ExpensesEvent.RowLongPressed,
+            is ExpensesEvent.RowToggled,
+            ExpensesEvent.SelectionClosed,
+            ExpensesEvent.ShareClicked,
+            ExpensesEvent.SelectionPaidClicked,
+            -> selection.onEvent(event)
+
             is ExpenseFormEvent -> form.onEvent(event)
         }
     }
@@ -86,6 +99,12 @@ internal class ExpensesViewModel(
     }
 
     /** The report with the filters of [old], and what the report does not own — the objects and the form — kept. */
-    private fun report(read: Expenses, old: ExpensesState) =
-        read.toState(today(), old.filter, old.paymentFilter).copy(objects = old.objects, form = old.form)
+    private fun report(read: Expenses, old: ExpensesState) = read.toState(today(), old.filter, old.paymentFilter)
+        .copy(
+            objects = old.objects,
+            form = old.form,
+            selecting = old.selecting,
+            selected = old.selected,
+            isSharing = old.isSharing,
+        ).let(selection::keepVisible)
 }

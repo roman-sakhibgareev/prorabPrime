@@ -3,6 +3,7 @@ package ru.prorabprime.domain.usecase
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
+import ru.prorabprime.domain.ShareResult
 import ru.prorabprime.domain.model.AnalyticsEvent
 import ru.prorabprime.domain.model.AppError
 import ru.prorabprime.domain.model.AttachmentKind
@@ -14,10 +15,12 @@ import ru.prorabprime.domain.model.ObjectId
 import ru.prorabprime.domain.model.ObjectStatus
 import ru.prorabprime.domain.model.PaymentDraft
 import ru.prorabprime.domain.model.PhotoId
+import ru.prorabprime.domain.model.ServerFilePath
 import ru.prorabprime.domain.model.TaskDraft
 import ru.prorabprime.testing.FakeAnalyticsTracker
 import ru.prorabprime.testing.FakeFinanceRepository
 import ru.prorabprime.testing.FakeImageCompressor
+import ru.prorabprime.testing.FakeImageSharer
 import ru.prorabprime.testing.FakeObjectsRepository
 import ru.prorabprime.testing.FakePhotosRepository
 import ru.prorabprime.testing.FakeTasksRepository
@@ -103,6 +106,20 @@ class AnalyticsTrackingTest {
             AnalyticsEvent.ReceiptPaidChanged(paid = true),
             AnalyticsEvent.ReceiptPaidChanged(paid = false),
         ).inOrder()
+    }
+
+    @Test
+    fun `an opened share sheet is told with how many pictures, a failed or empty share is not`() = runTest {
+        val sharer = FakeImageSharer()
+        val share = ShareImagesUseCase(sharer, tracker)
+        val files = List(3) { ServerFilePath("/files/$it.jpg") }
+
+        share(files)
+        share(emptyList())
+        sharer.result = { ShareResult.Failed }
+        share(files)
+
+        assertThat(tracker.events).containsExactly(AnalyticsEvent.ImagesShared(3))
     }
 
     @Test
