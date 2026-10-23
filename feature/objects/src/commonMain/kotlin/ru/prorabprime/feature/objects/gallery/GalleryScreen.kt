@@ -45,8 +45,8 @@ import ru.prorabprime.designsystem.components.ErrorMessage
 import ru.prorabprime.designsystem.components.LoadingBox
 import ru.prorabprime.designsystem.components.PendingBadge
 import ru.prorabprime.designsystem.components.ServerImage
-import ru.prorabprime.designsystem.components.TextButton
 import ru.prorabprime.designsystem.components.TopAppBar
+import ru.prorabprime.designsystem.components.TopBarTextButton
 import ru.prorabprime.designsystem.components.quarterTurns
 import ru.prorabprime.designsystem.icons.ProrabIcons
 import ru.prorabprime.designsystem.theme.Spacing
@@ -150,10 +150,10 @@ private fun Scaffold(
 @Composable
 private fun Actions(state: GalleryState, onEvent: (GalleryEvent) -> Unit) {
     if (state.selecting) {
-        TextButton(onClick = { onEvent(GalleryEvent.SelectAllToggled) }) {
+        TopBarTextButton(onClick = { onEvent(GalleryEvent.SelectAllToggled) }) {
             Text(stringResource(Res.string.gallery_select_all))
         }
-        TextButton(
+        TopBarTextButton(
             onClick = { onEvent(GalleryEvent.ShareClicked) },
             enabled = state.selected.isNotEmpty() && !state.isSharing,
         ) {
@@ -165,7 +165,7 @@ private fun Actions(state: GalleryState, onEvent: (GalleryEvent) -> Unit) {
             Icon(Icons.Default.Delete, stringResource(Res.string.gallery_delete))
         }
     } else if (state.photos.isNotEmpty()) {
-        TextButton(onClick = { onEvent(GalleryEvent.SelectingToggled) }) {
+        TopBarTextButton(onClick = { onEvent(GalleryEvent.SelectingToggled) }) {
             Text(stringResource(Res.string.gallery_select))
         }
     }

@@ -55,8 +55,8 @@ import org.koin.compose.viewmodel.koinViewModel
 import ru.prorabprime.designsystem.components.EmptyMessage
 import ru.prorabprime.designsystem.components.ErrorMessage
 import ru.prorabprime.designsystem.components.LoadingBox
-import ru.prorabprime.designsystem.components.TextButton
 import ru.prorabprime.designsystem.components.TopAppBar
+import ru.prorabprime.designsystem.components.TopBarTextButton
 import ru.prorabprime.designsystem.theme.Corners
 import ru.prorabprime.designsystem.theme.Spacing
 import ru.prorabprime.feature.expenses.resources.Res
@@ -136,7 +136,7 @@ internal fun ExpensesContent(
                     },
                     actions = {
                         if (state.rows.any { it.isSelectable }) {
-                            TextButton(onClick = { onEvent(ExpensesEvent.SelectionStarted) }) {
+                            TopBarTextButton(onClick = { onEvent(ExpensesEvent.SelectionStarted) }) {
                                 Text(stringResource(Res.string.expenses_select))
                             }
                         }
@@ -197,7 +197,7 @@ private fun SelectionBar(state: ExpensesState, onEvent: (ExpensesEvent) -> Unit)
                 }
                 Icon(Icons.Default.Check, stringResource(label))
             }
-            TextButton(onClick = { onEvent(ExpensesEvent.ShareClicked) }, enabled = enabled && !state.isSharing) {
+            TopBarTextButton(onClick = { onEvent(ExpensesEvent.ShareClicked) }, enabled = enabled && !state.isSharing) {
                 Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(SHARE_ICON))
                 Spacer(Modifier.width(Spacing.xs))
                 Text(stringResource(Res.string.expenses_share_label))

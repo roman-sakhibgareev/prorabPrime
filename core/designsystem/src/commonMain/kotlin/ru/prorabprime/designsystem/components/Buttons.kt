@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import ru.prorabprime.designsystem.theme.Sizes
 
@@ -107,6 +108,27 @@ fun TextButton(
         enabled = enabled && !loading,
         shape = MaterialTheme.shapes.small,
         content = { Busy(loading, content) },
+    )
+}
+
+/** A text button for a top bar's actions, in the bar's own content color: the default would be green on green. */
+@Composable
+fun TopBarTextButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    content: @Composable RowScope.() -> Unit,
+) {
+    MaterialTextButton(
+        onClick = onClick,
+        modifier = modifier.defaultMinSize(minHeight = ButtonHeight),
+        enabled = enabled,
+        shape = MaterialTheme.shapes.small,
+        colors = ButtonDefaults.textButtonColors(
+            contentColor = Color.White,
+            disabledContentColor = Color.White.copy(alpha = DISABLED_ALPHA),
+        ),
+        content = content,
     )
 }
 
