@@ -30,6 +30,10 @@ sealed class AnalyticsEvent(
         val paid: Boolean,
     ) : AnalyticsEvent("receipt_paid_changed", mapOf("paid" to if (paid) "yes" else "no"))
 
+    data class ImagesShared(
+        val count: Int,
+    ) : AnalyticsEvent("images_shared", mapOf("count" to countWord(count)))
+
     data object PaymentAdded : AnalyticsEvent("payment_added")
 
     data object ExtraWorkAdded : AnalyticsEvent("extra_work_added")
@@ -40,6 +44,15 @@ sealed class AnalyticsEvent(
 }
 
 private fun ObjectStatus.word() = name.lowercase()
+
+private const val FEW_IMAGES = 4
+
+/** How many pictures went out, as a word: the exact number is not worth knowing. */
+private fun countWord(count: Int) = when {
+    count <= 1 -> "one"
+    count <= FEW_IMAGES -> "few"
+    else -> "many"
+}
 
 /** A screen by a fixed word; never a key's arguments, which are ids of the user's objects. */
 enum class AppScreen {

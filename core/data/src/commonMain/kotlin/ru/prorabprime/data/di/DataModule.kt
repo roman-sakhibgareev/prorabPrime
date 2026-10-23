@@ -152,7 +152,7 @@ val dataModule: Module = module {
     factory { ChangeObjectStatusUseCase(get(), get()) }
     factory { DeleteObjectUseCase(get(), get()) }
     factory { UploadPhotoUseCase(get(), get(), get()) }
-    factory { ShareImagesUseCase(get()) }
+    factory { ShareImagesUseCase(get(), get()) }
     factory { DeletePhotoUseCase(get()) }
     factory { SetCoverPhotoUseCase(get()) }
     factory { RotatePhotoUseCase(get()) }

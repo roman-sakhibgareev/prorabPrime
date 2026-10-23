@@ -50,6 +50,7 @@ class ExpensesRepositoryTest {
         assertThat(item.day).isEqualTo(LocalDay.of(2026, 10, 1))
         assertThat(item.photoId?.value).isEqualTo("11111111-1111-1111-1111-111111111111")
         assertThat(item.objectTitle).isEqualTo("Кухня")
+        assertThat(item.photoPath?.value).isEqualTo("/files/o/11111111-1111-1111-1111-111111111111.jpg")
     }
 
     @Test
