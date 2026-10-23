@@ -1003,3 +1003,42 @@ needs the room (`CollapsingChips`), the sort chip keeping its words.
 The other `OutlinedTextField`s of the app keep Material's height until their screens are next touched.
 
 **Review when:** a screen needs a control that cannot be this tall, or the type scale changes.
+
+## ADR-0029
+
+### Yandex AppMetrica for crash reports and analytics
+
+**Accepted** · 2026-10-23
+
+**Context.** A client crashed in production and nobody saw it. The app is published on RuStore, so Google Play
+services cannot be assumed, and it is also a portfolio piece, so knowing how it is used has value of its own. The
+owner already uses AppMetrica in a work app.
+
+**Decision.** The Android app reports crashes (Java, native, ANR) and a short catalog of events
+([`ANALYTICS.md`](ANALYTICS.md)) to Yandex AppMetrica. The domain owns a port, `AnalyticsTracker`, and a sealed
+`AnalyticsEvent`, so an event cannot carry free text or an id; `:app` alone imports the SDK and binds the port to it.
+The browser client and any build without a key use `AnalyticsTracker.None`. The API key comes from
+`prorab.<flavor>.appmetricaKey` (or the environment) and never from git; debug builds never get one. Sending is off
+at activation and is switched on only after the settings' opt-out has been read, and the privacy page names Yandex,
+what is collected and how to opt out.
+
+**Alternatives rejected.**
+- *Sentry.* The better crash tool, but its SaaS is not available to users in Russia and self-hosting it is a
+  service to run for one developer.
+- *Firebase Crashlytics and Analytics.* Needs Google Play services, which a RuStore install cannot count on, and a
+  Google project.
+- *The self-hosted telemetry route with a queue file and a server table* (built on branches that were not merged).
+  It worked in design, but it is a second product to maintain: an open ingestion route that needs rate limits and
+  validation, a database table, an upload worker, and a dashboard that did not exist yet. The crash side alone had no
+  grouping or deobfuscation.
+- *Calling the SDK from features or use cases.* A feature that imports the SDK cannot be tested without it and ties
+  every module to one vendor.
+
+**Consequences.** Usage and crash data leave the user's server and the developer's control, to Yandex; the privacy
+page says so, and the switch in the settings stops it. Release stacks are obfuscated, so each release's `mapping.txt`
+must be uploaded to the AppMetrica console (RUSTORE.md, section 6). Nothing is verified on a real key or a device
+until the owner creates the AppMetrica app. A new event is a change to `AnalyticsEvent`, the catalog and, if it is a
+new kind of fact, the privacy page.
+
+**Review when:** AppMetrica stops being reachable or changes its terms for the store's audience, a need appears for
+data that must stay on the owner's server, or Sentry becomes usable in Russia and is wanted for grouping and alerts.
