@@ -11,6 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import ru.prorabprime.designsystem.components.OutlinedButton
@@ -24,7 +25,7 @@ import ru.prorabprime.feature.tasks.resources.tasks_next_plan
 @Composable
 internal fun EmptyDay(nextPlan: NextPlanUi?, onGoTo: (LocalDay) -> Unit) {
     Column(
-        modifier = Modifier.fillMaxSize().padding(Spacing.l),
+        modifier = Modifier.fillMaxSize().padding(Spacing.l).padding(bottom = FabClearance),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
@@ -53,3 +54,6 @@ internal fun EmptyDay(nextPlan: NextPlanUi?, onGoTo: (LocalDay) -> Unit) {
         }
     }
 }
+
+/** The extended FAB (56dp) and its margins; the last thing on the screen must end above it. */
+internal val FabClearance = 88.dp

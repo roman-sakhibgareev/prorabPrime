@@ -17,7 +17,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.CircularProgressIndicator
@@ -47,6 +46,7 @@ import org.jetbrains.compose.resources.stringResource
 import ru.prorabprime.designsystem.components.PendingBadge
 import ru.prorabprime.designsystem.components.ServerImage
 import ru.prorabprime.designsystem.components.quarterTurns
+import ru.prorabprime.designsystem.icons.ProrabIcons
 import ru.prorabprime.designsystem.theme.Corners
 import ru.prorabprime.designsystem.theme.Spacing
 import ru.prorabprime.feature.objects.details.PhotoUi
@@ -187,7 +187,7 @@ private fun NoteBadge(modifier: Modifier) {
     Surface(color = MaterialTheme.colorScheme.primary, shape = MaterialTheme.shapes.small, modifier = modifier) {
         Box(Modifier.padding(horizontal = 6.dp, vertical = 2.dp), contentAlignment = Alignment.Center) {
             Icon(
-                Icons.Default.Edit,
+                ProrabIcons.Note,
                 contentDescription = stringResource(Res.string.objectdetails_has_note),
                 tint = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.size(14.dp),
