@@ -7,6 +7,6 @@ object Sizes {
     /** Buttons and the search line; also the minimum touch target. */
     val control = 40.dp
 
-    /** A form field with its name inside: a little taller than a button so the name can float above the text. */
-    val field = 52.dp
+    /** Minimum height of a form field with its name inside: Material's own, so the name and the text both fit. */
+    val field = 56.dp
 }

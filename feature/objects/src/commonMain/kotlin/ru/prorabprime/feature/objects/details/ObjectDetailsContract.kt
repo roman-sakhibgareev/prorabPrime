@@ -72,6 +72,8 @@ internal data class PhotoUi(
     val hasNote: Boolean = false,
     /** `790 ₽` for a receipt the server could read; null otherwise. */
     val amount: String? = null,
+    /** The full-size picture, which is what a share sends. */
+    val path: ServerFilePath = ServerFilePath(""),
 )
 
 /** A picture on its way to the server, shown in the carousel until it arrives as a [PhotoUi]. */
@@ -143,6 +145,10 @@ internal sealed interface ObjectDetailsEvent {
 
     data class StatusPicked(
         val status: ObjectStatus,
+    ) : ObjectDetailsEvent
+
+    data class SharePhotoClicked(
+        val photoId: String,
     ) : ObjectDetailsEvent
 
     data class DeletePhotoClicked(

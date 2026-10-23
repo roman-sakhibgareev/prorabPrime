@@ -19,4 +19,13 @@ val financeModule = module {
             actions = get(),
         )
     }
+    factory { FinanceJournalActions(get(), get(), get()) }
+    viewModel {
+        val stateHolder: IFinanceJournalStateHolder = FinanceJournalStateHolder()
+        FinanceJournalViewModel(
+            stateHolder = stateHolder,
+            errorHandler = FinanceJournalErrorHandler(stateHolder, get()),
+            actions = get(),
+        )
+    }
 }

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.first
 import ru.prorabprime.domain.model.ServerSettings
 import ru.prorabprime.domain.model.asAppError
+import ru.prorabprime.domain.usecase.AnalyticsConsentUseCase
 import ru.prorabprime.domain.usecase.CheckConnectionUseCase
 import ru.prorabprime.domain.usecase.GetAccountUseCase
 import ru.prorabprime.domain.usecase.ObserveServerSettingsUseCase
@@ -24,6 +25,7 @@ internal class SettingsViewModel(
     private val checkConnection: CheckConnectionUseCase,
     getAccount: GetAccountUseCase,
     private val notifier: SnackbarNotifier,
+    private val analyticsConsent: AnalyticsConsentUseCase,
 ) : ViewModel(),
     StateOwner<SettingsState> by stateHolder {
 
@@ -32,6 +34,7 @@ internal class SettingsViewModel(
         launchCatching(onFailure = { stateHolder.showSettings(ServerSettings("", "")) }) {
             stateHolder.showSettings(observeServerSettings().first())
         }
+        launchCatching(onFailure = {}) { analyticsConsent.enabled.collect(stateHolder::setAnalyticsEnabled) }
         // Whose the token is and how much room it has used; without a signal there is simply nothing to show.
         launchCatching(onFailure = {}) {
             getAccount().onSuccess(stateHolder::showAccount)
@@ -44,7 +47,12 @@ internal class SettingsViewModel(
             is SettingsEvent.TokenChanged -> stateHolder.setToken(event.value)
             SettingsEvent.CheckClicked -> check()
             SettingsEvent.SaveClicked -> save()
+            is SettingsEvent.AnalyticsToggled -> toggleAnalytics(event.enabled)
         }
+    }
+
+    private fun toggleAnalytics(enabled: Boolean) {
+        launchCatching(onFailure = { errorHandler.onSaveFailure(it.asAppError()) }) { analyticsConsent.set(enabled) }
     }
 
     private fun check() {

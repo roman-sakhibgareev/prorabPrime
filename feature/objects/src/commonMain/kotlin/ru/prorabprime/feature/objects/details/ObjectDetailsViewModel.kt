@@ -15,6 +15,7 @@ import ru.prorabprime.domain.model.Photo
 import ru.prorabprime.domain.model.PhotoId
 import ru.prorabprime.domain.model.asAppError
 import ru.prorabprime.feature.objects.photos.amountLabel
+import ru.prorabprime.feature.objects.photos.report
 import ru.prorabprime.feature.objects.resources.Res
 import ru.prorabprime.feature.objects.resources.objectdetails_cover_set
 import ru.prorabprime.feature.objects.resources.objectdetails_delete_confirm
@@ -77,6 +78,8 @@ internal class ObjectDetailsViewModel(
 
             is ObjectDetailsEvent.StatusPicked -> changeStatus(event.status)
 
+            is ObjectDetailsEvent.SharePhotoClicked -> sharePhoto(event.photoId)
+
             is ObjectDetailsEvent.DeletePhotoClicked ->
                 stateHolder.askToConfirm(DELETE_PHOTO_DIALOG, ObjectDetailsAction.DeletePhoto(event.photoId))
 
@@ -127,6 +130,14 @@ internal class ObjectDetailsViewModel(
     private fun changeStatus(status: ObjectStatus) {
         launchCatching(onFailure = { errorHandler.onActionFailure(it.asAppError()) }) {
             actions.changeStatus(objectId, status).onFailure { errorHandler.onActionFailure(it.asAppError()) }
+        }
+    }
+
+    private fun sharePhoto(photoId: String) {
+        val details = state.value.details ?: return
+        val path = (details.photos + details.receipts).find { it.id == photoId }?.path ?: return
+        launchCatching(onFailure = { errorHandler.onActionFailure(it.asAppError()) }) {
+            actions.shareImages(listOf(path)).report(notifier)
         }
     }
 
@@ -191,4 +202,5 @@ private fun Photo.toUi(coverPhotoId: PhotoId?) = PhotoUi(
     quarterTurns = quarterTurns,
     hasNote = note != null,
     amount = receipt?.amountLabel(),
+    path = path,
 )

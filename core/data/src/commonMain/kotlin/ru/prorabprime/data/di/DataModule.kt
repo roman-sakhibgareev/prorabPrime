@@ -26,6 +26,7 @@ import ru.prorabprime.data.repository.FinanceRepositoryImpl
 import ru.prorabprime.data.repository.MaterialsRepositoryImpl
 import ru.prorabprime.data.repository.NotesRepositoryImpl
 import ru.prorabprime.data.repository.ObjectsRepositoryImpl
+import ru.prorabprime.data.repository.PaymentJournalRepositoryImpl
 import ru.prorabprime.data.repository.PhotosRepositoryImpl
 import ru.prorabprime.data.repository.PlacesRepositoryImpl
 import ru.prorabprime.data.repository.SyncRepositoryImpl
@@ -43,6 +44,7 @@ import ru.prorabprime.domain.repository.FinanceRepository
 import ru.prorabprime.domain.repository.MaterialsRepository
 import ru.prorabprime.domain.repository.NotesRepository
 import ru.prorabprime.domain.repository.ObjectsRepository
+import ru.prorabprime.domain.repository.PaymentJournalRepository
 import ru.prorabprime.domain.repository.PhotosRepository
 import ru.prorabprime.domain.repository.PlacesRepository
 import ru.prorabprime.domain.repository.SettingsRepository
@@ -50,6 +52,7 @@ import ru.prorabprime.domain.repository.SyncRepository
 import ru.prorabprime.domain.repository.TasksRepository
 import ru.prorabprime.domain.repository.TrashRepository
 import ru.prorabprime.domain.usecase.AddDefaultMaterialsUseCase
+import ru.prorabprime.domain.usecase.AnalyticsConsentUseCase
 import ru.prorabprime.domain.usecase.ChangeObjectStatusUseCase
 import ru.prorabprime.domain.usecase.CheckConnectionUseCase
 import ru.prorabprime.domain.usecase.CreateObjectUseCase
@@ -78,6 +81,7 @@ import ru.prorabprime.domain.usecase.ObserveObjectUseCase
 import ru.prorabprime.domain.usecase.ObserveObjectsUseCase
 import ru.prorabprime.domain.usecase.ObserveOverdueTasksUseCase
 import ru.prorabprime.domain.usecase.ObservePaymentHistoryUseCase
+import ru.prorabprime.domain.usecase.ObservePaymentJournalUseCase
 import ru.prorabprime.domain.usecase.ObserveServerSettingsUseCase
 import ru.prorabprime.domain.usecase.ObserveSyncStatusUseCase
 import ru.prorabprime.domain.usecase.ObserveTasksRangeUseCase
@@ -99,13 +103,15 @@ import ru.prorabprime.domain.usecase.SetCoverPhotoUseCase
 import ru.prorabprime.domain.usecase.SetPhotoNoteUseCase
 import ru.prorabprime.domain.usecase.SetReceiptPaidUseCase
 import ru.prorabprime.domain.usecase.SetReceiptUseCase
+import ru.prorabprime.domain.usecase.ShareImagesUseCase
 import ru.prorabprime.domain.usecase.SyncNowUseCase
 import ru.prorabprime.domain.usecase.UpdateObjectUseCase
 import ru.prorabprime.domain.usecase.UploadPhotoUseCase
 
 /**
  * Everything platform-neutral. A platform module supplies the rest: the `HttpClientEngine`,
- * the `SettingsRepository` and the `ImageCompressor` (`androidDataModule` on Android).
+ * the `SettingsRepository`, the `ImageCompressor`, the `ImageSharer` and the `AnalyticsTracker` (`:app` on Android,
+ * a no-op in the browser).
  */
 val dataModule: Module = module {
     single {
@@ -137,6 +143,7 @@ val dataModule: Module = module {
     single<NotesRepository> { NotesRepositoryImpl(get(), get(), Clock.System) }
     single<TasksRepository> { TasksRepositoryImpl(get(), get()) }
     single<ExpensesRepository> { ExpensesRepositoryImpl(get()) }
+    single<PaymentJournalRepository> { PaymentJournalRepositoryImpl(get()) }
     single<TrashRepository> { TrashRepositoryImpl(get(), get()) }
     single<ConnectionChecker> { KtorConnectionChecker(get()) }
     single<AccountRepository> { AccountRepositoryImpl(get()) }
@@ -144,17 +151,18 @@ val dataModule: Module = module {
     factory { ObserveObjectsUseCase(get()) }
     factory { ObserveObjectUseCase(get()) }
     factory { RefreshObjectsUseCase(get()) }
-    factory { CreateObjectUseCase(get()) }
+    factory { CreateObjectUseCase(get(), get()) }
     factory { UpdateObjectUseCase(get()) }
-    factory { ChangeObjectStatusUseCase(get()) }
-    factory { DeleteObjectUseCase(get()) }
-    factory { UploadPhotoUseCase(get(), get()) }
+    factory { ChangeObjectStatusUseCase(get(), get()) }
+    factory { DeleteObjectUseCase(get(), get()) }
+    factory { UploadPhotoUseCase(get(), get(), get()) }
+    factory { ShareImagesUseCase(get(), get()) }
     factory { DeletePhotoUseCase(get()) }
     factory { SetCoverPhotoUseCase(get()) }
     factory { RotatePhotoUseCase(get()) }
     factory { SetPhotoNoteUseCase(get()) }
     factory { SetReceiptUseCase(get()) }
-    factory { SetReceiptPaidUseCase(get()) }
+    factory { SetReceiptPaidUseCase(get(), get()) }
     factory { SaveContactUseCase(get()) }
     factory { DeleteContactUseCase(get()) }
     factory { GeocodeObjectUseCase(get()) }
@@ -165,11 +173,12 @@ val dataModule: Module = module {
     factory { RetryFailedChangesUseCase(get()) }
     factory { DiscardFailedChangeUseCase(get()) }
     factory { ObserveFinanceUseCase(get()) }
+    factory { ObservePaymentJournalUseCase(get()) }
     factory { ObservePaymentHistoryUseCase(get()) }
     factory { SaveFinanceTermsUseCase(get()) }
-    factory { SavePaymentUseCase(get()) }
+    factory { SavePaymentUseCase(get(), get()) }
     factory { DeletePaymentUseCase(get()) }
-    factory { SaveExtraWorkUseCase(get()) }
+    factory { SaveExtraWorkUseCase(get(), get()) }
     factory { DeleteExtraWorkUseCase(get()) }
     factory { ObserveMaterialsUseCase(get()) }
     factory { ObserveExpensesUseCase(get()) }
@@ -186,13 +195,14 @@ val dataModule: Module = module {
     factory { ObserveOverdueTasksUseCase(get()) }
     factory { ObserveTasksRangeUseCase(get()) }
     factory { ObserveNextTaskUseCase(get()) }
-    factory { SaveTaskUseCase(get()) }
+    factory { SaveTaskUseCase(get(), get()) }
     factory { DeleteTaskUseCase(get()) }
     factory { ObserveServerSettingsUseCase(get()) }
     factory { SaveServerSettingsUseCase(get()) }
     factory { CheckConnectionUseCase(get()) }
     factory { GetAccountUseCase(get()) }
     factory { ObserveObjectSortUseCase(get()) }
+    factory { AnalyticsConsentUseCase(get()) }
     factory { SaveObjectSortUseCase(get()) }
 }
 

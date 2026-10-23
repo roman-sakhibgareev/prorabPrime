@@ -43,6 +43,15 @@ fun flavorApiToken(flavor: String) = when (flavor) {
     else -> buildConfigString("prorab.$flavor.apiToken")
 }
 
+// The AppMetrica API key of each flavor, from a Gradle property, local.properties or PRORAB_<FLAVOR>_APPMETRICA_KEY.
+// Empty means AppMetrica stays off. A debug build never gets one, so a build from the IDE cannot reach the data of
+// the store's app; `dev` has a key of its own to try the setup in a release build.
+fun appMetricaKey(flavor: String, buildType: String): Provider<String> {
+    if (buildType == "debug") return provider { "\"\"" }
+    val env = providers.environmentVariable("PRORAB_${flavor.uppercase()}_APPMETRICA_KEY")
+    return buildConfigString("prorab.$flavor.appmetricaKey", env.getOrElse(""))
+}
+
 // An APK for the customer without its token would open empty; only building that APK needs the token, so
 // `verify` and CI, which compile every variant, are not stopped by it.
 tasks.matching { it.name == "assembleClientRelease" || it.name == "bundleClientRelease" }.configureEach {
@@ -63,6 +72,10 @@ androidComponents {
         variant.buildConfigFields?.put(
             "DEFAULT_API_TOKEN",
             flavorApiToken(flavor).map { BuildConfigField("String", it, null) },
+        )
+        variant.buildConfigFields?.put(
+            "APPMETRICA_API_KEY",
+            appMetricaKey(flavor, variant.buildType.orEmpty()).map { BuildConfigField("String", it, null) },
         )
     }
 }
@@ -143,8 +156,16 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.koin.bom))
     implementation(libs.koin.android)
+    // FileProvider, for the pictures handed to the share sheet.
+    implementation(libs.androidx.core.ktx)
     // Coil's singleton loader is built here, over the app's HttpClient (ADR-0003, ADR-0008).
     implementation(platform(libs.coil.bom))
     implementation(libs.coil)
     implementation(libs.coil.network.ktor3)
+    // Crash reports and analytics; only :app knows the SDK (ADR-0029).
+    implementation(libs.appmetrica)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.truth)
+    testImplementation(libs.kotlinx.coroutines.test)
 }

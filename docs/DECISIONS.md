@@ -988,7 +988,8 @@ tints from the theme (`onPrimaryContainer`, `onSurface`), and labels were semi-b
 heading.
 
 **Decision.** `Sizes.control` is the height of a button, an `ActionChip`, a `FilterChip` and the search line;
-`Sizes.field` is the height of a form field whose name sits inside it. Labels are 14sp in the regular weight.
+`Sizes.field` is the minimum height (56dp) of a form field whose name sits inside it; it was 52dp as a fixed
+height, which clipped the text (amended in release 1.4.0). Labels are 14sp in the regular weight.
 Text roles are black in the light theme and white in the dark one; only secondary text is a neutral gray. The
 `FilterChip` is a pill without an outline. `ActionChip` and the filter row collapse to icons when the sort chip
 needs the room (`CollapsingChips`), the sort chip keeping its words.
@@ -1003,3 +1004,78 @@ needs the room (`CollapsingChips`), the sort chip keeping its words.
 The other `OutlinedTextField`s of the app keep Material's height until their screens are next touched.
 
 **Review when:** a screen needs a control that cannot be this tall, or the type scale changes.
+
+## ADR-0029
+
+### Yandex AppMetrica for crash reports and analytics
+
+**Accepted** · 2026-10-23
+
+**Context.** A client crashed in production and nobody saw it. The app is published on RuStore, so Google Play
+services cannot be assumed, and it is also a portfolio piece, so knowing how it is used has value of its own. The
+owner already uses AppMetrica in a work app.
+
+**Decision.** The Android app reports crashes (Java, native, ANR) and a short catalog of events
+([`ANALYTICS.md`](ANALYTICS.md)) to Yandex AppMetrica. The domain owns a port, `AnalyticsTracker`, and a sealed
+`AnalyticsEvent`, so an event cannot carry free text or an id; `:app` alone imports the SDK and binds the port to it.
+The browser client and any build without a key use `AnalyticsTracker.None`. The API key comes from
+`prorab.<flavor>.appmetricaKey` (or the environment) and never from git; debug builds never get one. Sending is off
+at activation and is switched on only after the settings' opt-out has been read, and the privacy page names Yandex,
+what is collected and how to opt out.
+
+**Alternatives rejected.**
+- *Sentry.* The better crash tool, but its SaaS is not available to users in Russia and self-hosting it is a
+  service to run for one developer.
+- *Firebase Crashlytics and Analytics.* Needs Google Play services, which a RuStore install cannot count on, and a
+  Google project.
+- *The self-hosted telemetry route with a queue file and a server table* (built on branches that were not merged).
+  It worked in design, but it is a second product to maintain: an open ingestion route that needs rate limits and
+  validation, a database table, an upload worker, and a dashboard that did not exist yet. The crash side alone had no
+  grouping or deobfuscation.
+- *Calling the SDK from features or use cases.* A feature that imports the SDK cannot be tested without it and ties
+  every module to one vendor.
+
+**Consequences.** Usage and crash data leave the user's server and the developer's control, to Yandex; the privacy
+page says so, and the switch in the settings stops it. Release stacks are obfuscated, so each release's `mapping.txt`
+must be uploaded to the AppMetrica console (RUSTORE.md, section 6). Nothing is verified on a real key or a device
+until the owner creates the AppMetrica app. A new event is a change to `AnalyticsEvent`, the catalog and, if it is a
+new kind of fact, the privacy page.
+
+**Review when:** AppMetrica stops being reachable or changes its terms for the store's audience, a need appears for
+data that must stay on the owner's server, or Sentry becomes usable in Russia and is wanted for grouping and alerts.
+
+## ADR-0030
+
+### The finance journal is a view of the phone's copy, in `:feature:finance`
+
+**Accepted** · 2026-10-23
+
+**Context.** The foreman enters payments per object and wants one list over all objects ("18 Oct, object X, N rub")
+with income and expense totals, without opening each object. The phone's local database already holds every
+object's payments (the app is offline-first), and the payment form already exists in `:feature:finance`.
+
+**Decision.** The journal is built from the phone's copy by `PaymentJournalRepository` (a read model like
+`ExpensesRepository`), filtered and totalled by pure functions in `:core:domain` (`JournalFilter`, `totals`). There
+is no new server endpoint, DTO or migration, so older clients and the 1.3.2 server are untouched. Editing and
+deleting go through the existing `SavePaymentUseCase` and `DeletePaymentUseCase`, so they are queued and synced as
+before. The screen lives in `:feature:finance` as a second entry (`FinanceJournalNavKey`, `FinanceJournalScreen`)
+because the payment form is `internal` there and a feature may not depend on another; `PaymentEditorHandler` now
+talks to a narrow `PaymentFormHost` instead of the object screen's state holder, and the journal passes no object
+id, so it can change and delete payments but not add them. "Cash" is the method `CASH`; every other method is
+non-cash. "Income" is a payment from the client, "expense" a payment to the crew; receipts are not in the journal
+(they are on the expenses screen).
+
+**Alternatives rejected.**
+- *A server endpoint listing payments of all objects.* Needs the network, a contract change and a deploy, for data
+  the phone already has.
+- *A new feature module with a copy of the form.* Two forms to keep in step, or a form moved to
+  `:core:designsystem` with its state, which is a larger change than the feature needs.
+- *Reusing `FinanceState` for the journal.* Mixes one object's books with a cross-object list and makes every
+  `FinanceState` field optional for one of its two screens.
+
+**Consequences.** `:feature:finance` exposes two NavKeys and two entry composables. The journal shows only objects
+the phone has (a payment of an unknown object is skipped). The period filter is a calendar month or all time, not
+an arbitrary range.
+
+**Review when:** payments need adding from the journal, an arbitrary date range is asked for, or the list grows
+so long that filtering all of it on each change is slow.

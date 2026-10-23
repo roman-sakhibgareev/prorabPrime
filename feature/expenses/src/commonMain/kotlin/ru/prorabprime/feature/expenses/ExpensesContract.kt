@@ -3,8 +3,10 @@ package ru.prorabprime.feature.expenses
 import androidx.compose.runtime.Immutable
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
+import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.collections.immutable.persistentSetOf
 import ru.prorabprime.domain.model.ExpenseKind
 import ru.prorabprime.domain.model.FieldProblem
 import ru.prorabprime.domain.model.LocalDay
@@ -17,6 +19,13 @@ internal enum class ExpenseFilter {
     ALL,
     MATERIALS,
     CREW,
+}
+
+/** Which receipts the list shows by whether they are paid for: [UNPAID] is what is owed, [PAID] the archive. */
+internal enum class PaymentStatusFilter {
+    ALL,
+    UNPAID,
+    PAID,
 }
 
 @Immutable
@@ -69,6 +78,8 @@ internal data class ExpenseRowUi(
     val photoId: String?,
     /** A receipt not yet paid for. */
     val isUnpaid: Boolean = false,
+    /** A receipt with a picture to send; the rest cannot be picked in selection mode. */
+    val isSelectable: Boolean = false,
 )
 
 /** An object to put a new expense on. */
@@ -101,6 +112,10 @@ internal data class NewExpenseUi(
 internal data class ExpensesState(
     val status: ExpensesStatus = ExpensesStatus.Loading,
     val filter: ExpenseFilter = ExpenseFilter.ALL,
+    val paymentFilter: PaymentStatusFilter = PaymentStatusFilter.ALL,
+    /** Receipts paid for and not, whatever the filters: the counts on the status chips. */
+    val paidCount: Int = 0,
+    val unpaidCount: Int = 0,
     val summary: SummaryUi = SummaryUi(),
     val byObject: ImmutableList<BarUi> = persistentListOf(),
     val byMonth: ImmutableList<BarUi> = persistentListOf(),
@@ -111,12 +126,49 @@ internal data class ExpensesState(
     /** What the form offers to put an expense on, in the order the list shows objects. */
     val objects: ImmutableList<ObjectChoiceUi> = persistentListOf(),
     val form: NewExpenseUi? = null,
+    /** Picking receipts to send; entered by the "select" button or a long press, left by closing or a send. */
+    val selecting: Boolean = false,
+    /** The ids of the picked rows. */
+    val selected: ImmutableSet<String> = persistentSetOf(),
+    /** A send is getting its pictures ready; a second one would open a second sheet. */
+    val isSharing: Boolean = false,
 )
 
 internal sealed interface ExpensesEvent {
     data class FilterSelected(
         val filter: ExpenseFilter,
     ) : ExpensesEvent
+
+    data class PaymentFilterSelected(
+        val filter: PaymentStatusFilter,
+    ) : ExpensesEvent
+
+    /** The check on a receipt's row, for the photo of that receipt. */
+    data class ReceiptPaidChanged(
+        val photoId: String,
+        val paid: Boolean,
+    ) : ExpensesEvent
+
+    /** The "select" button of the top bar: starts picking with nothing picked yet. */
+    data object SelectionStarted : ExpensesEvent
+
+    /** A long press on a row: starts picking with it, or picks it when already picking. */
+    data class RowLongPressed(
+        val id: String,
+    ) : ExpensesEvent
+
+    /** A tap on a row while picking. */
+    data class RowToggled(
+        val id: String,
+    ) : ExpensesEvent
+
+    /** The close button of the selection bar, or back. */
+    data object SelectionClosed : ExpensesEvent
+
+    data object ShareClicked : ExpensesEvent
+
+    /** Marks every picked receipt paid, or all of them unpaid when they already are. */
+    data object SelectionPaidClicked : ExpensesEvent
 
     /** The plus button. */
     data object AddClicked : ExpensesEvent

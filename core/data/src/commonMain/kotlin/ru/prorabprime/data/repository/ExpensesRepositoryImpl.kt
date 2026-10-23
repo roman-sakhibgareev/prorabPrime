@@ -8,6 +8,7 @@ import ru.prorabprime.data.local.LocalDb
 import ru.prorabprime.data.local.ObjectRow
 import ru.prorabprime.data.local.PaymentRow
 import ru.prorabprime.data.local.PhotoRow
+import ru.prorabprime.data.local.fullPath
 import ru.prorabprime.domain.model.ExpenseItem
 import ru.prorabprime.domain.model.ExpenseKind
 import ru.prorabprime.domain.model.Expenses
@@ -47,6 +48,7 @@ internal class ExpensesRepositoryImpl(
         day = photo.receiptAt?.substringBefore('T')?.let(LocalDay::parseIso) ?: LocalDay.ofInstant(photo.createdAt),
         amountKopecks = photo.receiptAmountKopecks,
         photoId = PhotoId(photo.id),
+        photoPath = photo.fullPath(db.blobs),
         note = photo.note,
         isPaid = photo.receiptPaid,
     )

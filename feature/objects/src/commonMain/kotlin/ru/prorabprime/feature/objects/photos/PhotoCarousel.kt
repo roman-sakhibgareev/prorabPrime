@@ -17,7 +17,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.CircularProgressIndicator
@@ -47,6 +46,7 @@ import org.jetbrains.compose.resources.stringResource
 import ru.prorabprime.designsystem.components.PendingBadge
 import ru.prorabprime.designsystem.components.ServerImage
 import ru.prorabprime.designsystem.components.quarterTurns
+import ru.prorabprime.designsystem.icons.ProrabIcons
 import ru.prorabprime.designsystem.theme.Corners
 import ru.prorabprime.designsystem.theme.Spacing
 import ru.prorabprime.feature.objects.details.PhotoUi
@@ -57,6 +57,7 @@ import ru.prorabprime.feature.objects.resources.objectdetails_cover
 import ru.prorabprime.feature.objects.resources.objectdetails_delete_photo
 import ru.prorabprime.feature.objects.resources.objectdetails_has_note
 import ru.prorabprime.feature.objects.resources.objectdetails_make_cover
+import ru.prorabprime.feature.objects.resources.objectdetails_share_photo
 import ru.prorabprime.feature.objects.resources.objectdetails_upload_dismiss
 import ru.prorabprime.feature.objects.resources.objectdetails_upload_retry
 import ru.prorabprime.ui.resolve
@@ -69,6 +70,7 @@ internal fun PhotoCarousel(
     onAddClick: () -> Unit,
     onPhotoClick: (PhotoUi) -> Unit,
     onMakeCover: (PhotoUi) -> Unit,
+    onShare: (PhotoUi) -> Unit,
     onDelete: (PhotoUi) -> Unit,
     onRetryUpload: (UploadUi) -> Unit,
     onDismissUpload: (UploadUi) -> Unit,
@@ -91,6 +93,7 @@ internal fun PhotoCarousel(
                 onClick = { onPhotoClick(photo) },
                 canMakeCover = canMakeCover,
                 onMakeCover = { onMakeCover(photo) },
+                onShare = { onShare(photo) },
                 onDelete = { onDelete(photo) },
             )
         }
@@ -120,6 +123,7 @@ private fun PhotoTile(
     canMakeCover: Boolean,
     onClick: () -> Unit,
     onMakeCover: () -> Unit,
+    onShare: () -> Unit,
     onDelete: () -> Unit,
 ) {
     // Whether the long-press menu is open is view state with no meaning beyond this tile.
@@ -158,6 +162,13 @@ private fun PhotoTile(
                 )
             }
             DropdownMenuItem(
+                text = { Text(stringResource(Res.string.objectdetails_share_photo)) },
+                onClick = {
+                    menuOpen = false
+                    onShare()
+                },
+            )
+            DropdownMenuItem(
                 text = { Text(stringResource(Res.string.objectdetails_delete_photo)) },
                 onClick = {
                     menuOpen = false
@@ -187,7 +198,7 @@ private fun NoteBadge(modifier: Modifier) {
     Surface(color = MaterialTheme.colorScheme.primary, shape = MaterialTheme.shapes.small, modifier = modifier) {
         Box(Modifier.padding(horizontal = 6.dp, vertical = 2.dp), contentAlignment = Alignment.Center) {
             Icon(
-                Icons.Default.Edit,
+                ProrabIcons.Note,
                 contentDescription = stringResource(Res.string.objectdetails_has_note),
                 tint = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.size(14.dp),

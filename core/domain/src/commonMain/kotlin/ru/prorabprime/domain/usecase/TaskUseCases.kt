@@ -3,6 +3,8 @@ package ru.prorabprime.domain.usecase
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import ru.prorabprime.domain.AnalyticsTracker
+import ru.prorabprime.domain.model.AnalyticsEvent
 import ru.prorabprime.domain.model.AppError
 import ru.prorabprime.domain.model.LocalDay
 import ru.prorabprime.domain.model.ObjectId
@@ -13,6 +15,7 @@ import ru.prorabprime.domain.model.asFailure
 import ru.prorabprime.domain.model.toReminders
 import ru.prorabprime.domain.repository.ReminderScheduler
 import ru.prorabprime.domain.repository.TasksRepository
+import ru.prorabprime.domain.tracked
 
 class ObserveDayTasksUseCase(
     private val repository: TasksRepository,
@@ -49,8 +52,11 @@ class ObserveTasksRangeUseCase(
 /** Normalizes and validates the draft; an invalid one never reaches the server. */
 class SaveTaskUseCase(
     private val repository: TasksRepository,
+    private val tracker: AnalyticsTracker = AnalyticsTracker.None,
 ) {
-    suspend fun create(draft: TaskDraft): Result<Unit> = checked(draft) { repository.add(it) }
+    suspend fun create(draft: TaskDraft): Result<Unit> = checked(draft) {
+        repository.add(it).tracked(tracker) { AnalyticsEvent.TaskCreated(withReminder = it.remindAtMinutes != null) }
+    }
 
     suspend fun update(id: TaskId, draft: TaskDraft): Result<Unit> = checked(draft) { repository.update(id, it) }
 

@@ -18,6 +18,8 @@ data class ExpenseItem(
     val amountKopecks: Long?,
     /** The photo of a receipt. */
     val photoId: PhotoId? = null,
+    /** The full-size picture of a receipt, to share; null when there is none to share. */
+    val photoPath: ServerFilePath? = null,
     val note: String? = null,
     /** A receipt not yet paid for is false; a payment to the crew is paid by being made. */
     val isPaid: Boolean = true,

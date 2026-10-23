@@ -15,6 +15,7 @@ val settingsModule = module {
             checkConnection = get(),
             getAccount = get(),
             notifier = get(),
+            analyticsConsent = get(),
         )
     }
 }

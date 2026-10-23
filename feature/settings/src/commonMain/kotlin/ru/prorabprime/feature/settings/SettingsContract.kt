@@ -36,6 +36,7 @@ internal data class SettingsState(
     val isSaving: Boolean = false,
     /** Whose the saved token is and how much room it has used; null until the server has said. */
     val account: Account? = null,
+    val analyticsEnabled: Boolean = true,
 )
 
 internal sealed interface SettingsEvent {
@@ -50,4 +51,8 @@ internal sealed interface SettingsEvent {
     data object CheckClicked : SettingsEvent
 
     data object SaveClicked : SettingsEvent
+
+    data class AnalyticsToggled(
+        val enabled: Boolean,
+    ) : SettingsEvent
 }

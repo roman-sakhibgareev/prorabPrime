@@ -20,11 +20,13 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
@@ -44,6 +46,8 @@ import ru.prorabprime.feature.settings.resources.Res
 import ru.prorabprime.feature.settings.resources.settings_account
 import ru.prorabprime.feature.settings.resources.settings_address_hint
 import ru.prorabprime.feature.settings.resources.settings_address_label
+import ru.prorabprime.feature.settings.resources.settings_analytics_hint
+import ru.prorabprime.feature.settings.resources.settings_analytics_title
 import ru.prorabprime.feature.settings.resources.settings_back
 import ru.prorabprime.feature.settings.resources.settings_check
 import ru.prorabprime.feature.settings.resources.settings_check_running
@@ -59,6 +63,7 @@ import ru.prorabprime.feature.settings.resources.settings_unit_gigabytes
 import ru.prorabprime.feature.settings.resources.settings_unit_kilobytes
 import ru.prorabprime.feature.settings.resources.settings_unit_megabytes
 import ru.prorabprime.ui.UiText
+import ru.prorabprime.ui.isWebClient
 import ru.prorabprime.ui.resolve
 
 @Composable
@@ -161,6 +166,7 @@ private fun SettingsForm(
             loading = state.isSaving,
             modifier = Modifier.fillMaxWidth(),
         ) { Text(stringResource(Res.string.settings_save)) }
+        if (!isWebClient) AnalyticsSwitch(state.analyticsEnabled) { onEvent(SettingsEvent.AnalyticsToggled(it)) }
         OutlinedButton(onClick = onOpenTrash, modifier = Modifier.fillMaxWidth()) {
             Text(stringResource(Res.string.settings_trash))
         }
@@ -236,5 +242,21 @@ private fun SettingsContentPreview() {
             onEvent = {},
             onBack = {},
         )
+    }
+}
+
+/** Whether crash reports and usage statistics may go to the developer (Yandex AppMetrica). */
+@Composable
+private fun AnalyticsSwitch(enabled: Boolean, onToggle: (Boolean) -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.m),
+    ) {
+        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+            Text(stringResource(Res.string.settings_analytics_title), style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(Res.string.settings_analytics_hint), style = MaterialTheme.typography.bodySmall)
+        }
+        Switch(checked = enabled, onCheckedChange = onToggle, modifier = Modifier.testTag("analytics_switch"))
     }
 }

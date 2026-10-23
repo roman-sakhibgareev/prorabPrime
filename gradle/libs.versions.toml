@@ -20,6 +20,8 @@ twelvemonkeys = "3.15.2"
 embeddedPostgres = "2.2.2"
 # PostgreSQL itself for the embedded fallback; the same major version as docker-compose.
 embeddedPostgresBinaries = "17.11.0"
+# Yandex AppMetrica: crash reports and analytics (ADR-0029). 8.6.0 is the current stable on Maven Central (2026-09-29).
+appmetrica = "8.6.0"
 coilBom = "3.6.3"
 koinBom = "4.2.2"
 kotlinxCollectionsImmutable = "0.5.2"
@@ -93,6 +95,7 @@ imageio-webp = { module = "com.twelvemonkeys.imageio:imageio-webp", version.ref 
 testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql", version.ref = "testcontainers" }
 embedded-postgres = { module = "io.zonky.test:embedded-postgres", version.ref = "embeddedPostgres" }
 embedded-postgres-binaries-bom = { module = "io.zonky.test.postgres:embedded-postgres-binaries-bom", version.ref = "embeddedPostgresBinaries" }
+appmetrica = { module = "io.appmetrica.analytics:analytics", version.ref = "appmetrica" }
 coil-bom = { module = "io.coil-kt.coil3:coil-bom", version.ref = "coilBom" }
 coil = { module = "io.coil-kt.coil3:coil" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose" }
@@ -115,6 +118,8 @@ compose-mp-foundation = { module = "org.jetbrains.compose.foundation:foundation"
 compose-mp-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "composeMultiplatform" }
 compose-mp-ui-tooling-preview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "composeMultiplatform" }
 compose-mp-ui-tooling = { module = "org.jetbrains.compose.ui:ui-tooling", version.ref = "composeMultiplatform" }
+# Back press inside a screen; already on the classpath through Navigation 3, at this version.
+compose-mp-ui-backhandler = { module = "org.jetbrains.compose.ui:ui-backhandler", version.ref = "composeMultiplatform" }
 compose-mp-ui-test = { module = "org.jetbrains.compose.ui:ui-test", version.ref = "composeMultiplatform" }
 compose-mp-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "composeMultiplatformMaterial3" }
 # Frozen at 1.7.3 upstream (the icon set moved to Material Symbols), but still the multiplatform

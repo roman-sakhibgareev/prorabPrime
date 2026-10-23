@@ -19,6 +19,8 @@
     <string name="settings_check_unreachable">Сервер не отвечает по этому адресу. Проверьте адрес и подключение к интернету.</string>
     <string name="settings_check_bad_token">Сервер отвечает, но не принял токен.</string>
     <string name="settings_error_address">Адрес должен начинаться с http:// или https://</string>
+    <string name="settings_analytics_title">Отчёты об ошибках и статистика</string>
+    <string name="settings_analytics_hint">Без имён, текстов и адресов; уходят в Яндекс AppMetrica. Выключите, и приложение перестанет их отправлять.</string>
     <string name="settings_trash">Корзина</string>
     <string name="settings_save">Сохранить</string>
     <string name="settings_saved">Настройки сохранены</string>

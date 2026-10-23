@@ -32,6 +32,18 @@
             </intent-filter>
         </activity>
 
+        <!-- Pictures handed to the share sheet; serves only the folder in share_paths.xml. A subclass of its own, since another
+             module already declares FileProvider itself and the manifest merger allows each class once. -->
+        <provider
+            android:name=".ShareFileProvider"
+            android:authorities="${applicationId}.shareprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/share_paths" />
+        </provider>
+
         <receiver
             android:name="ru.prorabprime.data.reminders.ReminderReceiver"
             android:exported="false" />

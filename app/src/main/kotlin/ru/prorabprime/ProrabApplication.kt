@@ -27,6 +27,7 @@ import ru.prorabprime.data.sync.AndroidConnectivityMonitor
 import ru.prorabprime.data.sync.BackgroundSync
 import ru.prorabprime.domain.model.ServerFilePath
 import ru.prorabprime.domain.model.ServerSettings
+import ru.prorabprime.domain.usecase.AnalyticsConsentUseCase
 import ru.prorabprime.domain.usecase.KeepRemindersUseCase
 import ru.prorabprime.domain.usecase.ObserveSyncStatusUseCase
 import ru.prorabprime.domain.usecase.SyncNowUseCase
@@ -42,16 +43,30 @@ class ProrabApplication :
 
     override fun onCreate() {
         super.onCreate()
+        // First, so a crash in the start-up below is reported too.
+        val analytics = if (startAppMetrica(this, BuildConfig.APPMETRICA_API_KEY)) AppMetricaTracker() else null
         val defaults = ServerSettings(BuildConfig.DEFAULT_SERVER_URL, BuildConfig.DEFAULT_API_TOKEN)
         startKoin {
             // Debug builds only: the logger reflects on every definition it prints.
             if (BuildConfig.DEBUG) androidLogger()
             androidContext(this@ProrabApplication)
-            modules(appModules + androidDataModule(defaults))
+            modules(
+                appModules + androidDataModule(defaults) + analyticsModule(analytics) +
+                    imageSharerModule(this@ProrabApplication, SingletonImageLoader.get(this@ProrabApplication)),
+            )
         }
+        analytics?.let(::followAnalyticsConsent)
         keepReminders()
         keepInSync()
         prefetchImages()
+    }
+
+    /** AppMetrica sends only while the settings allow it; the choice is read at start and followed after. */
+    private fun followAnalyticsConsent(tracker: AppMetricaTracker) {
+        val consent = get<AnalyticsConsentUseCase>()
+        CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
+            consent.enabled.collect { allowSending(tracker, it) }
+        }
     }
 
     /**

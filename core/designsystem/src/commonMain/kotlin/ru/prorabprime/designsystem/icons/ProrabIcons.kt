@@ -55,6 +55,11 @@ object ProrabIcons {
         icon("Filter", "M10,18h4v-2h-4V18zM3,6v2h18V6H3zM6,13h12v-2H6V13z")
     }
 
+    /** Lines of text on a page: a note. */
+    val Note: ImageVector by lazy {
+        icon("Note", "M3,18h12v-2H3V18zM3,6v2h18V6H3zM3,13h18v-2H3V13z")
+    }
+
     /** A location pin: an address on the map. */
     val Pin: ImageVector by lazy {
         icon(
@@ -73,11 +78,32 @@ object ProrabIcons {
         )
     }
 
+    /** Banknotes: payments. */
+    val Payments: ImageVector by lazy {
+        icon(
+            "Payments",
+            "M19,14V6c0,-1.1 -0.9,-2 -2,-2H3C1.9,4 1,4.9 1,6v8c0,1.1 0.9,2 2,2h14C18.1,16 19,15.1 19," +
+                "14zM10,15c-1.66,0 -3,-1.34 -3,-3s1.34,-3 3,-3 3,1.34 3,3 -1.34,3 -3,3z" +
+                "M23,9v11c0,1.1 -0.9,2 -2,2H4v-2h17V9H23z",
+        )
+    }
+
     val CheckCircle: ImageVector by lazy {
         icon(
             "CheckCircle",
             "M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10,-4.48 10,-10S17.52,2 12,2zM10,17l-5,-5 1.41,-1.41L10," +
                 "14.17l7.59,-7.59L19,8l-9,9z",
+        )
+    }
+
+    /** A dashed frame around a square: pick everything. */
+    val SelectAll: ImageVector by lazy {
+        icon(
+            "SelectAll",
+            "M3,5h2L5,3c-1.1,0 -2,0.9 -2,2zM3,13h2v-2L3,11v2zM7,21h2v-2L7,19v2zM3,9h2L5,7L3,7v2zM13,3h-2v2h2L13,3z" +
+                "M19,3v2h2c0,-1.1 -0.9,-2 -2,-2zM5,21v-2L3,19c0,1.1 0.9,2 2,2zM3,17h2v-2L3,15v2zM9,3L7,3v2h2L9,3z" +
+                "M11,21h2v-2h-2v2zM19,13h2v-2h-2v2zM19,21c1.1,0 2,-0.9 2,-2h-2v2zM19,9h2L21,7h-2v2zM19,17h2v-2h-2v2z" +
+                "M15,21h2v-2h-2v2zM15,5h2L17,3h-2v2zM7,17h10L17,7L7,7v10zM9,9h6v6L9,15L9,9z",
         )
     }
 

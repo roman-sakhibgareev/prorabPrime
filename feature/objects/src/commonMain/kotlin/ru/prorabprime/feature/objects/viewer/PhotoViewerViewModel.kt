@@ -21,11 +21,13 @@ import ru.prorabprime.domain.usecase.RotatePhotoUseCase
 import ru.prorabprime.domain.usecase.SetPhotoNoteUseCase
 import ru.prorabprime.domain.usecase.SetReceiptPaidUseCase
 import ru.prorabprime.domain.usecase.SetReceiptUseCase
+import ru.prorabprime.domain.usecase.ShareImagesUseCase
 import ru.prorabprime.feature.objects.photos.ReceiptInput
 import ru.prorabprime.feature.objects.photos.amountInput
 import ru.prorabprime.feature.objects.photos.dateInput
 import ru.prorabprime.feature.objects.photos.line
 import ru.prorabprime.feature.objects.photos.readReceiptInput
+import ru.prorabprime.feature.objects.photos.report
 import ru.prorabprime.feature.objects.resources.Res
 import ru.prorabprime.feature.objects.resources.photoviewer_receipt_bad_amount
 import ru.prorabprime.feature.objects.resources.photoviewer_receipt_bad_date
@@ -45,6 +47,7 @@ internal class PhotoViewerViewModel(
     private val setPhotoNote: SetPhotoNoteUseCase,
     private val setReceipt: SetReceiptUseCase,
     private val setReceiptPaid: SetReceiptPaidUseCase,
+    private val shareImages: ShareImagesUseCase,
     private val notifier: SnackbarNotifier,
 ) : ViewModel(),
     StateOwner<PhotoViewerState> {
@@ -97,6 +100,14 @@ internal class PhotoViewerViewModel(
     fun setPaid(photoId: String, paid: Boolean) {
         viewModelScope.launch {
             setReceiptPaid(PhotoId(photoId), paid).onFailure { notifier.showError(it.asAppError().toUiText()) }
+        }
+    }
+
+    /** Sends the full-size picture through the share sheet; a refusal is said in a message. */
+    fun share(photoId: String) {
+        val path = state.value.photos.find { it.id == photoId }?.path ?: return
+        viewModelScope.launch {
+            shareImages(listOf(path)).report(notifier)
         }
     }
 

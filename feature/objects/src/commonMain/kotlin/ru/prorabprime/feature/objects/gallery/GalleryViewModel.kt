@@ -19,7 +19,9 @@ import ru.prorabprime.domain.model.PhotoId
 import ru.prorabprime.domain.model.asAppError
 import ru.prorabprime.domain.usecase.DeletePhotoUseCase
 import ru.prorabprime.domain.usecase.ObserveObjectUseCase
+import ru.prorabprime.domain.usecase.ShareImagesUseCase
 import ru.prorabprime.feature.objects.photos.amountLabel
+import ru.prorabprime.feature.objects.photos.report
 import ru.prorabprime.feature.objects.resources.Res
 import ru.prorabprime.feature.objects.resources.gallery_delete_confirm
 import ru.prorabprime.feature.objects.resources.gallery_delete_message
@@ -39,6 +41,7 @@ internal class GalleryViewModel(
     args: GalleryArgs,
     observeObject: ObserveObjectUseCase,
     private val deletePhoto: DeletePhotoUseCase,
+    private val shareImages: ShareImagesUseCase,
     private val notifier: SnackbarNotifier,
 ) : ViewModel(),
     StateOwner<GalleryState> {
@@ -80,6 +83,8 @@ internal class GalleryViewModel(
 
             GalleryEvent.DeleteClicked -> askToDelete()
 
+            GalleryEvent.ShareClicked -> share()
+
             GalleryEvent.DialogConfirmed -> deleteSelected()
 
             GalleryEvent.DialogDismissed -> _state.update { it.copy(dialog = null) }
@@ -106,6 +111,24 @@ internal class GalleryViewModel(
         }
     }
 
+    /** In the order the grid shows them, which is the order they arrive in the messenger. */
+    private fun share() {
+        val current = state.value
+        if (current.isSharing || current.selected.isEmpty()) return
+        val paths = current.photos.filter { it.id in current.selected }.map { it.path }
+        _state.update { it.copy(isSharing = true) }
+        launchCatching(onFailure = {
+            _state.update { it.copy(isSharing = false) }
+            notifier.showError(it.asAppError().toUiText())
+        }) {
+            val opened = shareImages(paths).report(notifier)
+            _state.update { old ->
+                val left = old.copy(isSharing = false)
+                if (opened) left.copy(selecting = false, selected = persistentSetOf()) else left
+            }
+        }
+    }
+
     /** Deletes one by one and stops at the first failure, so what was not deleted stays picked. */
     private fun deleteSelected() {
         val ids = state.value.selected.toList()
@@ -127,6 +150,7 @@ internal class GalleryViewModel(
 private fun Photo.toUi(coverPhotoId: PhotoId?) = GalleryPhotoUi(
     id = id.value,
     thumb = thumbPath,
+    path = path,
     isCover = id == coverPhotoId,
     isPending = isPending,
     quarterTurns = quarterTurns,

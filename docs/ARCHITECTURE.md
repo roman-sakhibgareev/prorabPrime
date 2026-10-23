@@ -16,7 +16,7 @@ plain **ADR-NNNN** in [`DECISIONS.md`](DECISIONS.md).
   **Coroutines + Flow**, **kotlinx.serialization**, **kotlinx.collections.immutable**.
 - Client: **Koin** for DI, **Navigation 3** (JetBrains builds of the UI) for navigation,
   **Ktor Client** for HTTP, **Coil 3** over the same Ktor client for images,
-  **DataStore** for settings.
+  **DataStore** for settings, **Yandex AppMetrica** (Android only, behind a domain port) for crash reports and analytics.
 - Server: **Ktor** (Netty), **Koin** (koin-ktor), **Exposed**, **Flyway**,
   **PostgreSQL**, **HikariCP** (§11).
 - **All dependency versions live in `gradle/libs.versions.toml`.** Never write a
@@ -87,9 +87,17 @@ Rules:
   `koinViewModel()`'s default lives.
 - `:shared` is the **root UI**: `App()`, the `NavDisplay` and its back stack, and
   `appModules`, the Koin module list. `:app` is the Android entry point only:
-  `Application` (starts Koin, builds Coil's `ImageLoader`, supplies `BuildConfig`
-  defaults) and `MainActivity`. Neither holds screens, ViewModels, use cases or
+  `Application` (starts Koin and AppMetrica, builds Coil's `ImageLoader`, supplies `BuildConfig`
+  defaults) and `MainActivity`; the AppMetrica SDK and its `AnalyticsTracker` implementation live here and nowhere
+  else (ADR-0029). Neither holds screens, ViewModels, use cases or
   feature-specific DI modules.
+- **Sharing pictures** is the port `ImageSharer` (`:core:domain`), reached through `ShareImagesUseCase`, which drops
+  blank and repeated paths and refuses more than `MAX_SHARED_IMAGES` (10) with `ShareResult.TooMany`. `:app` binds it
+  to the Android share sheet: it copies each picture from Coil's disk cache (fetching through the same loader if it
+  was never seen; one still on the phone is copied from where it waits) into `cacheDir/shared-images`, exposes the
+  copies through a `FileProvider` that serves that folder only, and starts `ACTION_SEND` / `ACTION_SEND_MULTIPLE` in a
+  chooser with a read grant. No storage permission is needed, and no file is handed out by path. The browser binds
+  `ImageSharer.Unsupported`. A caller passes the `Photo.path` of each picture, not its thumbnail.
 - `:core:data` owns the repository implementations, the Ktor client and its plugins,
   the DTO↔domain mappers, the error mapper and the settings store.
 - `:core:designsystem` (theme, tokens, shared components) and `:core:ui`
