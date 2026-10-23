@@ -21,8 +21,8 @@ internal class AppMetricaTracker : AnalyticsTracker {
 /**
  * Activates AppMetrica with Java, native and ANR crash reports on. Returns whether it is on: without a key it stays
  * off and nothing is reported. Every event and crash report carries the build flavor ([distribution]), so one
- * AppMetrica app can be filtered per flavor. Sending starts switched off, until the user's choice has been read ([allowSending]),
- * so an opt-out holds from the first launch. Location is not collected.
+ * AppMetrica app can be filtered per flavor. Sending starts switched off, until the user's choice has been read
+ * ([allowSending]), so an opt-out holds from the first launch. Location is not collected.
  */
 internal fun startAppMetrica(
     application: Application,
