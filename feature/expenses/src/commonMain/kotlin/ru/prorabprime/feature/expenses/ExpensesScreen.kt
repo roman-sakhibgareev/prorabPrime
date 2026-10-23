@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
@@ -33,6 +34,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.jetbrains.compose.resources.StringResource
@@ -58,10 +61,16 @@ import ru.prorabprime.feature.expenses.resources.expenses_filter_crew
 import ru.prorabprime.feature.expenses.resources.expenses_filter_materials
 import ru.prorabprime.feature.expenses.resources.expenses_kind_crew
 import ru.prorabprime.feature.expenses.resources.expenses_kind_receipt
+import ru.prorabprime.feature.expenses.resources.expenses_mark_paid
+import ru.prorabprime.feature.expenses.resources.expenses_mark_unpaid
 import ru.prorabprime.feature.expenses.resources.expenses_materials
 import ru.prorabprime.feature.expenses.resources.expenses_no_amount
 import ru.prorabprime.feature.expenses.resources.expenses_paid
 import ru.prorabprime.feature.expenses.resources.expenses_receipt_unpaid
+import ru.prorabprime.feature.expenses.resources.expenses_rows_empty
+import ru.prorabprime.feature.expenses.resources.expenses_status_all
+import ru.prorabprime.feature.expenses.resources.expenses_status_paid
+import ru.prorabprime.feature.expenses.resources.expenses_status_unpaid
 import ru.prorabprime.feature.expenses.resources.expenses_this_month
 import ru.prorabprime.feature.expenses.resources.expenses_title
 import ru.prorabprime.feature.expenses.resources.expenses_total
@@ -157,10 +166,23 @@ private fun Report(
         }
         item(key = "all-title") { SectionTitle(Res.string.expenses_all) }
         item(key = "filter") { Filters(state.filter) { onEvent(ExpensesEvent.FilterSelected(it)) } }
-        items(state.rows, key = { "row:" + it.id }) { row ->
-            ExpenseRow(row) {
-                if (row.photoId != null) onOpenReceipt(row.objectId, row.photoId) else onOpenObject(row.objectId)
+        item(key = "payment-filter") { PaymentFilters(state) { onEvent(ExpensesEvent.PaymentFilterSelected(it)) } }
+        if (state.rows.isEmpty()) {
+            item(key = "rows-empty") {
+                Text(
+                    stringResource(Res.string.expenses_rows_empty),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
+        }
+        items(state.rows, key = { "row:" + it.id }) { row ->
+            val photoId = row.photoId
+            ExpenseRow(
+                row = row,
+                onPaidChange = photoId?.let { id -> { paid -> onEvent(ExpensesEvent.ReceiptPaidChanged(id, paid)) } },
+                onClick = { if (photoId != null) onOpenReceipt(row.objectId, photoId) else onOpenObject(row.objectId) },
+            )
             HorizontalDivider()
         }
     }
@@ -279,12 +301,45 @@ private fun Filters(selected: ExpenseFilter, onFilter: (ExpenseFilter) -> Unit) 
     }
 }
 
+/** Unpaid is what is owed, paid is the archive; the counts are of all receipts, not of the ones shown. */
 @Composable
-private fun ExpenseRow(row: ExpenseRowUi, onClick: () -> Unit) {
+private fun PaymentFilters(state: ExpensesState, onFilter: (PaymentStatusFilter) -> Unit) {
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
+        listOf(
+            PaymentStatusFilter.ALL to stringResource(Res.string.expenses_status_all),
+            PaymentStatusFilter.UNPAID to stringResource(Res.string.expenses_status_unpaid, state.unpaidCount),
+            PaymentStatusFilter.PAID to stringResource(Res.string.expenses_status_paid, state.paidCount),
+        ).forEach { (filter, label) ->
+            FilterChip(
+                selected = state.paymentFilter == filter,
+                onClick = { onFilter(filter) },
+                label = { Text(label) },
+            )
+        }
+    }
+}
+
+/** [onPaidChange] is null for a row that is not a receipt, which has nothing to mark. */
+@Composable
+private fun ExpenseRow(
+    row: ExpenseRowUi,
+    onPaidChange: ((Boolean) -> Unit)?,
+    onClick: () -> Unit,
+) {
     Row(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = Spacing.s),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        if (row.isReceipt && onPaidChange != null) {
+            val label = stringResource(
+                if (row.isUnpaid) Res.string.expenses_mark_paid else Res.string.expenses_mark_unpaid,
+            )
+            Checkbox(
+                checked = !row.isUnpaid,
+                onCheckedChange = onPaidChange,
+                modifier = Modifier.semantics { contentDescription = label },
+            )
+        }
         Column(Modifier.weight(1f)) {
             Text(row.objectTitle, style = MaterialTheme.typography.bodyLarge)
             val kind =

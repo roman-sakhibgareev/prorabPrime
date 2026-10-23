@@ -19,6 +19,13 @@ internal enum class ExpenseFilter {
     CREW,
 }
 
+/** Which receipts the list shows by whether they are paid for: [UNPAID] is what is owed, [PAID] the archive. */
+internal enum class PaymentStatusFilter {
+    ALL,
+    UNPAID,
+    PAID,
+}
+
 @Immutable
 internal sealed interface ExpensesStatus {
     data object Loading : ExpensesStatus
@@ -101,6 +108,10 @@ internal data class NewExpenseUi(
 internal data class ExpensesState(
     val status: ExpensesStatus = ExpensesStatus.Loading,
     val filter: ExpenseFilter = ExpenseFilter.ALL,
+    val paymentFilter: PaymentStatusFilter = PaymentStatusFilter.ALL,
+    /** Receipts paid for and not, whatever the filters: the counts on the status chips. */
+    val paidCount: Int = 0,
+    val unpaidCount: Int = 0,
     val summary: SummaryUi = SummaryUi(),
     val byObject: ImmutableList<BarUi> = persistentListOf(),
     val byMonth: ImmutableList<BarUi> = persistentListOf(),
@@ -116,6 +127,16 @@ internal data class ExpensesState(
 internal sealed interface ExpensesEvent {
     data class FilterSelected(
         val filter: ExpenseFilter,
+    ) : ExpensesEvent
+
+    data class PaymentFilterSelected(
+        val filter: PaymentStatusFilter,
+    ) : ExpensesEvent
+
+    /** The check on a receipt's row, for the photo of that receipt. */
+    data class ReceiptPaidChanged(
+        val photoId: String,
+        val paid: Boolean,
     ) : ExpensesEvent
 
     /** The plus button. */

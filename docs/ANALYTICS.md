@@ -16,6 +16,7 @@ so this table and that class are the same list: change one, change the other.
 | `object_status_changed` | the status of an object was changed from its card | `to`: the same four |
 | `object_deleted` | an object was moved to the trash | none |
 | `photo_added` | a picture was uploaded to an object | `kind`: `photo`, `receipt` |
+| `receipt_paid_changed` | a receipt was marked paid or not paid, from the expenses list or the photo viewer | `paid`: `yes`, `no` |
 | `payment_added` | a payment was added to the finance of an object | none |
 | `extra_work_added` | an extra work was added to the finance of an object | none |
 | `task_created` | a task was added to a plan | `reminder`: `yes` if it has a time, `no` if not |

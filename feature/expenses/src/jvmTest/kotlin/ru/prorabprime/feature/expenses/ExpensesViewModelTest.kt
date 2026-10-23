@@ -15,6 +15,7 @@ import ru.prorabprime.domain.model.asFailure
 import ru.prorabprime.domain.usecase.ObserveExpensesUseCase
 import ru.prorabprime.domain.usecase.ObserveObjectsUseCase
 import ru.prorabprime.domain.usecase.SavePaymentUseCase
+import ru.prorabprime.domain.usecase.SetReceiptPaidUseCase
 import ru.prorabprime.domain.usecase.SetReceiptUseCase
 import ru.prorabprime.domain.usecase.UploadPhotoUseCase
 import ru.prorabprime.testing.FakeExpensesRepository
@@ -44,6 +45,7 @@ class ExpensesViewModelTest {
             savePayment = SavePaymentUseCase(finance),
             uploadPhoto = UploadPhotoUseCase(FakeImageCompressor(), photos),
             setReceipt = SetReceiptUseCase(photos),
+            setReceiptPaid = SetReceiptPaidUseCase(photos),
         ),
         notifier,
     ) { today }
@@ -53,6 +55,7 @@ class ExpensesViewModelTest {
         objectId: String,
         day: LocalDay,
         kopecks: Long?,
+        paid: Boolean = false,
     ) = ExpenseItem(
         id,
         ExpenseKind.RECEIPT,
@@ -61,6 +64,7 @@ class ExpensesViewModelTest {
         day,
         kopecks,
         photoId = PhotoId(id),
+        isPaid = paid,
     )
 
     private fun crew(
@@ -73,7 +77,7 @@ class ExpensesViewModelTest {
     private val items = listOf(
         crew("c1", "1", LocalDay.of(2026, 10, 10), 2_100_000),
         receipt("r1", "1", LocalDay.of(2026, 10, 3), 7_900_000),
-        receipt("r2", "2", LocalDay.of(2026, 9, 28), 50_000_000),
+        receipt("r2", "2", LocalDay.of(2026, 9, 28), 50_000_000, paid = true),
         receipt("r3", "2", LocalDay.of(2026, 9, 1), null),
     )
 
@@ -129,6 +133,72 @@ class ExpensesViewModelTest {
 
         viewModel.onEvent(ExpensesEvent.FilterSelected(ExpenseFilter.MATERIALS))
         assertThat(viewModel.state.value.rows.map { it.id }).containsExactly("r1", "r2", "r3")
+    }
+
+    @Test
+    fun `the status filter makes the paid receipts an archive and the unpaid ones the list of what is owed`() {
+        repository.result.value = Result.success(Expenses(items))
+        val viewModel = viewModel()
+
+        viewModel.onEvent(ExpensesEvent.PaymentFilterSelected(PaymentStatusFilter.UNPAID))
+        assertThat(viewModel.state.value.rows.map { it.id }).containsExactly("r1", "r3")
+
+        viewModel.onEvent(ExpensesEvent.PaymentFilterSelected(PaymentStatusFilter.PAID))
+        assertThat(viewModel.state.value.rows.map { it.id }).containsExactly("r2")
+
+        viewModel.onEvent(ExpensesEvent.PaymentFilterSelected(PaymentStatusFilter.ALL))
+        assertThat(viewModel.state.value.rows).hasSize(4)
+    }
+
+    @Test
+    fun `the counts are of all receipts, whatever the filters`() {
+        repository.result.value = Result.success(Expenses(items))
+        val viewModel = viewModel()
+
+        viewModel.onEvent(ExpensesEvent.FilterSelected(ExpenseFilter.CREW))
+        viewModel.onEvent(ExpensesEvent.PaymentFilterSelected(PaymentStatusFilter.PAID))
+
+        val state = viewModel.state.value
+        assertThat(state.paidCount).isEqualTo(1)
+        assertThat(state.unpaidCount).isEqualTo(2)
+        assertThat(state.rows).isEmpty()
+    }
+
+    @Test
+    fun `the kind and the status filters narrow together, and a new reading keeps both`() {
+        val viewModel = viewModel()
+        repository.result.value = Result.success(Expenses(items))
+        viewModel.onEvent(ExpensesEvent.FilterSelected(ExpenseFilter.MATERIALS))
+        viewModel.onEvent(ExpensesEvent.PaymentFilterSelected(PaymentStatusFilter.UNPAID))
+
+        repository.result.value = Result.success(Expenses(items + receipt("r4", "1", today, 100_000)))
+
+        val state = viewModel.state.value
+        assertThat(state.rows.map { it.id }).containsExactly("r4", "r1", "r3")
+        assertThat(state.filter).isEqualTo(ExpenseFilter.MATERIALS)
+        assertThat(state.paymentFilter).isEqualTo(PaymentStatusFilter.UNPAID)
+    }
+
+    @Test
+    fun `marking a receipt sets it on the photo, and unmarking it from the archive does the same`() {
+        repository.result.value = Result.success(Expenses(items))
+        val viewModel = viewModel()
+
+        viewModel.onEvent(ExpensesEvent.ReceiptPaidChanged("r1", paid = true))
+        viewModel.onEvent(ExpensesEvent.ReceiptPaidChanged("r2", paid = false))
+
+        assertThat(photos.paid).containsExactly(PhotoId("r1") to true, PhotoId("r2") to false).inOrder()
+    }
+
+    @Test
+    fun `a refused mark is reported`() {
+        repository.result.value = Result.success(Expenses(items))
+        photos.error = AppError.NotFound
+        val viewModel = viewModel()
+
+        viewModel.onEvent(ExpensesEvent.ReceiptPaidChanged("r1", paid = true))
+
+        assertThat(notifier.errors).hasSize(1)
     }
 
     @Test

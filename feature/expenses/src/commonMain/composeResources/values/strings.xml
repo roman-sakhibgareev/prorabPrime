@@ -16,6 +16,12 @@
     <string name="expenses_filter_all">Все</string>
     <string name="expenses_filter_materials">Материалы</string>
     <string name="expenses_filter_crew">Бригада</string>
+    <string name="expenses_status_all">Все чеки</string>
+    <string name="expenses_status_unpaid">Не оплачены: %1$d</string>
+    <string name="expenses_status_paid">Оплачены: %1$d</string>
+    <string name="expenses_mark_paid">Отметить чек оплаченным</string>
+    <string name="expenses_mark_unpaid">Вернуть чек в неоплаченные</string>
+    <string name="expenses_rows_empty">Здесь пока ничего нет.</string>
     <string name="expenses_kind_receipt">Чек</string>
     <string name="expenses_kind_crew">Выплата бригаде</string>
     <string name="expenses_no_amount">сумма не указана</string>

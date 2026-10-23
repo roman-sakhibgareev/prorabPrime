@@ -18,6 +18,7 @@ import ru.prorabprime.domain.model.ReceiptInfo
 import ru.prorabprime.domain.usecase.ObserveExpensesUseCase
 import ru.prorabprime.domain.usecase.ObserveObjectsUseCase
 import ru.prorabprime.domain.usecase.SavePaymentUseCase
+import ru.prorabprime.domain.usecase.SetReceiptPaidUseCase
 import ru.prorabprime.domain.usecase.SetReceiptUseCase
 import ru.prorabprime.domain.usecase.UploadPhotoUseCase
 import ru.prorabprime.testing.FakeExpensesRepository
@@ -50,6 +51,7 @@ class ExpenseFormTest {
                 savePayment = SavePaymentUseCase(finance),
                 uploadPhoto = UploadPhotoUseCase(FakeImageCompressor(), photos),
                 setReceipt = SetReceiptUseCase(photos),
+                setReceiptPaid = SetReceiptPaidUseCase(photos),
             ),
             notifier,
         ) { today }

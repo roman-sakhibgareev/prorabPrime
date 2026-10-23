@@ -12,9 +12,11 @@ import kotlinx.coroutines.flow.update
 import ru.prorabprime.domain.model.Expenses
 import ru.prorabprime.domain.model.LocalDay
 import ru.prorabprime.domain.model.ObjectQuery
+import ru.prorabprime.domain.model.PhotoId
 import ru.prorabprime.domain.model.asAppError
 import ru.prorabprime.ui.SnackbarNotifier
 import ru.prorabprime.ui.StateOwner
+import ru.prorabprime.ui.launchCatching
 import ru.prorabprime.ui.toUiText
 
 /**
@@ -22,8 +24,8 @@ import ru.prorabprime.ui.toUiText
  * separate StateHolder would only forward calls.
  */
 internal class ExpensesViewModel(
-    actions: ExpensesActions,
-    notifier: SnackbarNotifier,
+    private val actions: ExpensesActions,
+    private val notifier: SnackbarNotifier,
     private val today: () -> LocalDay,
 ) : ViewModel(),
     StateOwner<ExpensesState> {
@@ -42,7 +44,7 @@ internal class ExpensesViewModel(
                 result
                     .onSuccess {
                         expenses = it
-                        _state.update { old -> report(it, old.filter, old) }
+                        _state.update { old -> report(it, old) }
                     }.onFailure { failure ->
                         _state.update { it.copy(status = ExpensesStatus.Error(failure.asAppError().toUiText())) }
                     }
@@ -59,20 +61,31 @@ internal class ExpensesViewModel(
     fun onEvent(event: ExpensesEvent) {
         when (event) {
             is ExpensesEvent.FilterSelected -> selectFilter(event.filter)
+            is ExpensesEvent.PaymentFilterSelected -> selectPaymentFilter(event.filter)
+            is ExpensesEvent.ReceiptPaidChanged -> setPaid(event)
             ExpensesEvent.AddClicked -> form.open()
             is ExpenseFormEvent -> form.onEvent(event)
         }
     }
 
-    private fun selectFilter(filter: ExpenseFilter) {
-        val read = expenses ?: return _state.update { it.copy(filter = filter) }
-        _state.update { report(read, filter, it) }
+    private fun selectFilter(filter: ExpenseFilter) = reselect { it.copy(filter = filter) }
+
+    private fun selectPaymentFilter(filter: PaymentStatusFilter) = reselect { it.copy(paymentFilter = filter) }
+
+    private fun reselect(change: (ExpensesState) -> ExpensesState) {
+        val read = expenses
+        _state.update { old -> change(old).let { if (read == null) it else report(read, it) } }
     }
 
-    /** The report for [filter], with what the report does not own — the objects and the form — kept from [old]. */
-    private fun report(
-        read: Expenses,
-        filter: ExpenseFilter,
-        old: ExpensesState,
-    ) = read.toState(today(), filter).copy(objects = old.objects, form = old.form)
+    /** The local copy changes first, so the row moves between the lists at once; a refusal is reported. */
+    private fun setPaid(event: ExpensesEvent.ReceiptPaidChanged) {
+        launchCatching(onFailure = { notifier.showError(it.asAppError().toUiText()) }) {
+            actions.setReceiptPaid(PhotoId(event.photoId), event.paid)
+                .onFailure { notifier.showError(it.asAppError().toUiText()) }
+        }
+    }
+
+    /** The report with the filters of [old], and what the report does not own — the objects and the form — kept. */
+    private fun report(read: Expenses, old: ExpensesState) =
+        read.toState(today(), old.filter, old.paymentFilter).copy(objects = old.objects, form = old.form)
 }

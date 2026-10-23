@@ -11,6 +11,7 @@ class AnalyticsEventTest {
         AnalyticsEvent.ObjectStatusChanged(ObjectStatus.DONE),
         AnalyticsEvent.ObjectDeleted,
         AnalyticsEvent.PhotoAdded(AttachmentKind.RECEIPT),
+        AnalyticsEvent.ReceiptPaidChanged(paid = true),
         AnalyticsEvent.PaymentAdded,
         AnalyticsEvent.ExtraWorkAdded,
         AnalyticsEvent.TaskCreated(withReminder = true),
@@ -36,6 +37,7 @@ class AnalyticsEventTest {
         assertThat(AnalyticsEvent.ObjectCreated(ObjectStatus.IN_PROGRESS).props)
             .containsExactly("status", "in_progress")
         assertThat(AnalyticsEvent.PhotoAdded(AttachmentKind.RECEIPT).props).containsExactly("kind", "receipt")
+        assertThat(AnalyticsEvent.ReceiptPaidChanged(paid = false).props).containsExactly("paid", "no")
         assertThat(AnalyticsEvent.TaskCreated(withReminder = false).props).containsExactly("reminder", "no")
         assertThat(AnalyticsEvent.ScreenView(AppScreen.Gallery).props).containsExactly("screen", "Gallery")
     }

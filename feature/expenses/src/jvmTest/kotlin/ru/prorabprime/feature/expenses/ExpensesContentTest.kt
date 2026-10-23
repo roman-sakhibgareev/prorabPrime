@@ -33,11 +33,13 @@ class ExpensesContentTest {
         byObject = persistentListOf(BarUi("o1", "Кухня", "400 000 ₽", 1f, "3", "o1")),
         byMonth = persistentListOf(BarUi("2026-10", "Октябрь 2026", "100 000 ₽", 0.5f)),
         rows = persistentListOf(
-            ExpenseRowUi("r1", "o1", "Кухня", "03.10.2026", true, "79 000 ₽", "Плитка", "p1"),
+            ExpenseRowUi("r1", "o1", "Кухня", "03.10.2026", true, "79 000 ₽", "Плитка", "p1", isUnpaid = true),
             ExpenseRowUi("r2", "o1", "Кухня", "04.10.2026", true, null, null, "p2"),
             ExpenseRowUi("c1", "o1", "Кухня", "10.10.2026", false, "21 000 ₽", null, null),
         ),
         allRows = 3,
+        paidCount = 1,
+        unpaidCount = 4,
     )
 
     @Composable
@@ -68,6 +70,7 @@ class ExpensesContentTest {
     fun `a receipt without a sum says so`() = runComposeUiTest {
         setContent { show(state) }
 
+        onNode(hasScrollAction()).performScrollToNode(hasText("сумма не указана"))
         onNodeWithText("сумма не указана").assertIsDisplayed()
     }
 
@@ -90,6 +93,56 @@ class ExpensesContentTest {
         onNode(hasText("Бригада") and hasClickAction()).performClick()
 
         assertThat(events).contains(ExpensesEvent.FilterSelected(ExpenseFilter.CREW))
+    }
+
+    @Test
+    fun `the status chips show the counts and send the choice`() = runComposeUiTest {
+        setContent { show(state) }
+
+        onNodeWithText("Оплачены: 1").assertIsDisplayed()
+        onNodeWithText("Не оплачены: 4").performClick()
+        onNodeWithText("Оплачены: 1").performClick()
+        onNodeWithText("Все чеки").performClick()
+
+        assertThat(events).containsExactly(
+            ExpensesEvent.PaymentFilterSelected(PaymentStatusFilter.UNPAID),
+            ExpensesEvent.PaymentFilterSelected(PaymentStatusFilter.PAID),
+            ExpensesEvent.PaymentFilterSelected(PaymentStatusFilter.ALL),
+        ).inOrder()
+    }
+
+    @Test
+    fun `an unpaid receipt is marked paid by its check, without opening the receipt`() = runComposeUiTest {
+        setContent { show(state) }
+
+        onNodeWithContentDescription("Отметить чек оплаченным").performClick()
+
+        assertThat(events).containsExactly(ExpensesEvent.ReceiptPaidChanged("p1", paid = true))
+        assertThat(receipts).isEmpty()
+    }
+
+    @Test
+    fun `a paid receipt can be put back from the archive, and a payment has no check`() = runComposeUiTest {
+        val archive = state.copy(
+            paymentFilter = PaymentStatusFilter.PAID,
+            rows = persistentListOf(
+                ExpenseRowUi("r2", "o1", "Кухня", "04.10.2026", true, "5 000 ₽", null, "p2"),
+                ExpenseRowUi("c1", "o1", "Кухня", "10.10.2026", false, "21 000 ₽", null, null),
+            ),
+        )
+        setContent { show(archive) }
+
+        onNodeWithContentDescription("Вернуть чек в неоплаченные").performClick()
+
+        assertThat(events).containsExactly(ExpensesEvent.ReceiptPaidChanged("p2", paid = false))
+        onNodeWithContentDescription("Отметить чек оплаченным").assertDoesNotExist()
+    }
+
+    @Test
+    fun `an empty status list says so`() = runComposeUiTest {
+        setContent { show(state.copy(paymentFilter = PaymentStatusFilter.PAID, rows = persistentListOf())) }
+
+        onNodeWithText("Здесь пока ничего нет.").assertIsDisplayed()
     }
 
     @Test
