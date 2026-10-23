@@ -1,17 +1,91 @@
 # ProrabPrime
 
-An app for a small renovation business: the owner's sites as a grid you can pick from at a glance,
-and a card per site with its client and other contacts (tap to call), a link to its chat, photos
-and receipts, the books (payments to the crew and from the client, with a history, and extra works),
-and a materials checklist. A big camera button shoots first and asks where the picture goes. Sites
-are on a map (OpenStreetMap), and there is a plan for the day with reminders. Stage 1: a Ktor server
-on the owner's computer and an Android app talking to it over the local Wi-Fi.
+A work-management app for a construction and renovation foreman. It keeps the objects (sites) a foreman
+runs, with their receipts and photos, payments, tasks, materials and a map, and it works without a signal.
 
-- Architecture — [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
-- Why it is built this way — [`docs/DECISIONS.md`](docs/DECISIONS.md)
-- Building, testing, branches and commits — [`CONTRIBUTING.md`](CONTRIBUTING.md)
+It is built for a real client, is in production, and is published on RuStore. The app is Android; the same
+screens also run in a browser. Kotlin Multiplatform with Compose Multiplatform on the client, a Ktor server
+with PostgreSQL behind it.
 
-## What you need
+**Stack:** Kotlin Multiplatform, Compose Multiplatform (Android and Wasm), Koin, Navigation 3, Ktor,
+Exposed, Flyway, PostgreSQL, Yandex AppMetrica, GitHub Actions.
+
+**Status:** release 1.5.0, distributed through RuStore.
+
+- Architecture: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+- Why it is built this way: [`docs/DECISIONS.md`](docs/DECISIONS.md)
+- Building, testing, branches and commits: [`CONTRIBUTING.md`](CONTRIBUTING.md)
+
+The user interface is in Russian, because the client is.
+
+## What it does
+
+- **Objects.** A grid of sites with search, status filters and sorting. Each object has a card with its
+  client and other contacts (tap to call), a link to its chat, and a status.
+- **Photos and receipts.** A large camera button shoots first and asks which object the picture belongs to.
+  Photos and receipts have a gallery and a viewer. Several pictures can be selected and shared to a
+  messenger in one go.
+- **Expenses and paid receipts.** A list of an object's receipts, split into unpaid (what is owed) and paid
+  (the archive), with a materials / crew filter, totals, and marking one or many receipts as paid.
+- **Finance.** Per object: payments to the crew and from the client, extra works, agreed sums and a
+  history.
+- **Payments journal.** One combined journal across all objects, filtered by object, period (all time or a
+  month), income or expense, and cash or non-cash, with income, expense and balance totals.
+- **Object journal.** Dated notes on what was done and what to remember.
+- **Tasks and day plan.** A calendar of tasks per day, optionally filtered by object, with reminders (an
+  Android feature; the browser has no alarms).
+- **Materials.** A checklist per object.
+- **Map.** Objects on OpenStreetMap; an address can be typed or picked on the map.
+- **Offline.** The app keeps its own copy of what it shows; photos, receipts and notes made without a
+  signal wait in a queue and are sent when a network is back (see "Working without a signal").
+- **Trash.** Deleted objects, photos and receipts stay restorable for thirty days.
+- **Accounts.** One server can hold several people, each with their own data (see "Accounts for other
+  people").
+- **Web app.** The same Compose UI compiled to WebAssembly, served by the server.
+
+## How it is built
+
+The code is split into Gradle modules with one-way dependencies. The shared core is Kotlin Multiplatform:
+domain and data code are written once and used by the Android app and the web client. The UI is Compose
+Multiplatform, so Android and the browser (Kotlin/Wasm) render the same screens. Each screen follows one
+MVI shape (state, event, state holder, view model, screen) and lives in its own `feature` module that
+never depends on another feature.
+
+The server is Ktor on Netty with Exposed for data access, Flyway for migrations and PostgreSQL. The DTOs and
+API paths live in one shared `api-contract` module that both the server and the client compile against, so
+they cannot drift apart.
+
+```text
+:app                  Android entry point (Application, MainActivity)
+:shared               App(), navigation, DI wiring
+:web                  browser entry point (Kotlin/Wasm)
+:feature:*            one module per screen group: objects, finance, journal, expenses, tasks,
+                      materials, map, settings, trash, sync
+:core:designsystem    theme and shared components
+:core:ui              ViewModel-facing primitives
+:core:data            Ktor client, repositories, local storage, platform code
+:core:domain          models, repository interfaces, use cases (depends on nothing)
+:core:testing         shared fakes for tests
+:api-contract         DTOs and API paths shared by client and server
+:server               Ktor + Exposed + Flyway + PostgreSQL
+```
+
+The rules and the reasons behind them are in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) and
+[`docs/DECISIONS.md`](docs/DECISIONS.md) (a numbered record of each decision, with the alternatives that
+were rejected).
+
+**Testing and CI.** `./gradlew verify` runs ktlint, detekt, every unit test, builds the `dev` debug APK and
+the web site. GitHub Actions runs the same command on every pull request and on pushes to `dev` and `main`.
+Server tests run against PostgreSQL in Docker, or an embedded one when Docker is missing.
+
+**Crash reporting and analytics.** The Android app reports crashes (Java, native and ANR) and a short list of
+usage events to Yandex AppMetrica. Events carry no text, names, amounts or ids ([`docs/ANALYTICS.md`](docs/ANALYTICS.md)),
+and the user can switch the reporting off in the app's settings. Builds without a key, and the browser
+client, report nothing. See ADR-0029 in [`docs/DECISIONS.md`](docs/DECISIONS.md).
+
+## Run it yourself
+
+### What you need
 
 - **JDK 17 or newer** to start Gradle. The build provisions JDK 17 for itself.
 - **Android SDK** (Android Studio installs it), with `sdk.dir` in `local.properties`.
@@ -20,7 +94,7 @@ on the owner's computer and an Android app talking to it over the local Wi-Fi.
 The same screens run in a browser: the server serves the web app (Kotlin/Wasm, Compose), see
 [the web app](#the-web-app) below.
 
-## 1. Configure the server
+### 1. Configure the server
 
 Copy `.env.example` to `.env` and replace every `change-me`:
 
@@ -43,7 +117,7 @@ An address can be typed or chosen on the map ("Выбрать на карте" i
 without a city are resolved around Yekaterinburg; change the point with `GEOCODER_NEAR`
 (`.env.example`).
 
-## 2. Start the server
+### 2. Start the server
 
 **With Docker** — PostgreSQL in a container, the server from Gradle:
 
@@ -80,7 +154,7 @@ curl http://localhost:8080/health
 
 Photos are stored under `data/uploads` (gitignored).
 
-## 3. Find the computer's address
+### 3. Find the computer's address
 
 The phone reaches the server at the computer's address in the local network.
 
@@ -96,7 +170,7 @@ port 8080 is allowed for private networks in *Windows Defender Firewall → Allo
 
 From the Android emulator the computer is `http://10.0.2.2:8080`.
 
-## 4. Build and install the app
+### 4. Build and install the app
 
 The app has three flavors, and each starts on a server of its own (it can always be changed in the app's settings):
 
@@ -133,10 +207,10 @@ Or build the APK and copy it to the phone:
 
 The file is `app/build/outputs/apk/debug/app-debug.apk`.
 
-**Use the debug build.** Until the server moves to a VPS with HTTPS, it speaks plain HTTP, which
-only the debug build allows.
+**Use the debug build on a home network.** The local server speaks plain HTTP, which only the debug build
+allows; the release builds need HTTPS (see "HTTPS" below).
 
-## 5. First launch
+### 5. First launch
 
 1. On Android 17 and newer the app asks for access to **devices on the local network**:
    allow it, or it cannot reach the server (ADR-0009).
@@ -147,7 +221,7 @@ only the debug build allows.
 
 The phone and the computer must be on the same Wi-Fi network.
 
-## Accounts for other people
+### Accounts for other people
 
 One server can hold several people, each with their own objects and tasks that nobody else sees. The
 `API_TOKEN` in `.env` is your own token (the first account, `owner`, which has everything made before accounts
@@ -180,7 +254,7 @@ Each account has a room for pictures, one gigabyte unless `ACCOUNT_QUOTA_MB` in 
 for none). The app shows the name of the account and how much is used in its settings. The trash counts, since
 its files are kept for thirty days; **Настройки → Корзина → Очистить** gives the room back (ADR-0022).
 
-## A signed release APK
+### A signed release APK
 
 The release build is signed with a key that stays on your computer. Make it once (the JDK that comes
 with Android Studio has `keytool`) and **keep the file and both passwords safe: a phone only accepts an
@@ -216,7 +290,7 @@ anybody else (GitHub, a store); the token is typed in the settings.
 
 The release builds speak only HTTPS (see "HTTPS" below); over plain HTTP on the home network use `dev` debug.
 
-## Checking a change
+### Checking a change
 
 ```bash
 ./gradlew verify
@@ -226,7 +300,7 @@ Formatting, static analysis, every unit test and the `dev` debug APK; the server
 in Docker, or over embedded PostgreSQL when Docker is missing (ADR-0006, ADR-0007). See
 [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
-## HTTPS, to reach the server from anywhere
+### HTTPS, to reach the server from anywhere
 
 Plain HTTP works on the home Wi‑Fi and only in the debug build. To use the server from outside, and with
 the release build, put HTTPS in front of it. With a public IP address this costs nothing:
@@ -255,7 +329,7 @@ Check it from outside the home network (a phone on mobile data): the address mus
 `http://<your IP>:8080` must not answer. The computer has to be on, and the server, Caddy and the updater
 running, for the app to reach it; without a signal the app still works from its own copy.
 
-## Working without a signal
+### Working without a signal
 
 The app keeps its own copy of everything it shows, so the list of objects, the cards, the finance, the checklist
 and the day plan open with no network, and photos, receipts and notes can be made there too. What was made
@@ -266,14 +340,14 @@ list where it can be retried or given up on. Pictures seen once are kept for the
 
 The browser version is online-first: its copy lives only while the tab is open.
 
-## The trash
+### The trash
 
 Deleting an object, or a photo or receipt, moves it to the trash instead of removing it. Open it from
 **Настройки → Корзина**: every item shows how many days it has left (thirty in all), and can be restored
 or removed for good; "Очистить" empties the trash. After thirty days the server removes what is left. The
 trash is read from the server, so it needs a signal; deleting itself still works without one (ADR-0019).
 
-## The web app
+### The web app
 
 The web client is the same Compose UI compiled to WebAssembly. It needs a recent browser (Chrome,
 Edge or Firefox from the last two years, Safari 18.2+). The server serves it, so the page and the API
