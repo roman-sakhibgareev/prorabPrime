@@ -112,8 +112,11 @@ Put the values in `local.properties`:
 prorab.dev.serverUrl=http://192.168.1.10:8080
 prorab.dev.apiToken=the same value as API_TOKEN in .env
 prorab.client.apiToken=the customer's token
+# Optional: the AppMetrica API key of a flavor, for release builds only; without it nothing is reported.
+prorab.rustore.appmetricaKey=the key of the AppMetrica app
 ```
 
+A flavor's AppMetrica key is `prorab.<flavor>.appmetricaKey`, or `PRORAB_<FLAVOR>_APPMETRICA_KEY` in the environment.
 A flavor's `serverUrl` can be overridden the same way (`prorab.client.serverUrl`, `prorab.rustore.serverUrl`), and a
 `-P` Gradle property wins over `local.properties`. With the phone connected over USB (developer options and USB
 debugging on):

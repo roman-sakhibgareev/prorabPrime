@@ -31,6 +31,11 @@ class LocalStorageSettingsRepository(
 
     override val objectSort: Flow<ObjectSort> = sort.asStateFlow()
 
+    // The browser reports nothing; the choice is only kept so the setting reads the same everywhere.
+    private val analytics = MutableStateFlow(BrowserStorage.get(ANALYTICS_ENABLED) != "false")
+
+    override val analyticsEnabled: Flow<Boolean> = analytics.asStateFlow()
+
     override suspend fun saveServerSettings(settings: ServerSettings) {
         BrowserStorage.set(BASE_URL, settings.baseUrl)
         BrowserStorage.set(API_TOKEN, settings.apiToken)
@@ -42,9 +47,15 @@ class LocalStorageSettingsRepository(
         this.sort.value = sort
     }
 
+    override suspend fun saveAnalyticsEnabled(enabled: Boolean) {
+        BrowserStorage.set(ANALYTICS_ENABLED, enabled.toString())
+        analytics.value = enabled
+    }
+
     private companion object {
         const val BASE_URL = "server_base_url"
         const val API_TOKEN = "server_api_token"
         const val OBJECT_SORT = "object_sort"
+        const val ANALYTICS_ENABLED = "analytics_enabled"
     }
 }

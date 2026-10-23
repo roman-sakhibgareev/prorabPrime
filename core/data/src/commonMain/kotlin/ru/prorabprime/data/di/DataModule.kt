@@ -50,6 +50,7 @@ import ru.prorabprime.domain.repository.SyncRepository
 import ru.prorabprime.domain.repository.TasksRepository
 import ru.prorabprime.domain.repository.TrashRepository
 import ru.prorabprime.domain.usecase.AddDefaultMaterialsUseCase
+import ru.prorabprime.domain.usecase.AnalyticsConsentUseCase
 import ru.prorabprime.domain.usecase.ChangeObjectStatusUseCase
 import ru.prorabprime.domain.usecase.CheckConnectionUseCase
 import ru.prorabprime.domain.usecase.CreateObjectUseCase
@@ -105,7 +106,8 @@ import ru.prorabprime.domain.usecase.UploadPhotoUseCase
 
 /**
  * Everything platform-neutral. A platform module supplies the rest: the `HttpClientEngine`,
- * the `SettingsRepository` and the `ImageCompressor` (`androidDataModule` on Android).
+ * the `SettingsRepository`, the `ImageCompressor` and the `AnalyticsTracker` (`:app` on Android, a no-op in the
+ * browser).
  */
 val dataModule: Module = module {
     single {
@@ -144,11 +146,11 @@ val dataModule: Module = module {
     factory { ObserveObjectsUseCase(get()) }
     factory { ObserveObjectUseCase(get()) }
     factory { RefreshObjectsUseCase(get()) }
-    factory { CreateObjectUseCase(get()) }
+    factory { CreateObjectUseCase(get(), get()) }
     factory { UpdateObjectUseCase(get()) }
-    factory { ChangeObjectStatusUseCase(get()) }
-    factory { DeleteObjectUseCase(get()) }
-    factory { UploadPhotoUseCase(get(), get()) }
+    factory { ChangeObjectStatusUseCase(get(), get()) }
+    factory { DeleteObjectUseCase(get(), get()) }
+    factory { UploadPhotoUseCase(get(), get(), get()) }
     factory { DeletePhotoUseCase(get()) }
     factory { SetCoverPhotoUseCase(get()) }
     factory { RotatePhotoUseCase(get()) }
@@ -167,9 +169,9 @@ val dataModule: Module = module {
     factory { ObserveFinanceUseCase(get()) }
     factory { ObservePaymentHistoryUseCase(get()) }
     factory { SaveFinanceTermsUseCase(get()) }
-    factory { SavePaymentUseCase(get()) }
+    factory { SavePaymentUseCase(get(), get()) }
     factory { DeletePaymentUseCase(get()) }
-    factory { SaveExtraWorkUseCase(get()) }
+    factory { SaveExtraWorkUseCase(get(), get()) }
     factory { DeleteExtraWorkUseCase(get()) }
     factory { ObserveMaterialsUseCase(get()) }
     factory { ObserveExpensesUseCase(get()) }
@@ -186,13 +188,14 @@ val dataModule: Module = module {
     factory { ObserveOverdueTasksUseCase(get()) }
     factory { ObserveTasksRangeUseCase(get()) }
     factory { ObserveNextTaskUseCase(get()) }
-    factory { SaveTaskUseCase(get()) }
+    factory { SaveTaskUseCase(get(), get()) }
     factory { DeleteTaskUseCase(get()) }
     factory { ObserveServerSettingsUseCase(get()) }
     factory { SaveServerSettingsUseCase(get()) }
     factory { CheckConnectionUseCase(get()) }
     factory { GetAccountUseCase(get()) }
     factory { ObserveObjectSortUseCase(get()) }
+    factory { AnalyticsConsentUseCase(get()) }
     factory { SaveObjectSortUseCase(get()) }
 }
 

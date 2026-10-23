@@ -9,6 +9,7 @@ import org.junit.Test
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import ru.prorabprime.data.di.memoryStorageModule
+import ru.prorabprime.domain.AnalyticsTracker
 import ru.prorabprime.domain.ImageCompressor
 import ru.prorabprime.domain.repository.ExpensesRepository
 import ru.prorabprime.domain.repository.ObjectsRepository
@@ -28,6 +29,7 @@ class AppModulesTest {
         single<HttpClientEngine> { MockEngine { respondOk() } }
         single<SettingsRepository> { FakeSettingsRepository() }
         single<ImageCompressor> { FakeImageCompressor() }
+        single<AnalyticsTracker> { AnalyticsTracker.None }
     }
 
     @Test

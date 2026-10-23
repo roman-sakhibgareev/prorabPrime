@@ -14,7 +14,8 @@ the settings (README, "A signed release APK"). The address can be changed with `
 
 - Output: `app/build/outputs/apk/rustore/release/app-rustore-release.apk`, signed with the key from
   `keystore.properties`. RuStore takes an APK; `./gradlew :app:bundleRustoreRelease` makes an AAB if the console asks for one.
-- The release build is minified by R8. A crash report from it needs
+- The release build is minified by R8 (checked: `:app:assembleRustoreRelease` builds with AppMetrica 8.6.0, which ships
+  its own keep rules). A crash report from it needs
   `app/build/outputs/mapping/rustoreRelease/mapping.txt` of the same build: keep it with the APK.
 - **Every upload needs a higher version.** Raise `prorab.version` in `gradle.properties`; `versionCode` follows it.
 - Check the APK on a device before uploading: install it, open the list, make an object, add a photo.
@@ -47,7 +48,7 @@ the settings (README, "A signed release APK"). The address can be changed with `
 > • Корзина на 30 дней: случайно удалённое можно вернуть.
 >
 > Для работы нужен сервер и токен: адрес и токен вводятся в настройках. Токен выдаёт владелец сервера
-> (разработчик или тот, кто запустил свой сервер). Без рекламы и сторонних сборщиков данных.
+> (разработчик или тот, кто запустил свой сервер). Без рекламы. Отчёты о сбоях и обезличенная статистика уходят в Яндекс AppMetrica и отключаются в настройках.
 
 **Screenshots:** the list of objects, an object card, the map, the day plan, the finance of an object.
 Take them from the reviewer's account (section 3), never from real customers. Check the size rules in the console.
@@ -104,3 +105,20 @@ There is no camera or storage permission: photos come from the camera app and th
 - [ ] Icon, descriptions, screenshots, age rating, category entered.
 - [ ] Moderator note with the server address and the reviewer's token.
 - [ ] `mapping.txt` of the uploaded build kept.
+
+## 6. Crash reports and statistics (AppMetrica)
+
+The store build reports crashes (Java, native, ANR) and the events of [`ANALYTICS.md`](ANALYTICS.md) to Yandex
+AppMetrica when it has an API key; the user can turn it off in the settings (ADR-0029). Say so in the console's data
+questionnaire: diagnostic data and app activity are collected, and the privacy page describes it.
+
+- **The key.** Create the app in the AppMetrica console, and put its API key (a UUID) in `local.properties` as
+  `prorab.rustore.appmetricaKey=...`, or in `PRORAB_RUSTORE_APPMETRICA_KEY` on a build machine. Without it the
+  build works and AppMetrica stays off. A debug build never takes a key.
+- **Readable stacks.** The release build is minified, so a crash stack names `a.b.c`. After each release, upload
+  `app/build/outputs/mapping/rustoreRelease/mapping.txt` of the very build you published in the AppMetrica console
+  (the app's *Settings → Crashes / Mapping files*; check the exact place in the console), tagged with the same version
+  code. Keep every release's `mapping.txt` next to its APK: a build cannot be deobfuscated with another build's file.
+- **Check once.** Install the release APK on a device, open a few screens, and see the events and a session appear
+  in the console (data may take minutes). Crash tests are done on a release build with a key, never in production data
+  from a debug build.

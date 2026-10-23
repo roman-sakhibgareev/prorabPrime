@@ -2,6 +2,8 @@ package ru.prorabprime.domain.usecase
 
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.flow.Flow
+import ru.prorabprime.domain.AnalyticsTracker
+import ru.prorabprime.domain.model.AnalyticsEvent
 import ru.prorabprime.domain.model.AppError
 import ru.prorabprime.domain.model.ExtraWorkDraft
 import ru.prorabprime.domain.model.ExtraWorkId
@@ -13,6 +15,7 @@ import ru.prorabprime.domain.model.PaymentId
 import ru.prorabprime.domain.model.PaymentRevision
 import ru.prorabprime.domain.model.asFailure
 import ru.prorabprime.domain.repository.FinanceRepository
+import ru.prorabprime.domain.tracked
 
 class ObserveFinanceUseCase(
     private val repository: FinanceRepository,
@@ -40,9 +43,10 @@ class SaveFinanceTermsUseCase(
 /** Normalizes and validates the draft; an invalid one never reaches the server. */
 class SavePaymentUseCase(
     private val repository: FinanceRepository,
+    private val tracker: AnalyticsTracker = AnalyticsTracker.None,
 ) {
     suspend fun create(objectId: ObjectId, draft: PaymentDraft): Result<Unit> = checked(draft) {
-        repository.addPayment(objectId, it)
+        repository.addPayment(objectId, it).tracked(tracker) { AnalyticsEvent.PaymentAdded }
     }
 
     suspend fun update(id: PaymentId, draft: PaymentDraft): Result<Unit> = checked(draft) {
@@ -65,9 +69,10 @@ class DeletePaymentUseCase(
 
 class SaveExtraWorkUseCase(
     private val repository: FinanceRepository,
+    private val tracker: AnalyticsTracker = AnalyticsTracker.None,
 ) {
     suspend fun create(objectId: ObjectId, draft: ExtraWorkDraft): Result<Unit> = checked(draft) {
-        repository.addExtraWork(objectId, it)
+        repository.addExtraWork(objectId, it).tracked(tracker) { AnalyticsEvent.ExtraWorkAdded }
     }
 
     suspend fun update(id: ExtraWorkId, draft: ExtraWorkDraft): Result<Unit> = checked(draft) {

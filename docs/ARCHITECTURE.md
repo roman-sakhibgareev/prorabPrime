@@ -16,7 +16,7 @@ plain **ADR-NNNN** in [`DECISIONS.md`](DECISIONS.md).
   **Coroutines + Flow**, **kotlinx.serialization**, **kotlinx.collections.immutable**.
 - Client: **Koin** for DI, **Navigation 3** (JetBrains builds of the UI) for navigation,
   **Ktor Client** for HTTP, **Coil 3** over the same Ktor client for images,
-  **DataStore** for settings.
+  **DataStore** for settings, **Yandex AppMetrica** (Android only, behind a domain port) for crash reports and analytics.
 - Server: **Ktor** (Netty), **Koin** (koin-ktor), **Exposed**, **Flyway**,
   **PostgreSQL**, **HikariCP** (§11).
 - **All dependency versions live in `gradle/libs.versions.toml`.** Never write a
@@ -87,8 +87,9 @@ Rules:
   `koinViewModel()`'s default lives.
 - `:shared` is the **root UI**: `App()`, the `NavDisplay` and its back stack, and
   `appModules`, the Koin module list. `:app` is the Android entry point only:
-  `Application` (starts Koin, builds Coil's `ImageLoader`, supplies `BuildConfig`
-  defaults) and `MainActivity`. Neither holds screens, ViewModels, use cases or
+  `Application` (starts Koin and AppMetrica, builds Coil's `ImageLoader`, supplies `BuildConfig`
+  defaults) and `MainActivity`; the AppMetrica SDK and its `AnalyticsTracker` implementation live here and nowhere
+  else (ADR-0029). Neither holds screens, ViewModels, use cases or
   feature-specific DI modules.
 - `:core:data` owns the repository implementations, the Ktor client and its plugins,
   the DTO↔domain mappers, the error mapper and the settings store.

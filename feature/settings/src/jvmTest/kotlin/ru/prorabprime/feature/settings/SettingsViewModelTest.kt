@@ -6,6 +6,7 @@ import org.junit.Test
 import ru.prorabprime.domain.model.Account
 import ru.prorabprime.domain.model.AppError
 import ru.prorabprime.domain.model.ServerSettings
+import ru.prorabprime.domain.usecase.AnalyticsConsentUseCase
 import ru.prorabprime.domain.usecase.CheckConnectionUseCase
 import ru.prorabprime.domain.usecase.GetAccountUseCase
 import ru.prorabprime.domain.usecase.ObserveServerSettingsUseCase
@@ -43,6 +44,7 @@ class SettingsViewModelTest {
             checkConnection = CheckConnectionUseCase(checker),
             getAccount = GetAccountUseCase(accounts),
             notifier = notifier,
+            analyticsConsent = AnalyticsConsentUseCase(settings),
         )
     }
 
@@ -138,5 +140,24 @@ class SettingsViewModelTest {
         assertThat(state.addressError).isEqualTo(UiText.Resource(Res.string.settings_error_address))
         assertThat(checker.checked).isEmpty()
         assertThat(settings.serverSettings.value.baseUrl).isEqualTo("http://192.168.1.10:8080")
+    }
+
+    @Test
+    fun `the switch shows the saved choice, on until the user turns it off`() {
+        assertThat(state.analyticsEnabled).isTrue()
+
+        settings.analyticsEnabled.value = false
+
+        assertThat(state.analyticsEnabled).isFalse()
+    }
+
+    @Test
+    fun `turning reporting off saves the choice, turning it on again saves that too`() {
+        viewModel.onEvent(SettingsEvent.AnalyticsToggled(false))
+        assertThat(settings.analyticsEnabled.value).isFalse()
+        assertThat(state.analyticsEnabled).isFalse()
+
+        viewModel.onEvent(SettingsEvent.AnalyticsToggled(true))
+        assertThat(settings.analyticsEnabled.value).isTrue()
     }
 }

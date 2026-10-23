@@ -2,6 +2,7 @@ package ru.prorabprime.data.settings
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -39,6 +40,9 @@ class DataStoreSettingsRepository(
         prefs[OBJECT_SORT]?.let { stored -> ObjectSort.entries.find { it.name == stored } } ?: ObjectSort.DEFAULT
     }.distinctUntilChanged()
 
+    override val analyticsEnabled: Flow<Boolean> =
+        preferences.map { it[ANALYTICS_ENABLED] ?: true }.distinctUntilChanged()
+
     override suspend fun saveServerSettings(settings: ServerSettings) {
         dataStore.edit {
             it[BASE_URL] = settings.baseUrl
@@ -50,9 +54,14 @@ class DataStoreSettingsRepository(
         dataStore.edit { it[OBJECT_SORT] = sort.name }
     }
 
+    override suspend fun saveAnalyticsEnabled(enabled: Boolean) {
+        dataStore.edit { it[ANALYTICS_ENABLED] = enabled }
+    }
+
     private companion object {
         val BASE_URL = stringPreferencesKey("server_base_url")
         val API_TOKEN = stringPreferencesKey("server_api_token")
         val OBJECT_SORT = stringPreferencesKey("object_sort")
+        val ANALYTICS_ENABLED = booleanPreferencesKey("analytics_enabled")
     }
 }

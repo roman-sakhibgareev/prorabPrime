@@ -33,6 +33,7 @@ import ru.prorabprime.designsystem.components.AppSnackbarHost
 import ru.prorabprime.designsystem.components.show
 import ru.prorabprime.designsystem.components.topBarColor
 import ru.prorabprime.designsystem.theme.Spacing
+import ru.prorabprime.domain.AnalyticsTracker
 import ru.prorabprime.feature.expenses.ExpensesNavKey
 import ru.prorabprime.feature.expenses.ExpensesScreen
 import ru.prorabprime.feature.finance.FinanceNavKey
@@ -72,13 +73,19 @@ import ru.prorabprime.ui.load
  * wired here.
  */
 @Composable
-fun AppNavDisplay(notifier: SnackbarNotifier, modifier: Modifier = Modifier) {
+fun AppNavDisplay(
+    notifier: SnackbarNotifier,
+    tracker: AnalyticsTracker,
+    modifier: Modifier = Modifier,
+) {
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(notifier) {
         notifier.messages.collect { snackbarHostState.show(it, it.text.load()) }
     }
 
     val backStack = rememberNavBackStack(NAV_KEYS, ObjectsListNavKey)
+    val current = backStack.lastOrNull()
+    LaunchedEffect(current) { current?.let { reportScreen(it, tracker) } }
     Scaffold(modifier = modifier, snackbarHost = { AppSnackbarHost(snackbarHostState) }) {
         // No padding from this Scaffold: each screen has its own, with its own top bar. On a wide
         // screen (the web client) the app stays a phone-shaped column in the middle.
