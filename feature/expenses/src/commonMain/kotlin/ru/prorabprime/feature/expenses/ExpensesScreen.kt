@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -25,7 +24,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -47,6 +45,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.jetbrains.compose.resources.StringResource
@@ -181,7 +180,13 @@ private fun SelectionBar(state: ExpensesState, onEvent: (ExpensesEvent) -> Unit)
     val picked = state.rows.filter { it.id in state.selected }
     val enabled = state.selected.isNotEmpty()
     TopAppBar(
-        title = { Text(stringResource(Res.string.expenses_selected, state.selected.size)) },
+        title = {
+            Text(
+                stringResource(Res.string.expenses_selected, state.selected.size),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        },
         navigationIcon = {
             IconButton(onClick = { onEvent(ExpensesEvent.SelectionClosed) }) {
                 Icon(Icons.Default.Close, stringResource(Res.string.expenses_select_close))
@@ -198,9 +203,7 @@ private fun SelectionBar(state: ExpensesState, onEvent: (ExpensesEvent) -> Unit)
                 Icon(Icons.Default.Check, stringResource(label))
             }
             TopBarTextButton(onClick = { onEvent(ExpensesEvent.ShareClicked) }, enabled = enabled && !state.isSharing) {
-                Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(SHARE_ICON))
-                Spacer(Modifier.width(Spacing.xs))
-                Text(stringResource(Res.string.expenses_share_label))
+                Text(stringResource(Res.string.expenses_share_label), maxLines = 1)
             }
         },
     )
@@ -468,7 +471,6 @@ private val BAR_HEIGHT = 6.dp
 /** The width of a check, so the text of a row that has none stays in line with the ones that do. */
 private val SELECT_PLACEHOLDER = 48.dp
 private const val DIMMED = 0.4f
-private val SHARE_ICON = 18.dp
 
 /** Room under the last row, so the plus button never covers it. */
 private val FAB_CLEARANCE = 88.dp
