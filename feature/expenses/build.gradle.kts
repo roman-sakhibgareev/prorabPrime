@@ -18,6 +18,7 @@ kotlin {
             implementation(project(":core:designsystem"))
 
             implementation(libs.androidx.lifecycle.runtime.compose)
+            implementation(libs.compose.mp.ui.backhandler)
             implementation(libs.koin.compose.viewmodel)
             implementation(libs.androidx.navigation3.runtime)
             implementation(libs.kotlinx.collections.immutable)

@@ -6,6 +6,7 @@ import org.junit.Test
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import ru.prorabprime.domain.ImageCompressor
+import ru.prorabprime.domain.ImageSharer
 import ru.prorabprime.domain.repository.ExpensesRepository
 import ru.prorabprime.domain.repository.FinanceRepository
 import ru.prorabprime.domain.repository.ObjectsRepository
@@ -15,6 +16,7 @@ import ru.prorabprime.domain.usecase.ObserveObjectsUseCase
 import ru.prorabprime.domain.usecase.SavePaymentUseCase
 import ru.prorabprime.domain.usecase.SetReceiptPaidUseCase
 import ru.prorabprime.domain.usecase.SetReceiptUseCase
+import ru.prorabprime.domain.usecase.ShareImagesUseCase
 import ru.prorabprime.domain.usecase.UploadPhotoUseCase
 import ru.prorabprime.testing.FakeExpensesRepository
 import ru.prorabprime.testing.FakeFinanceRepository
@@ -43,6 +45,8 @@ class ExpensesModuleTest {
         factory { UploadPhotoUseCase(get(), get()) }
         factory { SetReceiptUseCase(get()) }
         factory { SetReceiptPaidUseCase(get()) }
+        single<ImageSharer> { ImageSharer.Unsupported }
+        factory { ShareImagesUseCase(get()) }
         single<SnackbarNotifier> { FakeSnackbarNotifier() }
     }
 

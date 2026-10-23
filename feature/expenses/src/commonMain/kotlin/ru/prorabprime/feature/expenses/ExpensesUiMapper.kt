@@ -87,4 +87,5 @@ private fun ExpenseItem.toRow() = ExpenseRowUi(
     note = note,
     photoId = photoId?.value,
     isUnpaid = !isPaid,
+    isSelectable = photoPath?.value?.isNotBlank() == true,
 )

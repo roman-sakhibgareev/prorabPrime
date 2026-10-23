@@ -3,8 +3,10 @@ package ru.prorabprime.feature.expenses
 import androidx.compose.runtime.Immutable
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
+import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.collections.immutable.persistentSetOf
 import ru.prorabprime.domain.model.ExpenseKind
 import ru.prorabprime.domain.model.FieldProblem
 import ru.prorabprime.domain.model.LocalDay
@@ -76,6 +78,8 @@ internal data class ExpenseRowUi(
     val photoId: String?,
     /** A receipt not yet paid for. */
     val isUnpaid: Boolean = false,
+    /** A receipt with a picture to send; the rest cannot be picked in selection mode. */
+    val isSelectable: Boolean = false,
 )
 
 /** An object to put a new expense on. */
@@ -122,6 +126,12 @@ internal data class ExpensesState(
     /** What the form offers to put an expense on, in the order the list shows objects. */
     val objects: ImmutableList<ObjectChoiceUi> = persistentListOf(),
     val form: NewExpenseUi? = null,
+    /** Picking receipts to send; entered by a long press on one, left by closing or by a send. */
+    val selecting: Boolean = false,
+    /** The ids of the picked rows. */
+    val selected: ImmutableSet<String> = persistentSetOf(),
+    /** A send is getting its pictures ready; a second one would open a second sheet. */
+    val isSharing: Boolean = false,
 )
 
 internal sealed interface ExpensesEvent {
@@ -138,6 +148,24 @@ internal sealed interface ExpensesEvent {
         val photoId: String,
         val paid: Boolean,
     ) : ExpensesEvent
+
+    /** A long press on a row: starts picking with it, or picks it when already picking. */
+    data class RowLongPressed(
+        val id: String,
+    ) : ExpensesEvent
+
+    /** A tap on a row while picking. */
+    data class RowToggled(
+        val id: String,
+    ) : ExpensesEvent
+
+    /** The close button of the selection bar, or back. */
+    data object SelectionClosed : ExpensesEvent
+
+    data object ShareClicked : ExpensesEvent
+
+    /** Marks every picked receipt paid, or all of them unpaid when they already are. */
+    data object SelectionPaidClicked : ExpensesEvent
 
     /** The plus button. */
     data object AddClicked : ExpensesEvent
