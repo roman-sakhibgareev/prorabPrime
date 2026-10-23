@@ -41,7 +41,7 @@ val objectsModule = module {
             notifier = get(),
         )
     }
-    factory { ObjectDetailsActions(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    factory { ObjectDetailsActions(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { (objectId: ObjectId) ->
         val stateHolder: IObjectDetailsStateHolder = ObjectDetailsStateHolder()
         ObjectDetailsViewModel(
@@ -52,8 +52,8 @@ val objectsModule = module {
             notifier = get(),
         )
     }
-    viewModel { (args: GalleryArgs) -> GalleryViewModel(args, get(), get(), get()) }
-    viewModel { (args: PhotoViewerArgs) -> PhotoViewerViewModel(args, get(), get(), get(), get(), get(), get()) }
+    viewModel { (args: GalleryArgs) -> GalleryViewModel(args, get(), get(), get(), get()) }
+    viewModel { (args: PhotoViewerArgs) -> PhotoViewerViewModel(args, get(), get(), get(), get(), get(), get(), get()) }
     viewModel { (args: ObjectEditArgs) ->
         val stateHolder: IObjectEditStateHolder = ObjectEditStateHolder(isNew = args.objectId == null)
         ObjectEditViewModel(

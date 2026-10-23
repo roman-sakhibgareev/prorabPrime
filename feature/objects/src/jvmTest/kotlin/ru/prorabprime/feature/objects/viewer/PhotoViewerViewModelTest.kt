@@ -4,6 +4,7 @@ import com.google.common.truth.Truth.assertThat
 import kotlinx.collections.immutable.persistentListOf
 import org.junit.Rule
 import org.junit.Test
+import ru.prorabprime.domain.ShareResult
 import ru.prorabprime.domain.model.AppError
 import ru.prorabprime.domain.model.AttachmentKind
 import ru.prorabprime.domain.model.ObjectId
@@ -15,6 +16,8 @@ import ru.prorabprime.domain.usecase.RotatePhotoUseCase
 import ru.prorabprime.domain.usecase.SetPhotoNoteUseCase
 import ru.prorabprime.domain.usecase.SetReceiptPaidUseCase
 import ru.prorabprime.domain.usecase.SetReceiptUseCase
+import ru.prorabprime.domain.usecase.ShareImagesUseCase
+import ru.prorabprime.testing.FakeImageSharer
 import ru.prorabprime.testing.FakeObjectsRepository
 import ru.prorabprime.testing.FakePhotosRepository
 import ru.prorabprime.testing.FakeSnackbarNotifier
@@ -61,6 +64,26 @@ class PhotoViewerViewModelTest {
         viewModel.rotate("p2")
 
         assertThat(photos.rotated).containsExactly(PhotoId("p2"))
+    }
+
+    @Test
+    fun `sharing sends the full-size picture of that photo`() {
+        val viewModel = viewModel("p2")
+
+        viewModel.share("p2")
+
+        assertThat(sharer.shared).containsExactly(listOf(ServerFilePath("/files/o1/p2.jpg")))
+        assertThat(notifier.errors).isEmpty()
+    }
+
+    @Test
+    fun `a share that cannot be made says so`() {
+        sharer.result = { ShareResult.Failed }
+        val viewModel = viewModel("p2")
+
+        viewModel.share("p2")
+
+        assertThat(notifier.errors).hasSize(1)
     }
 
     @Test
@@ -206,6 +229,9 @@ class PhotoViewerViewModelTest {
         SetPhotoNoteUseCase(photos),
         SetReceiptUseCase(photos),
         SetReceiptPaidUseCase(photos),
+        ShareImagesUseCase(sharer),
         notifier,
     )
+
+    private val sharer = FakeImageSharer()
 }

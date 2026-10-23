@@ -57,6 +57,7 @@ import ru.prorabprime.feature.objects.resources.objectdetails_cover
 import ru.prorabprime.feature.objects.resources.objectdetails_delete_photo
 import ru.prorabprime.feature.objects.resources.objectdetails_has_note
 import ru.prorabprime.feature.objects.resources.objectdetails_make_cover
+import ru.prorabprime.feature.objects.resources.objectdetails_share_photo
 import ru.prorabprime.feature.objects.resources.objectdetails_upload_dismiss
 import ru.prorabprime.feature.objects.resources.objectdetails_upload_retry
 import ru.prorabprime.ui.resolve
@@ -69,6 +70,7 @@ internal fun PhotoCarousel(
     onAddClick: () -> Unit,
     onPhotoClick: (PhotoUi) -> Unit,
     onMakeCover: (PhotoUi) -> Unit,
+    onShare: (PhotoUi) -> Unit,
     onDelete: (PhotoUi) -> Unit,
     onRetryUpload: (UploadUi) -> Unit,
     onDismissUpload: (UploadUi) -> Unit,
@@ -91,6 +93,7 @@ internal fun PhotoCarousel(
                 onClick = { onPhotoClick(photo) },
                 canMakeCover = canMakeCover,
                 onMakeCover = { onMakeCover(photo) },
+                onShare = { onShare(photo) },
                 onDelete = { onDelete(photo) },
             )
         }
@@ -120,6 +123,7 @@ private fun PhotoTile(
     canMakeCover: Boolean,
     onClick: () -> Unit,
     onMakeCover: () -> Unit,
+    onShare: () -> Unit,
     onDelete: () -> Unit,
 ) {
     // Whether the long-press menu is open is view state with no meaning beyond this tile.
@@ -157,6 +161,13 @@ private fun PhotoTile(
                     },
                 )
             }
+            DropdownMenuItem(
+                text = { Text(stringResource(Res.string.objectdetails_share_photo)) },
+                onClick = {
+                    menuOpen = false
+                    onShare()
+                },
+            )
             DropdownMenuItem(
                 text = { Text(stringResource(Res.string.objectdetails_delete_photo)) },
                 onClick = {

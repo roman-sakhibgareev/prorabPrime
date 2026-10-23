@@ -24,7 +24,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -46,6 +45,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.jetbrains.compose.resources.StringResource
@@ -55,6 +55,7 @@ import ru.prorabprime.designsystem.components.EmptyMessage
 import ru.prorabprime.designsystem.components.ErrorMessage
 import ru.prorabprime.designsystem.components.LoadingBox
 import ru.prorabprime.designsystem.components.TopAppBar
+import ru.prorabprime.designsystem.components.TopBarTextButton
 import ru.prorabprime.designsystem.theme.Corners
 import ru.prorabprime.designsystem.theme.Spacing
 import ru.prorabprime.feature.expenses.resources.Res
@@ -78,11 +79,12 @@ import ru.prorabprime.feature.expenses.resources.expenses_no_amount
 import ru.prorabprime.feature.expenses.resources.expenses_paid
 import ru.prorabprime.feature.expenses.resources.expenses_receipt_unpaid
 import ru.prorabprime.feature.expenses.resources.expenses_rows_empty
+import ru.prorabprime.feature.expenses.resources.expenses_select
 import ru.prorabprime.feature.expenses.resources.expenses_select_close
 import ru.prorabprime.feature.expenses.resources.expenses_selected
 import ru.prorabprime.feature.expenses.resources.expenses_selection_mark_paid
 import ru.prorabprime.feature.expenses.resources.expenses_selection_mark_unpaid
-import ru.prorabprime.feature.expenses.resources.expenses_share
+import ru.prorabprime.feature.expenses.resources.expenses_share_label
 import ru.prorabprime.feature.expenses.resources.expenses_status_all
 import ru.prorabprime.feature.expenses.resources.expenses_status_paid
 import ru.prorabprime.feature.expenses.resources.expenses_status_unpaid
@@ -131,6 +133,13 @@ internal fun ExpensesContent(
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(Res.string.expenses_back))
                         }
                     },
+                    actions = {
+                        if (state.rows.any { it.isSelectable }) {
+                            TopBarTextButton(onClick = { onEvent(ExpensesEvent.SelectionStarted) }) {
+                                Text(stringResource(Res.string.expenses_select))
+                            }
+                        }
+                    },
                 )
             }
         },
@@ -171,7 +180,13 @@ private fun SelectionBar(state: ExpensesState, onEvent: (ExpensesEvent) -> Unit)
     val picked = state.rows.filter { it.id in state.selected }
     val enabled = state.selected.isNotEmpty()
     TopAppBar(
-        title = { Text(stringResource(Res.string.expenses_selected, state.selected.size)) },
+        title = {
+            Text(
+                stringResource(Res.string.expenses_selected, state.selected.size),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        },
         navigationIcon = {
             IconButton(onClick = { onEvent(ExpensesEvent.SelectionClosed) }) {
                 Icon(Icons.Default.Close, stringResource(Res.string.expenses_select_close))
@@ -187,8 +202,8 @@ private fun SelectionBar(state: ExpensesState, onEvent: (ExpensesEvent) -> Unit)
                 }
                 Icon(Icons.Default.Check, stringResource(label))
             }
-            IconButton(onClick = { onEvent(ExpensesEvent.ShareClicked) }, enabled = enabled && !state.isSharing) {
-                Icon(Icons.Default.Share, stringResource(Res.string.expenses_share))
+            TopBarTextButton(onClick = { onEvent(ExpensesEvent.ShareClicked) }, enabled = enabled && !state.isSharing) {
+                Text(stringResource(Res.string.expenses_share_label), maxLines = 1)
             }
         },
     )

@@ -8,6 +8,7 @@ import ru.prorabprime.domain.usecase.ObserveObjectUseCase
 import ru.prorabprime.domain.usecase.RefreshObjectsUseCase
 import ru.prorabprime.domain.usecase.SaveContactUseCase
 import ru.prorabprime.domain.usecase.SetCoverPhotoUseCase
+import ru.prorabprime.domain.usecase.ShareImagesUseCase
 import ru.prorabprime.domain.usecase.UploadPhotoUseCase
 
 /** The use cases the details screen calls, in one collaborator to keep the ViewModel's constructor short. */
@@ -21,4 +22,5 @@ internal class ObjectDetailsActions(
     val saveContact: SaveContactUseCase,
     val deleteContact: DeleteContactUseCase,
     val changeStatus: ChangeObjectStatusUseCase,
+    val shareImages: ShareImagesUseCase,
 )

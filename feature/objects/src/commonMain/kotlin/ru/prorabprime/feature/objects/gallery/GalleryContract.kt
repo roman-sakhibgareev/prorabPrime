@@ -26,6 +26,8 @@ internal sealed interface GalleryStatus {
 internal data class GalleryPhotoUi(
     val id: String,
     val thumb: ServerFilePath,
+    /** The full-size picture, which is what a share sends. */
+    val path: ServerFilePath,
     val isCover: Boolean,
     val isPending: Boolean,
     val quarterTurns: Int,
@@ -42,6 +44,8 @@ internal data class GalleryState(
     val selecting: Boolean = false,
     val selected: ImmutableSet<String> = persistentSetOf(),
     val dialog: DialogModel? = null,
+    /** A send is getting its pictures ready; a second one would open a second sheet. */
+    val isSharing: Boolean = false,
 )
 
 internal sealed interface GalleryEvent {
@@ -57,6 +61,9 @@ internal sealed interface GalleryEvent {
     data object SelectAllToggled : GalleryEvent
 
     data object DeleteClicked : GalleryEvent
+
+    /** Sends the picked pictures through the share sheet. */
+    data object ShareClicked : GalleryEvent
 
     data object DialogConfirmed : GalleryEvent
 

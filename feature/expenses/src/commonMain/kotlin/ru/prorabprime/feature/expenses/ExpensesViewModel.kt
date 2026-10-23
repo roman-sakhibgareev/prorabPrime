@@ -70,6 +70,7 @@ internal class ExpensesViewModel(
 
             ExpensesEvent.AddClicked -> form.open()
 
+            ExpensesEvent.SelectionStarted,
             is ExpensesEvent.RowLongPressed,
             is ExpensesEvent.RowToggled,
             ExpensesEvent.SelectionClosed,

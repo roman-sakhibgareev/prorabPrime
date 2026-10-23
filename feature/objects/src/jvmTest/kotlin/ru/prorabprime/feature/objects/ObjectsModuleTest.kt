@@ -7,6 +7,7 @@ import org.junit.Test
 import org.koin.core.parameter.parametersOf
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import ru.prorabprime.domain.ImageSharer
 import ru.prorabprime.domain.model.ObjectId
 import ru.prorabprime.domain.model.PickedPlaceStore
 import ru.prorabprime.domain.repository.ContactsRepository
@@ -29,6 +30,7 @@ import ru.prorabprime.domain.usecase.SetCoverPhotoUseCase
 import ru.prorabprime.domain.usecase.SetPhotoNoteUseCase
 import ru.prorabprime.domain.usecase.SetReceiptPaidUseCase
 import ru.prorabprime.domain.usecase.SetReceiptUseCase
+import ru.prorabprime.domain.usecase.ShareImagesUseCase
 import ru.prorabprime.domain.usecase.UpdateObjectUseCase
 import ru.prorabprime.domain.usecase.UploadPhotoUseCase
 import ru.prorabprime.feature.objects.details.ObjectDetailsViewModel
@@ -77,6 +79,8 @@ class ObjectsModuleTest {
         factory { RotatePhotoUseCase(get()) }
         factory { SetPhotoNoteUseCase(get()) }
         factory { SetReceiptUseCase(get()) }
+        single<ImageSharer> { ImageSharer.Unsupported }
+        factory { ShareImagesUseCase(get()) }
         factory { SetReceiptPaidUseCase(get()) }
         // What the ViewModel store supplies at runtime.
         factory { SavedStateHandle() }

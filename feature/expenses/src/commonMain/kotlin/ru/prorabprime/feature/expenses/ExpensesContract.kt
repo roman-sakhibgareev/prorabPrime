@@ -126,7 +126,7 @@ internal data class ExpensesState(
     /** What the form offers to put an expense on, in the order the list shows objects. */
     val objects: ImmutableList<ObjectChoiceUi> = persistentListOf(),
     val form: NewExpenseUi? = null,
-    /** Picking receipts to send; entered by a long press on one, left by closing or by a send. */
+    /** Picking receipts to send; entered by the "select" button or a long press, left by closing or a send. */
     val selecting: Boolean = false,
     /** The ids of the picked rows. */
     val selected: ImmutableSet<String> = persistentSetOf(),
@@ -148,6 +148,9 @@ internal sealed interface ExpensesEvent {
         val photoId: String,
         val paid: Boolean,
     ) : ExpensesEvent
+
+    /** The "select" button of the top bar: starts picking with nothing picked yet. */
+    data object SelectionStarted : ExpensesEvent
 
     /** A long press on a row: starts picking with it, or picks it when already picking. */
     data class RowLongPressed(

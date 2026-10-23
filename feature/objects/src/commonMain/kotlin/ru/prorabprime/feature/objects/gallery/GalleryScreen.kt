@@ -4,6 +4,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -20,6 +21,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -31,6 +33,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.jetbrains.compose.resources.stringResource
@@ -42,8 +45,8 @@ import ru.prorabprime.designsystem.components.ErrorMessage
 import ru.prorabprime.designsystem.components.LoadingBox
 import ru.prorabprime.designsystem.components.PendingBadge
 import ru.prorabprime.designsystem.components.ServerImage
-import ru.prorabprime.designsystem.components.TextButton
 import ru.prorabprime.designsystem.components.TopAppBar
+import ru.prorabprime.designsystem.components.TopBarTextButton
 import ru.prorabprime.designsystem.components.quarterTurns
 import ru.prorabprime.designsystem.icons.ProrabIcons
 import ru.prorabprime.designsystem.theme.Spacing
@@ -55,6 +58,7 @@ import ru.prorabprime.feature.objects.resources.gallery_empty
 import ru.prorabprime.feature.objects.resources.gallery_select
 import ru.prorabprime.feature.objects.resources.gallery_select_all
 import ru.prorabprime.feature.objects.resources.gallery_selected
+import ru.prorabprime.feature.objects.resources.gallery_share
 import ru.prorabprime.feature.objects.resources.gallery_title_photos
 import ru.prorabprime.feature.objects.resources.gallery_title_receipts
 import ru.prorabprime.feature.objects.resources.objectdetails_cover
@@ -121,7 +125,11 @@ private fun Scaffold(
             TopAppBar(
                 title = {
                     if (state.selecting) {
-                        Text(stringResource(Res.string.gallery_selected, state.selected.size))
+                        Text(
+                            stringResource(Res.string.gallery_selected, state.selected.size),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
                     } else {
                         Text(stringResource(titleOf(state)))
                     }
@@ -146,14 +154,20 @@ private fun Scaffold(
 @Composable
 private fun Actions(state: GalleryState, onEvent: (GalleryEvent) -> Unit) {
     if (state.selecting) {
-        TextButton(onClick = { onEvent(GalleryEvent.SelectAllToggled) }) {
-            Text(stringResource(Res.string.gallery_select_all))
+        IconButton(onClick = { onEvent(GalleryEvent.SelectAllToggled) }) {
+            Icon(ProrabIcons.SelectAll, stringResource(Res.string.gallery_select_all))
+        }
+        TopBarTextButton(
+            onClick = { onEvent(GalleryEvent.ShareClicked) },
+            enabled = state.selected.isNotEmpty() && !state.isSharing,
+        ) {
+            Text(stringResource(Res.string.gallery_share), maxLines = 1)
         }
         IconButton(onClick = { onEvent(GalleryEvent.DeleteClicked) }, enabled = state.selected.isNotEmpty()) {
             Icon(Icons.Default.Delete, stringResource(Res.string.gallery_delete))
         }
     } else if (state.photos.isNotEmpty()) {
-        TextButton(onClick = { onEvent(GalleryEvent.SelectingToggled) }) {
+        TopBarTextButton(onClick = { onEvent(GalleryEvent.SelectingToggled) }) {
             Text(stringResource(Res.string.gallery_select))
         }
     }
@@ -238,12 +252,13 @@ private fun Tile(
             }
         }
         if (selecting) {
-            Icon(
-                ProrabIcons.CheckCircle,
-                contentDescription = null,
-                tint = if (selected) colors.onPrimary else colors.surface,
-                modifier = Modifier.align(Alignment.TopStart).padding(Spacing.xs).size(CHECK_SIZE),
-            )
+            val mark = Modifier.align(Alignment.TopStart).padding(Spacing.xs).size(CHECK_SIZE)
+            if (selected) {
+                Icon(ProrabIcons.CheckCircle, contentDescription = null, tint = colors.onPrimary, modifier = mark)
+            } else {
+                // An empty ring: a check on every tile would read as "already selected".
+                Box(mark.border(2.dp, colors.surface, CircleShape))
+            }
         }
     }
 }

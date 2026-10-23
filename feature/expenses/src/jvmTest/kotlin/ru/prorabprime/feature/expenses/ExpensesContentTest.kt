@@ -155,6 +155,22 @@ class ExpensesContentTest {
         assertThat(receipts).isEmpty()
     }
 
+    @Test
+    fun `the top bar has a visible select button, and only when a receipt can be picked`() = runComposeUiTest {
+        setContent { show(state) }
+
+        onNodeWithText("Выбрать").performClick()
+
+        assertThat(events).containsExactly(ExpensesEvent.SelectionStarted)
+    }
+
+    @Test
+    fun `no select button when no receipt has a picture`() = runComposeUiTest {
+        setContent { show(state.copy(rows = persistentListOf(state.rows.last()))) }
+
+        onNodeWithText("Выбрать").assertDoesNotExist()
+    }
+
     private val picking = state.copy(selecting = true, selected = persistentSetOf("r1"))
 
     @Test
@@ -174,7 +190,7 @@ class ExpensesContentTest {
     fun `the bar closes picking, shares and marks the picked receipts`() = runComposeUiTest {
         setContent { show(picking) }
 
-        onNodeWithContentDescription("Отправить выбранные чеки").performClick()
+        onNodeWithText("Отправить").performClick()
         onNodeWithContentDescription("Отметить выбранные оплаченными").performClick()
         onNodeWithContentDescription("Отменить выбор").performClick()
 
@@ -189,7 +205,7 @@ class ExpensesContentTest {
     fun `with nothing picked or a share under way the actions are off`() = runComposeUiTest {
         setContent { show(picking.copy(selected = persistentSetOf())) }
 
-        onNodeWithContentDescription("Отправить выбранные чеки").assertIsNotEnabled()
+        onNodeWithText("Отправить").assertIsNotEnabled()
         onNodeWithContentDescription("Отметить выбранные оплаченными").assertIsNotEnabled()
     }
 

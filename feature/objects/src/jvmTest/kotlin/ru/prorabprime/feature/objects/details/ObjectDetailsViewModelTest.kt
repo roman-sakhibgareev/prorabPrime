@@ -16,6 +16,7 @@ import ru.prorabprime.domain.model.ObjectId
 import ru.prorabprime.domain.model.ObjectStatus
 import ru.prorabprime.domain.model.PhotoId
 import ru.prorabprime.domain.model.PhotoRejection
+import ru.prorabprime.domain.model.ServerFilePath
 import ru.prorabprime.domain.usecase.ChangeObjectStatusUseCase
 import ru.prorabprime.domain.usecase.DeleteContactUseCase
 import ru.prorabprime.domain.usecase.DeleteObjectUseCase
@@ -24,6 +25,7 @@ import ru.prorabprime.domain.usecase.ObserveObjectUseCase
 import ru.prorabprime.domain.usecase.RefreshObjectsUseCase
 import ru.prorabprime.domain.usecase.SaveContactUseCase
 import ru.prorabprime.domain.usecase.SetCoverPhotoUseCase
+import ru.prorabprime.domain.usecase.ShareImagesUseCase
 import ru.prorabprime.domain.usecase.UploadPhotoUseCase
 import ru.prorabprime.feature.objects.resources.Res
 import ru.prorabprime.feature.objects.resources.objectdetails_cover_set
@@ -32,6 +34,7 @@ import ru.prorabprime.feature.objects.resources.objectdetails_error_gone
 import ru.prorabprime.feature.objects.resources.objectdetails_upload_unreadable
 import ru.prorabprime.testing.FakeContactsRepository
 import ru.prorabprime.testing.FakeImageCompressor
+import ru.prorabprime.testing.FakeImageSharer
 import ru.prorabprime.testing.FakeObjectsRepository
 import ru.prorabprime.testing.FakePhotosRepository
 import ru.prorabprime.testing.FakeSnackbarNotifier
@@ -52,6 +55,7 @@ class ObjectDetailsViewModelTest {
     private val contacts = FakeContactsRepository()
     private val compressor = FakeImageCompressor()
     private val notifier = FakeSnackbarNotifier()
+    private val sharer = FakeImageSharer()
     private val id = ObjectId("o1")
 
     private val viewModel by lazy {
@@ -70,6 +74,7 @@ class ObjectDetailsViewModelTest {
                 saveContact = SaveContactUseCase(contacts),
                 deleteContact = DeleteContactUseCase(contacts),
                 changeStatus = ChangeObjectStatusUseCase(objects),
+                shareImages = ShareImagesUseCase(sharer),
             ),
             notifier = notifier,
         )
@@ -222,6 +227,18 @@ class ObjectDetailsViewModelTest {
 
         assertThat(photos.covers).containsExactly(id to PhotoId("p2"))
         assertThat(notifier.shown).containsExactly(UiText.Resource(Res.string.objectdetails_cover_set))
+    }
+
+    @Test
+    fun `sharing a photo from its menu sends the full-size picture`() {
+        objects.details.value = mapOf(
+            id to anObjectDetails(id = "o1", photos = persistentListOf(aPhoto("p1", "o1"), aPhoto("p2", "o1"))),
+        )
+
+        viewModel.onEvent(ObjectDetailsEvent.SharePhotoClicked("p2"))
+
+        assertThat(sharer.shared.single()).containsExactly(ServerFilePath("/files/o1/p2.jpg"))
+        assertThat(notifier.errors).isEmpty()
     }
 
     @Test

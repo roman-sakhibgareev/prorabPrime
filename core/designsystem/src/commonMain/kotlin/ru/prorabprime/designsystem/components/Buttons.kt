@@ -13,11 +13,14 @@ import androidx.compose.material3.FilledIconButton as MaterialFilledIconButton
 import androidx.compose.material3.FilledTonalButton as MaterialTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton as MaterialOutlinedButton
+import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.TextButton as MaterialTextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import ru.prorabprime.designsystem.theme.Sizes
 
@@ -29,6 +32,7 @@ import ru.prorabprime.designsystem.theme.Sizes
 private val ButtonHeight = Sizes.control
 private val ButtonPadding = PaddingValues(horizontal = 20.dp)
 private val TonalButtonPadding = PaddingValues(horizontal = 12.dp)
+private val TopBarButtonPadding = PaddingValues(horizontal = 8.dp)
 private val IconButtonSize = Sizes.control
 
 @Composable
@@ -107,6 +111,32 @@ fun TextButton(
         enabled = enabled && !loading,
         shape = MaterialTheme.shapes.small,
         content = { Busy(loading, content) },
+    )
+}
+
+/**
+ * A text button for a top bar's actions, in the bar's own content color: the default would be green on green.
+ * Its padding is compact so a few actions fit beside a title; a screen may restyle the text with [textStyle].
+ */
+@Composable
+fun TopBarTextButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    textStyle: TextStyle = MaterialTheme.typography.labelLarge,
+    content: @Composable RowScope.() -> Unit,
+) {
+    MaterialTextButton(
+        onClick = onClick,
+        modifier = modifier.defaultMinSize(minHeight = ButtonHeight),
+        enabled = enabled,
+        shape = MaterialTheme.shapes.small,
+        colors = ButtonDefaults.textButtonColors(
+            contentColor = Color.White,
+            disabledContentColor = Color.White.copy(alpha = DISABLED_ALPHA),
+        ),
+        contentPadding = TopBarButtonPadding,
+        content = { ProvideTextStyle(textStyle) { content() } },
     )
 }
 
