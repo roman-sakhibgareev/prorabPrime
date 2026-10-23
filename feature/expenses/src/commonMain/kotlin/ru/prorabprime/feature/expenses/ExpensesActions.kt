@@ -3,6 +3,7 @@ package ru.prorabprime.feature.expenses
 import ru.prorabprime.domain.usecase.ObserveExpensesUseCase
 import ru.prorabprime.domain.usecase.ObserveObjectsUseCase
 import ru.prorabprime.domain.usecase.SavePaymentUseCase
+import ru.prorabprime.domain.usecase.SetReceiptPaidUseCase
 import ru.prorabprime.domain.usecase.SetReceiptUseCase
 import ru.prorabprime.domain.usecase.UploadPhotoUseCase
 
@@ -13,4 +14,5 @@ internal class ExpensesActions(
     val savePayment: SavePaymentUseCase,
     val uploadPhoto: UploadPhotoUseCase,
     val setReceipt: SetReceiptUseCase,
+    val setReceiptPaid: SetReceiptPaidUseCase,
 )

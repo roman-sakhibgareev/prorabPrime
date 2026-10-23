@@ -13,6 +13,7 @@ import ru.prorabprime.domain.repository.PhotosRepository
 import ru.prorabprime.domain.usecase.ObserveExpensesUseCase
 import ru.prorabprime.domain.usecase.ObserveObjectsUseCase
 import ru.prorabprime.domain.usecase.SavePaymentUseCase
+import ru.prorabprime.domain.usecase.SetReceiptPaidUseCase
 import ru.prorabprime.domain.usecase.SetReceiptUseCase
 import ru.prorabprime.domain.usecase.UploadPhotoUseCase
 import ru.prorabprime.testing.FakeExpensesRepository
@@ -41,6 +42,7 @@ class ExpensesModuleTest {
         factory { SavePaymentUseCase(get()) }
         factory { UploadPhotoUseCase(get(), get()) }
         factory { SetReceiptUseCase(get()) }
+        factory { SetReceiptPaidUseCase(get()) }
         single<SnackbarNotifier> { FakeSnackbarNotifier() }
     }
 
