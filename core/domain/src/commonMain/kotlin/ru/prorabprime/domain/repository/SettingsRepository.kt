@@ -10,7 +10,12 @@ interface SettingsRepository {
 
     val objectSort: Flow<ObjectSort>
 
+    /** Whether crash reports and usage statistics may be sent; on until the user turns it off (ADR-0029). */
+    val analyticsEnabled: Flow<Boolean>
+
     suspend fun saveServerSettings(settings: ServerSettings)
 
     suspend fun saveObjectSort(sort: ObjectSort)
+
+    suspend fun saveAnalyticsEnabled(enabled: Boolean)
 }

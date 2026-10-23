@@ -50,6 +50,7 @@ import ru.prorabprime.domain.repository.SyncRepository
 import ru.prorabprime.domain.repository.TasksRepository
 import ru.prorabprime.domain.repository.TrashRepository
 import ru.prorabprime.domain.usecase.AddDefaultMaterialsUseCase
+import ru.prorabprime.domain.usecase.AnalyticsConsentUseCase
 import ru.prorabprime.domain.usecase.ChangeObjectStatusUseCase
 import ru.prorabprime.domain.usecase.CheckConnectionUseCase
 import ru.prorabprime.domain.usecase.CreateObjectUseCase
@@ -194,6 +195,7 @@ val dataModule: Module = module {
     factory { CheckConnectionUseCase(get()) }
     factory { GetAccountUseCase(get()) }
     factory { ObserveObjectSortUseCase(get()) }
+    factory { AnalyticsConsentUseCase(get()) }
     factory { SaveObjectSortUseCase(get()) }
 }
 

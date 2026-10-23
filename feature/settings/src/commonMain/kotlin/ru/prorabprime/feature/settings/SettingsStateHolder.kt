@@ -23,6 +23,8 @@ internal interface ISettingsStateHolder : StateOwner<SettingsState> {
     fun setSaving(saving: Boolean)
 
     fun showAccount(account: Account?)
+
+    fun setAnalyticsEnabled(enabled: Boolean)
 }
 
 internal class SettingsStateHolder : ISettingsStateHolder {
@@ -50,4 +52,6 @@ internal class SettingsStateHolder : ISettingsStateHolder {
     override fun setSaving(saving: Boolean) = _state.update { it.copy(isSaving = saving) }
 
     override fun showAccount(account: Account?) = _state.update { it.copy(account = account) }
+
+    override fun setAnalyticsEnabled(enabled: Boolean) = _state.update { it.copy(analyticsEnabled = enabled) }
 }

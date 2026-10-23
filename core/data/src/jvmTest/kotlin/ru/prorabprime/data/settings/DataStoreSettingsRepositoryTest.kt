@@ -43,4 +43,16 @@ class DataStoreSettingsRepositoryTest {
         assertThat(settings.serverSettings.first()).isEqualTo(ServerSettings("http://10.0.0.2:8080", "mine"))
         assertThat(settings.objectSort.first()).isEqualTo(ObjectSort.ADDRESS_ASC)
     }
+
+    @Test
+    fun `analytics are on until the user turns them off, and the choice stays`() = runTest {
+        val settings = repository(backgroundScope)
+        assertThat(settings.analyticsEnabled.first()).isTrue()
+
+        settings.saveAnalyticsEnabled(false)
+        assertThat(settings.analyticsEnabled.first()).isFalse()
+
+        settings.saveAnalyticsEnabled(true)
+        assertThat(settings.analyticsEnabled.first()).isTrue()
+    }
 }
