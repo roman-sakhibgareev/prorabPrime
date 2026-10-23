@@ -4,6 +4,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -20,6 +21,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -250,12 +252,13 @@ private fun Tile(
             }
         }
         if (selecting) {
-            Icon(
-                ProrabIcons.CheckCircle,
-                contentDescription = null,
-                tint = if (selected) colors.onPrimary else colors.surface,
-                modifier = Modifier.align(Alignment.TopStart).padding(Spacing.xs).size(CHECK_SIZE),
-            )
+            val mark = Modifier.align(Alignment.TopStart).padding(Spacing.xs).size(CHECK_SIZE)
+            if (selected) {
+                Icon(ProrabIcons.CheckCircle, contentDescription = null, tint = colors.onPrimary, modifier = mark)
+            } else {
+                // An empty ring: a check on every tile would read as "already selected".
+                Box(mark.border(2.dp, colors.surface, CircleShape))
+            }
         }
     }
 }
