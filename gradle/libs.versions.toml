@@ -20,6 +20,8 @@ twelvemonkeys = "3.15.2"
 embeddedPostgres = "2.2.2"
 # PostgreSQL itself for the embedded fallback; the same major version as docker-compose.
 embeddedPostgresBinaries = "17.11.0"
+# Yandex AppMetrica: crash reports and analytics (ADR-0029). 8.6.0 is the current stable on Maven Central (2026-09-29).
+appmetrica = "8.6.0"
 coilBom = "3.6.3"
 koinBom = "4.2.2"
 kotlinxCollectionsImmutable = "0.5.2"
@@ -93,6 +95,7 @@ imageio-webp = { module = "com.twelvemonkeys.imageio:imageio-webp", version.ref 
 testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql", version.ref = "testcontainers" }
 embedded-postgres = { module = "io.zonky.test:embedded-postgres", version.ref = "embeddedPostgres" }
 embedded-postgres-binaries-bom = { module = "io.zonky.test.postgres:embedded-postgres-binaries-bom", version.ref = "embeddedPostgresBinaries" }
+appmetrica = { module = "io.appmetrica.analytics:analytics", version.ref = "appmetrica" }
 coil-bom = { module = "io.coil-kt.coil3:coil-bom", version.ref = "coilBom" }
 coil = { module = "io.coil-kt.coil3:coil" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose" }
