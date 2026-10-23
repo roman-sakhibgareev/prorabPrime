@@ -44,6 +44,11 @@ the `AppScreen` enum, never by a navigation key, whose arguments are ids.
 Debug builds never get a key (so a build from the IDE cannot reach the store app's data); a release build gets it
 from `prorab.<flavor>.appmetricaKey` in `local.properties` (README, "Build and install the app").
 
+One AppMetrica app serves every flavor. Each report carries `distribution` (`client`, `rustore` or `dev`) from
+`BuildConfig.DISTRIBUTION`, set as app environment (events) and error environment (crashes) at activation. In the
+console, filter by the `distribution` parameter of an event or crash; the exact menu path is unverified. That crash
+reports pick up the value is also unverified: check it on the first real crash.
+
 ## Adding an event
 
 1. Name the question the event answers before the event; an unused event is data nobody asked for.

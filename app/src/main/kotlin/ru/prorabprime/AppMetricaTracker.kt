@@ -20,10 +20,15 @@ internal class AppMetricaTracker : AnalyticsTracker {
 
 /**
  * Activates AppMetrica with Java, native and ANR crash reports on. Returns whether it is on: without a key it stays
- * off and nothing is reported. Sending starts switched off, until the user's choice has been read ([allowSending]),
+ * off and nothing is reported. Every event and crash report carries the build flavor ([distribution]), so one
+ * AppMetrica app can be filtered per flavor. Sending starts switched off, until the user's choice has been read ([allowSending]),
  * so an opt-out holds from the first launch. Location is not collected.
  */
-internal fun startAppMetrica(application: Application, apiKey: String): Boolean {
+internal fun startAppMetrica(
+    application: Application,
+    apiKey: String,
+    distribution: String,
+): Boolean {
     if (apiKey.isBlank()) return false
     val config = AppMetricaConfig.newConfigBuilder(apiKey)
         .withCrashReporting(true)
@@ -31,11 +36,15 @@ internal fun startAppMetrica(application: Application, apiKey: String): Boolean 
         .withAnrMonitoring(true)
         .withLocationTracking(false)
         .withDataSendingEnabled(false)
+        .withAppEnvironmentValue(DISTRIBUTION_KEY, distribution)
+        .withErrorEnvironmentValue(DISTRIBUTION_KEY, distribution)
         .build()
     AppMetrica.activate(application, config)
     AppMetrica.enableActivityAutoTracking(application)
     return true
 }
+
+private const val DISTRIBUTION_KEY = "distribution"
 
 /** Lets AppMetrica send crash reports and events, or stops it; the user's choice in the settings. */
 internal fun allowSending(tracker: AppMetricaTracker, allowed: Boolean) {
