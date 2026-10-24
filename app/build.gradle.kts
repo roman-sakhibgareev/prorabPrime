@@ -77,6 +77,7 @@ androidComponents {
             "APPMETRICA_API_KEY",
             appMetricaKey(flavor, variant.buildType.orEmpty()).map { BuildConfigField("String", it, null) },
         )
+        variant.buildConfigFields?.put("DISTRIBUTION", BuildConfigField("String", "\"$flavor\"", null))
     }
 }
 
