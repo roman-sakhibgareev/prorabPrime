@@ -10,7 +10,7 @@ with PostgreSQL behind it.
 **Stack:** Kotlin Multiplatform, Compose Multiplatform (Android and Wasm), Koin, Navigation 3, Ktor,
 Exposed, Flyway, PostgreSQL, Yandex AppMetrica, GitHub Actions.
 
-**Status:** release 1.5.0, distributed through RuStore.
+**Status:** release 1.5.1, distributed through RuStore ([`docs/RUSTORE.md`](docs/RUSTORE.md)).
 
 - Architecture: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 - Why it is built this way: [`docs/DECISIONS.md`](docs/DECISIONS.md)
@@ -24,6 +24,7 @@ The user interface is in Russian, because the client is.
   <img src="docs/screenshots/objects.webp" width="170" alt="Objects list">
   <img src="docs/screenshots/finance.webp" width="170" alt="Finance of an object">
   <img src="docs/screenshots/payments-journal.webp" width="170" alt="Combined payments journal">
+  <img src="docs/screenshots/object-journal.webp" width="170" alt="Object journal">
   <img src="docs/screenshots/tasks.webp" width="170" alt="Day plan">
   <img src="docs/screenshots/settings.webp" width="170" alt="Settings with the analytics switch">
 </p>
@@ -164,7 +165,7 @@ Photos are stored under `data/uploads` (gitignored).
 
 ### 3. Find the computer's address
 
-The phone reaches the server at the computer's address in the local network.
+For a local setup the phone reaches the server at the computer's address in the local network.
 
 - **Windows:** run `ipconfig` and take the *IPv4 Address* of the Wi-Fi (or Ethernet) adapter,
   e.g. `192.168.1.10`.
@@ -227,7 +228,8 @@ allows; the release builds need HTTPS (see "HTTPS" below).
    **Сохранить**.
 3. Back on the list, add the first object with **Добавить объект**.
 
-The phone and the computer must be on the same Wi-Fi network.
+With a local server the phone and the computer must be on the same Wi-Fi network; a server behind HTTPS (see
+"HTTPS" below) can be reached from anywhere.
 
 ### Accounts for other people
 
