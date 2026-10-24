@@ -44,7 +44,11 @@ class ProrabApplication :
     override fun onCreate() {
         super.onCreate()
         // First, so a crash in the start-up below is reported too.
-        val analytics = if (startAppMetrica(this, BuildConfig.APPMETRICA_API_KEY)) AppMetricaTracker() else null
+        val analytics = if (startAppMetrica(this, BuildConfig.APPMETRICA_API_KEY, BuildConfig.DISTRIBUTION)) {
+            AppMetricaTracker()
+        } else {
+            null
+        }
         val defaults = ServerSettings(BuildConfig.DEFAULT_SERVER_URL, BuildConfig.DEFAULT_API_TOKEN)
         startKoin {
             // Debug builds only: the logger reflects on every definition it prints.
