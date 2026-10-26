@@ -574,7 +574,8 @@ in step.
   **A row with a change still waiting is never overwritten by a copy-down**: until the server has
   accepted it, the phone's version is the true one. No answer stops the run and keeps everything queued.
   A 4xx is the server saying no for good: the change is marked *failed*, stays in the queue so nothing
-  the user entered vanishes silently, and does not hold up the others. A 5xx is tried a few times first.
+  the user entered vanishes silently, and does not hold up the others. A 5xx is tried a few times first,
+  except 502, 503 and 504 (the proxy's "server not answering"), which count as no signal and never use up a try.
   A 401 stops everything and says the token was refused. Deleting what is already gone counts as done.
 - *When it runs*: at start, a moment after any change, when the settings change, every five minutes,
   with growing pauses after a failed attempt, when Android reports a network, and, with the app closed,

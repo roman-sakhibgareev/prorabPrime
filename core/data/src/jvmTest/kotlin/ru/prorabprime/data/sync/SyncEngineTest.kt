@@ -188,6 +188,22 @@ class SyncEngineTest {
     }
 
     @Test
+    fun `a gateway outage keeps the change waiting however long it lasts`() = runTest {
+        db.load()
+        db.outbox.enqueue(Operation.DeleteObject("x"))
+        listOf(HttpStatusCode.BadGateway, HttpStatusCode.ServiceUnavailable, HttpStatusCode.GatewayTimeout).forEach {
+            server.writeStatus = it
+
+            repeat(MAX_TRIES * 2) {
+                assertThat(engine.sync()).isEqualTo(SyncOutcome.Offline)
+            }
+
+            assertThat(db.outbox.snapshot().single().state).isEqualTo(OperationState.PENDING)
+            assertThat(db.outbox.snapshot().single().attempts).isEqualTo(0)
+        }
+    }
+
+    @Test
     fun `a row with a change waiting keeps the phone's version when the server has newer data`() = runTest {
         db.load()
         engine.sync()
