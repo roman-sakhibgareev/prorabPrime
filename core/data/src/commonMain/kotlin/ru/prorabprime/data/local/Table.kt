@@ -7,6 +7,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.jsonArray
 import ru.prorabprime.data.network.ApiJson
 import ru.prorabprime.data.network.dataLogWarning
 
@@ -26,18 +28,27 @@ internal class Table<T : Any>(
 
     val rows: StateFlow<Map<String, T>> = state.asStateFlow()
 
-    /** Reads what an earlier run saved; a file that does not parse is treated as empty, never as a crash. */
+    /**
+     * Reads what an earlier run saved. A file that does not parse is never a crash: the rows that do parse
+     * are kept and the text is saved under "$name.unreadable", because the next change rewrites the file.
+     */
     suspend fun load() = mutex.withLock {
         val text = persistence.read(name)
         val loaded = text?.let {
             try {
                 ApiJson.decodeFromString(ListSerializer(serializer), it)
             } catch (@Suppress("TooGenericExceptionCaught") failure: Exception) {
-                dataLogWarning("Table $name could not be read; starting it empty", failure)
-                null
+                dataLogWarning("Table $name could not be read; keeping what parses", failure)
+                persistence.write("$name.unreadable", it)
+                readableRows(it)
             }
         }.orEmpty()
         state.value = loaded.associateBy(keyOf)
+    }
+
+    private fun readableRows(text: String): List<T> {
+        val elements = runCatching { ApiJson.parseToJsonElement(text).jsonArray }.getOrNull().orEmpty()
+        return elements.mapNotNull { runCatching { ApiJson.decodeFromJsonElement(serializer, it) }.getOrNull() }
     }
 
     suspend fun upsert(row: T) = change { it[keyOf(row)] = row }
