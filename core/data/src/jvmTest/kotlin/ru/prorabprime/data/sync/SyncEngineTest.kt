@@ -4,6 +4,7 @@ import com.google.common.truth.Truth.assertThat
 import io.ktor.client.request.HttpRequestData
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.TextContent
+import kotlin.time.Clock
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import ru.prorabprime.contract.AttachmentKindDto
@@ -18,6 +19,7 @@ import ru.prorabprime.data.local.MemoryPersistence
 import ru.prorabprime.data.local.ObjectRow
 import ru.prorabprime.data.local.Operation
 import ru.prorabprime.data.local.OperationState
+import ru.prorabprime.data.local.PhotoRow
 import ru.prorabprime.data.remote.RemoteApi
 
 class SyncEngineTest {
@@ -88,6 +90,29 @@ class SyncEngineTest {
         assertThat(db.objects.rows.value).isEmpty()
         assertThat(db.materials.rows.value).isEmpty()
         assertThat(db.terms.rows.value).isEmpty()
+    }
+
+    @Test
+    fun `an object gone from the server stays while a photo of it waits to be uploaded`() = runTest {
+        db.load()
+        engine.sync()
+        val photoId = "44444444-4444-4444-4444-444444444444"
+        val blob = "$photoId.jpg"
+        val kind = AttachmentKindDto.PHOTO
+        db.blobs.put(blob, byteArrayOf(1, 2, 3))
+        db.photos.upsert(PhotoRow(objectId, 0, photoId, kind, 0, 0, Clock.System.now(), localBlob = blob))
+        db.outbox.enqueue(Operation.UploadPhoto(objectId, photoId, kind, blob, "image/jpeg"))
+
+        server.objects = emptyList()
+        server.writeStatus = HttpStatusCode.NotFound
+        engine.sync()
+
+        assertThat(db.objects.rows.value.keys).containsExactly(objectId)
+        assertThat(db.photos.rows.value.keys).containsExactly(photoId)
+        val queued = db.outbox.snapshot().single()
+        assertThat(queued.operation).isInstanceOf(Operation.UploadPhoto::class.java)
+        assertThat(queued.state).isEqualTo(OperationState.FAILED)
+        assertThat(db.blobs.get(blob)).isNotNull()
     }
 
     @Test
