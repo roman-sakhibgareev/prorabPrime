@@ -45,8 +45,14 @@ internal class PushStep(
 
             AppError.Unauthorized -> SyncOutcome.Unauthorized
 
-            is AppError.Server, AppError.Unknown ->
-                if (retryLater(queued.seq, queued.attempts, error)) null else SyncOutcome.Offline
+            is AppError.Server, AppError.Unknown -> when {
+                // The proxy's "server not answering" codes are an outage, not a verdict on this change.
+                error is AppError.Server && error.code in NOT_ANSWERING -> SyncOutcome.Offline
+
+                retryLater(queued.seq, queued.attempts, error) -> null
+
+                else -> SyncOutcome.Offline
+            }
 
             else -> {
                 db.outbox.fail(queued.seq, reasonOf(error))
@@ -86,6 +92,7 @@ internal class PushStep(
     private companion object {
         const val MAX_ATTEMPTS = 5
         val CLIENT_ERRORS = 400..499
+        val NOT_ANSWERING = setOf(502, 503, 504)
     }
 }
 
