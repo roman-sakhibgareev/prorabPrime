@@ -103,7 +103,11 @@ internal class PullStep(
     }
 
     private suspend fun dropObjectsGoneFromServer(serverIds: Set<String>) {
-        val gone = db.objects.rows.value.keys.filter { it !in serverIds && Keys.obj(it) !in db.outbox.dirtyKeys() }
+        // A queued change to a child (a photo waiting to upload) keeps the object and its rows, so it stays visible.
+        val dirty = db.outbox.dirtyKeys()
+        val gone = db.objects.rows.value.keys.filter {
+            it !in serverIds && Keys.obj(it) !in dirty && db.childKeys(it).none { key -> key in dirty }
+        }
         for (id in gone) {
             db.objects.remove(id)
             db.contacts.change { rows -> rows.values.removeAll { it.objectId == id } }

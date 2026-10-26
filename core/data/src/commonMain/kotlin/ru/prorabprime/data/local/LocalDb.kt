@@ -43,6 +43,16 @@ internal class LocalDb(
         emitAll((tables.map { table -> table.rows.map { } } + outbox.entries.map { }).merge())
     }
 
+    /** The outbox keys of every record that belongs to the object, whether or not anything is queued for it. */
+    fun childKeys(objectId: String): Set<String> =
+        contacts.rows.value.values.filter { it.objectId == objectId }.map { Keys.contact(it.dto.id) }.toSet() +
+            photos.rows.value.values.filter { it.objectId == objectId }.map { Keys.photo(it.id) }.toSet() +
+            payments.rows.value.values.filter { it.objectId == objectId }.map { Keys.payment(it.dto.id) }.toSet() +
+            extraWorks.rows.value.values.filter { it.objectId == objectId }.map { Keys.extra(it.dto.id) }.toSet() +
+            materials.rows.value.values.filter { it.objectId == objectId }.map { Keys.material(it.dto.id) }.toSet() +
+            notes.rows.value.values.filter { it.objectId == objectId }.map { Keys.note(it.dto.id) }.toSet() +
+            setOf(Keys.terms(objectId), Keys.materialsOf(objectId))
+
     /** Reads everything an earlier run saved. Nothing is shown from the copy before this is done. */
     suspend fun load() {
         tables.forEach { it.load() }

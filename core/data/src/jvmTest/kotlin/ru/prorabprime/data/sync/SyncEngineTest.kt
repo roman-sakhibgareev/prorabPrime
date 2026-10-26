@@ -4,6 +4,7 @@ import com.google.common.truth.Truth.assertThat
 import io.ktor.client.request.HttpRequestData
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.TextContent
+import kotlin.time.Clock
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import ru.prorabprime.contract.AttachmentKindDto
@@ -18,6 +19,7 @@ import ru.prorabprime.data.local.MemoryPersistence
 import ru.prorabprime.data.local.ObjectRow
 import ru.prorabprime.data.local.Operation
 import ru.prorabprime.data.local.OperationState
+import ru.prorabprime.data.local.PhotoRow
 import ru.prorabprime.data.remote.RemoteApi
 
 class SyncEngineTest {
@@ -88,6 +90,29 @@ class SyncEngineTest {
         assertThat(db.objects.rows.value).isEmpty()
         assertThat(db.materials.rows.value).isEmpty()
         assertThat(db.terms.rows.value).isEmpty()
+    }
+
+    @Test
+    fun `an object gone from the server stays while a photo of it waits to be uploaded`() = runTest {
+        db.load()
+        engine.sync()
+        val photoId = "44444444-4444-4444-4444-444444444444"
+        val blob = "$photoId.jpg"
+        val kind = AttachmentKindDto.PHOTO
+        db.blobs.put(blob, byteArrayOf(1, 2, 3))
+        db.photos.upsert(PhotoRow(objectId, 0, photoId, kind, 0, 0, Clock.System.now(), localBlob = blob))
+        db.outbox.enqueue(Operation.UploadPhoto(objectId, photoId, kind, blob, "image/jpeg"))
+
+        server.objects = emptyList()
+        server.writeStatus = HttpStatusCode.NotFound
+        engine.sync()
+
+        assertThat(db.objects.rows.value.keys).containsExactly(objectId)
+        assertThat(db.photos.rows.value.keys).containsExactly(photoId)
+        val queued = db.outbox.snapshot().single()
+        assertThat(queued.operation).isInstanceOf(Operation.UploadPhoto::class.java)
+        assertThat(queued.state).isEqualTo(OperationState.FAILED)
+        assertThat(db.blobs.get(blob)).isNotNull()
     }
 
     @Test
@@ -188,6 +213,22 @@ class SyncEngineTest {
     }
 
     @Test
+    fun `a gateway outage keeps the change waiting however long it lasts`() = runTest {
+        db.load()
+        db.outbox.enqueue(Operation.DeleteObject("x"))
+        listOf(HttpStatusCode.BadGateway, HttpStatusCode.ServiceUnavailable, HttpStatusCode.GatewayTimeout).forEach {
+            server.writeStatus = it
+
+            repeat(MAX_TRIES * 2) {
+                assertThat(engine.sync()).isEqualTo(SyncOutcome.Offline)
+            }
+
+            assertThat(db.outbox.snapshot().single().state).isEqualTo(OperationState.PENDING)
+            assertThat(db.outbox.snapshot().single().attempts).isEqualTo(0)
+        }
+    }
+
+    @Test
     fun `a row with a change waiting keeps the phone's version when the server has newer data`() = runTest {
         db.load()
         engine.sync()
@@ -259,6 +300,48 @@ class SyncEngineTest {
         assertThat(upload.url.parameters["id"]).isEqualTo(photoId)
         assertThat(upload.url.parameters["kind"]).isEqualTo("RECEIPT")
         assertThat(db.blobs.get("p1.jpg")).isNull()
+        assertThat(db.outbox.snapshot()).isEmpty()
+    }
+
+    @Test
+    fun `a receipt waits behind its refused picture instead of being lost to a not found`() = runTest {
+        db.load()
+        val photoId = "44444444-4444-4444-4444-444444444444"
+        db.blobs.put("p1.jpg", byteArrayOf(1, 2, 3))
+        db.outbox.enqueue(Operation.UploadPhoto(objectId, photoId, AttachmentKindDto.RECEIPT, "p1.jpg", "image/jpeg"))
+        db.outbox.enqueue(Operation.SetReceipt(photoId, 5_000, "2026-10-01"))
+        db.outbox.enqueue(Operation.SetPhotoNote(photoId, "гвозди"))
+        server.statusOf = { request ->
+            if (request.url.encodedPath.endsWith("/photos")) HttpStatusCode.PayloadTooLarge else HttpStatusCode.NotFound
+        }
+
+        engine.sync()
+
+        assertThat(server.writes.map { it.url.encodedPath }).containsExactly("/api/objects/$objectId/photos")
+        assertThat(db.outbox.snapshot().map { it.state })
+            .containsExactly(OperationState.FAILED, OperationState.PENDING, OperationState.PENDING).inOrder()
+        assertThat(db.blobs.get("p1.jpg")).isNotNull()
+    }
+
+    @Test
+    fun `a receipt that waited goes up after its picture is retried`() = runTest {
+        db.load()
+        val photoId = "44444444-4444-4444-4444-444444444444"
+        db.blobs.put("p1.jpg", byteArrayOf(1, 2, 3))
+        db.outbox.enqueue(Operation.UploadPhoto(objectId, photoId, AttachmentKindDto.RECEIPT, "p1.jpg", "image/jpeg"))
+        db.outbox.enqueue(Operation.SetReceipt(photoId, 5_000, "2026-10-01"))
+        server.statusOf = { request ->
+            if (request.url.encodedPath.endsWith("/photos")) HttpStatusCode.PayloadTooLarge else null
+        }
+        engine.sync()
+        server.statusOf = { null }
+        server.http.requests.clear()
+
+        db.outbox.retryFailed()
+        engine.sync()
+
+        assertThat(server.writes.map { it.url.encodedPath })
+            .containsExactly("/api/objects/$objectId/photos", "/api/photos/$photoId/receipt").inOrder()
         assertThat(db.outbox.snapshot()).isEmpty()
     }
 

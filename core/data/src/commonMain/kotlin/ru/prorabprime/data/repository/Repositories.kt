@@ -114,7 +114,7 @@ internal class ObjectsRepositoryImpl(
 
     override suspend fun delete(id: ObjectId): Result<Unit> {
         val row = db.objects.rows.value[id.value] ?: return Result.success(Unit)
-        val children = childKeys(id.value)
+        val children = db.childKeys(id.value)
         // Changes to the object's own records have nothing left to change once it is gone.
         db.outbox.removeWhere { op -> op.operation.touched.any { it in children } }
         db.photos.rows.value.values.filter {
@@ -134,15 +134,6 @@ internal class ObjectsRepositoryImpl(
     /** Online only: the server's map lookup is not something the phone can do. */
     override suspend fun geocode(id: ObjectId): Result<Unit> =
         remote.geocodeObject(id.value).onSuccess { engine.sync() }
-
-    private fun childKeys(objectId: String): Set<String> =
-        db.contacts.rows.value.values.filter { it.objectId == objectId }.map { Keys.contact(it.dto.id) }.toSet() +
-            db.photos.rows.value.values.filter { it.objectId == objectId }.map { Keys.photo(it.id) }.toSet() +
-            db.payments.rows.value.values.filter { it.objectId == objectId }.map { Keys.payment(it.dto.id) }.toSet() +
-            db.extraWorks.rows.value.values.filter { it.objectId == objectId }.map { Keys.extra(it.dto.id) }.toSet() +
-            db.materials.rows.value.values.filter { it.objectId == objectId }.map { Keys.material(it.dto.id) }.toSet() +
-            db.notes.rows.value.values.filter { it.objectId == objectId }.map { Keys.note(it.dto.id) }.toSet() +
-            setOf(Keys.terms(objectId), Keys.materialsOf(objectId))
 
     private suspend fun removeChildRows(objectId: String) {
         db.contacts.change { rows -> rows.values.removeAll { it.objectId == objectId } }
