@@ -262,6 +262,48 @@ class SyncEngineTest {
         assertThat(db.outbox.snapshot()).isEmpty()
     }
 
+    @Test
+    fun `a receipt waits behind its refused picture instead of being lost to a not found`() = runTest {
+        db.load()
+        val photoId = "44444444-4444-4444-4444-444444444444"
+        db.blobs.put("p1.jpg", byteArrayOf(1, 2, 3))
+        db.outbox.enqueue(Operation.UploadPhoto(objectId, photoId, AttachmentKindDto.RECEIPT, "p1.jpg", "image/jpeg"))
+        db.outbox.enqueue(Operation.SetReceipt(photoId, 5_000, "2026-10-01"))
+        db.outbox.enqueue(Operation.SetPhotoNote(photoId, "гвозди"))
+        server.statusOf = { request ->
+            if (request.url.encodedPath.endsWith("/photos")) HttpStatusCode.PayloadTooLarge else HttpStatusCode.NotFound
+        }
+
+        engine.sync()
+
+        assertThat(server.writes.map { it.url.encodedPath }).containsExactly("/api/objects/$objectId/photos")
+        assertThat(db.outbox.snapshot().map { it.state })
+            .containsExactly(OperationState.FAILED, OperationState.PENDING, OperationState.PENDING).inOrder()
+        assertThat(db.blobs.get("p1.jpg")).isNotNull()
+    }
+
+    @Test
+    fun `a receipt that waited goes up after its picture is retried`() = runTest {
+        db.load()
+        val photoId = "44444444-4444-4444-4444-444444444444"
+        db.blobs.put("p1.jpg", byteArrayOf(1, 2, 3))
+        db.outbox.enqueue(Operation.UploadPhoto(objectId, photoId, AttachmentKindDto.RECEIPT, "p1.jpg", "image/jpeg"))
+        db.outbox.enqueue(Operation.SetReceipt(photoId, 5_000, "2026-10-01"))
+        server.statusOf = { request ->
+            if (request.url.encodedPath.endsWith("/photos")) HttpStatusCode.PayloadTooLarge else null
+        }
+        engine.sync()
+        server.statusOf = { null }
+        server.http.requests.clear()
+
+        db.outbox.retryFailed()
+        engine.sync()
+
+        assertThat(server.writes.map { it.url.encodedPath })
+            .containsExactly("/api/objects/$objectId/photos", "/api/photos/$photoId/receipt").inOrder()
+        assertThat(db.outbox.snapshot()).isEmpty()
+    }
+
     private companion object {
         const val MAX_TRIES = 5
     }

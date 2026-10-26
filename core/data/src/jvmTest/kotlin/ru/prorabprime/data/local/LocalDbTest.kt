@@ -55,6 +55,31 @@ class LocalDbTest {
     }
 
     @Test
+    fun `a file that does not parse is kept aside before the table starts empty`() = runTest {
+        File(folder.root, "objects").writeText("{ this is not json")
+
+        db().load()
+
+        assertThat(File(folder.root, "objects.unreadable").readText()).isEqualTo("{ this is not json")
+    }
+
+    @Test
+    fun `one unreadable queued change does not take the others with it`() = runTest {
+        val first = db()
+        first.load()
+        first.outbox.enqueue(Operation.DeleteObject("a"))
+        first.outbox.enqueue(Operation.DeleteObject("b"))
+        val file = File(folder.root, "outbox")
+        file.writeText(file.readText().trimEnd().removeSuffix("]") + """,{"seq":9}]""")
+
+        val second = db()
+        second.load()
+
+        assertThat(second.outbox.snapshot().map { it.seq }).containsExactly(1L, 2L).inOrder()
+        assertThat(File(folder.root, "outbox.unreadable").exists()).isTrue()
+    }
+
+    @Test
     fun `the outbox keeps its order and numbering across restarts`() = runTest {
         val first = db()
         first.load()
