@@ -10,7 +10,7 @@ with PostgreSQL behind it.
 **Stack:** Kotlin Multiplatform, Compose Multiplatform (Android and Wasm), Koin, Navigation 3, Ktor,
 Exposed, Flyway, PostgreSQL, Yandex AppMetrica, GitHub Actions.
 
-**Status:** release 1.5.1, distributed through RuStore ([`docs/RUSTORE.md`](docs/RUSTORE.md)).
+**Status:** release 1.6.0, distributed through RuStore ([`docs/RUSTORE.md`](docs/RUSTORE.md)).
 
 - Architecture: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 - Why it is built this way: [`docs/DECISIONS.md`](docs/DECISIONS.md)
