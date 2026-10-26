@@ -3,6 +3,7 @@ package ru.prorabprime.data.sync
 import ru.prorabprime.data.local.LocalDb
 import ru.prorabprime.data.local.OperationState
 import ru.prorabprime.data.local.QueuedOperation
+import ru.prorabprime.data.local.isCreate
 import ru.prorabprime.domain.model.AppError
 import ru.prorabprime.domain.model.PhotoRejection
 import ru.prorabprime.domain.model.asAppError
@@ -10,7 +11,8 @@ import ru.prorabprime.domain.model.asAppError
 /**
  * Sends the queued changes in the order they were made. Without an answer it stops (the rest stay
  * queued); a change the server refuses for good is marked and skipped, so one bad change never holds
- * up the others.
+ * up the others. A change to a record whose creation was refused waits behind it: sent now, the server
+ * would answer "not found", which counts as done for most changes, and what the user entered would be lost.
  */
 internal class PushStep(
     private val db: LocalDb,
@@ -18,11 +20,18 @@ internal class PushStep(
 ) {
     /** Null when the whole line was handled; otherwise why it stopped. */
     suspend fun run(): SyncOutcome? {
-        for (queued in db.outbox.snapshot().filter { it.state == OperationState.PENDING }) {
-            send(queued)?.let { return it }
+        val notCreated = mutableSetOf<String>()
+        for (queued in db.outbox.snapshot()) {
+            if (queued.state == OperationState.PENDING && queued.operation.touched.none { it in notCreated }) {
+                send(queued)?.let { return it }
+            }
+            if (queued.operation.isCreate() && isFailed(queued.seq)) notCreated += queued.operation.touched
         }
         return null
     }
+
+    private fun isFailed(seq: Long): Boolean =
+        db.outbox.snapshot().any { it.seq == seq && it.state == OperationState.FAILED }
 
     /** Null when the line may carry on. */
     private suspend fun send(queued: QueuedOperation): SyncOutcome? {

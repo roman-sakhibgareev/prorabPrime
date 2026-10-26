@@ -59,6 +59,9 @@ class FakeServer {
     /** The status every write gets, when set. */
     var writeStatus: HttpStatusCode? = null
 
+    /** The status for one particular write, taking precedence over [writeStatus]. */
+    var statusOf: (HttpRequestData) -> HttpStatusCode? = { null }
+
     private val finance = FinanceDto(
         terms = FinanceTermsDto(clientTotalKopecks = 1_000),
         client = SideSummaryDto(agreedKopecks = 1_000, paidKopecks = 0, remainingKopecks = 1_000),
@@ -91,7 +94,7 @@ class FakeServer {
     private fun MockRequestHandleScope.answer(request: HttpRequestData): HttpResponseData {
         if (offline) throw IOException("no signal")
         if (request.method != HttpMethod.Get) {
-            val status = writeStatus ?: HttpStatusCode.NoContent
+            val status = statusOf(request) ?: writeStatus ?: HttpStatusCode.NoContent
             if (status.value < HTTP_REDIRECT) afterWrite(request)
             return respond("", status)
         }
