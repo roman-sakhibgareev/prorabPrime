@@ -179,6 +179,7 @@ commit straight to it:
 | `tech/` | dependencies, build tooling, tests, documentation | `[TECH]` |
 | `feature/` | new or changed behavior | `[FEATURE]` |
 | `fix/` | bug fixes, refactors, renames, cleanups | `[FIX]` |
+| `release/` | version bump and release preparation (`release/<X.Y.Z>`) | `[TECH]` |
 
 One branch → one merge into `dev`.
 
