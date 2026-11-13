@@ -6,6 +6,8 @@ import io.ktor.server.application.install
 import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respond
+import io.ktor.util.AttributeKey
+import java.io.EOFException
 import java.sql.SQLException
 import ru.prorabprime.contract.ErrorCode
 import ru.prorabprime.contract.ErrorDto
@@ -21,6 +23,14 @@ fun Application.installErrorHandling() {
             call.respond(HttpStatusCode.BadRequest, ErrorDto(ErrorCode.VALIDATION, "Malformed request"))
         }
         exception<Throwable> { call, cause ->
+            if (cause is EOFException && call.attributes.contains(ReadingUploadBody)) {
+                // The body ended early (a dropped mobile connection). Not 4xx: the app treats any 4xx as a
+                // permanent refusal and would drop the queued change; 503 keeps it queued for a retry.
+                call.application.environment.log.warn("Request body cut off on ${call.request.local.uri}")
+                val body = ErrorDto(ErrorCode.INTERNAL, "The request body was cut off")
+                call.respond(HttpStatusCode.ServiceUnavailable, body)
+                return@exception
+            }
             if (cause.isUniqueViolation()) {
                 // A record made with an id somebody else already has (ADR-0021): the same answer as a retry that
                 // finds another account's record, and it says nothing about whose it is.
@@ -40,6 +50,13 @@ fun Application.installErrorHandling() {
         }
     }
 }
+
+/**
+ * Set while a route reads an upload's body, so an `EOFException` then means the client hung up; the same
+ * exception anywhere else is a server bug and stays a 500. The parser fails the call on its own, which is
+ * why a try/catch in the route cannot translate it.
+ */
+internal val ReadingUploadBody = AttributeKey<Boolean>("ReadingUploadBody")
 
 private const val UNIQUE_VIOLATION = "23505"
 
