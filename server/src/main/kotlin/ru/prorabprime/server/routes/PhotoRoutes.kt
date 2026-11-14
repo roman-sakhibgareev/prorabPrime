@@ -31,6 +31,7 @@ import ru.prorabprime.contract.ReceiptRequestDto
 import ru.prorabprime.contract.RotatePhotoRequestDto
 import ru.prorabprime.contract.SetCoverRequestDto
 import ru.prorabprime.server.auth.owner
+import ru.prorabprime.server.error.ReadingUploadBody
 import ru.prorabprime.server.error.ServiceError
 import ru.prorabprime.server.error.ServiceException
 import ru.prorabprime.server.service.FileService
@@ -123,6 +124,7 @@ private class UploadedFile(
 private suspend fun RoutingCall.receiveUploadedFile(): UploadedFile {
     var bytes: ByteArray? = null
     var note: String? = null
+    attributes.put(ReadingUploadBody, true)
     receiveMultipart(formFieldLimit = PhotoLimits.MAX_UPLOAD_BYTES + 1).forEachPart { part ->
         when {
             part is PartData.FileItem && part.name == ApiMultipart.FILE && bytes == null ->
@@ -132,6 +134,7 @@ private suspend fun RoutingCall.receiveUploadedFile(): UploadedFile {
         }
         part.release()
     }
+    attributes.remove(ReadingUploadBody)
     val file = bytes ?: throw ServiceException(
         ServiceError.Validation("Expected a multipart '${ApiMultipart.FILE}' part"),
     )

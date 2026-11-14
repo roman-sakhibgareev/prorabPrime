@@ -20,7 +20,9 @@ import io.ktor.http.ContentType
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.content.OutgoingContent
 import io.ktor.http.contentType
+import io.ktor.utils.io.ByteReadChannel
 import java.io.ByteArrayOutputStream
 import java.util.UUID
 import kotlin.time.Clock
@@ -157,6 +159,27 @@ class PhotoRoutesTest {
         val response = client.upload(TestImages.jpeg(10, 10), field = "picture")
 
         assertThat(response.status).isEqualTo(HttpStatusCode.BadRequest)
+    }
+
+    @Test
+    fun `an upload cut off mid-body is a quiet 500, which the app retries then gives up on`() = server { client ->
+        val boundary = "cut"
+        val head = "--$boundary\r\nContent-Disposition: form-data; name=\"file\"; filename=\"p.jpg\"\r\n" +
+            "Content-Type: image/jpeg\r\n\r\n"
+        val sent = head.toByteArray() + ByteArray(100)
+        val response = client.post("/api/objects/$objectId/photos") {
+            bearerAuth(TEST_TOKEN)
+            setBody(
+                object : OutgoingContent.ReadChannelContent() {
+                    override val contentType = ContentType.MultiPart.FormData.withParameter("boundary", boundary)
+                    override val contentLength = sent.size + 5_000L
+                    override fun readFrom() = ByteReadChannel(sent)
+                },
+            )
+        }
+
+        assertThat(response.status).isEqualTo(HttpStatusCode.InternalServerError)
+        assertThat(response.body<ErrorDto>().message).isEqualTo("The request body was cut off")
     }
 
     @Test
