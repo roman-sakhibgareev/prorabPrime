@@ -24,11 +24,11 @@ fun Application.installErrorHandling() {
         }
         exception<Throwable> { call, cause ->
             if (cause is EOFException && call.attributes.contains(ReadingUploadBody)) {
-                // The body ended early (a dropped mobile connection). Not 4xx: the app treats any 4xx as a
-                // permanent refusal and would drop the queued change; 503 keeps it queued for a retry.
+                // The body ended early (a dropped mobile connection). Stays a 500: the app retries it a few
+                // times and then gives up, while a 4xx would be dropped at once and a 502-504 retried forever.
                 call.application.environment.log.warn("Request body cut off on ${call.request.local.uri}")
                 val body = ErrorDto(ErrorCode.INTERNAL, "The request body was cut off")
-                call.respond(HttpStatusCode.ServiceUnavailable, body)
+                call.respond(HttpStatusCode.InternalServerError, body)
                 return@exception
             }
             if (cause.isUniqueViolation()) {

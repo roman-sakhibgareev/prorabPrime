@@ -162,7 +162,7 @@ class PhotoRoutesTest {
     }
 
     @Test
-    fun `an upload cut off mid-body is 503, which the app retries, not 500 or a 4xx`() = server { client ->
+    fun `an upload cut off mid-body is a quiet 500, which the app retries then gives up on`() = server { client ->
         val boundary = "cut"
         val head = "--$boundary\r\nContent-Disposition: form-data; name=\"file\"; filename=\"p.jpg\"\r\n" +
             "Content-Type: image/jpeg\r\n\r\n"
@@ -178,7 +178,8 @@ class PhotoRoutesTest {
             )
         }
 
-        assertThat(response.status).isEqualTo(HttpStatusCode.ServiceUnavailable)
+        assertThat(response.status).isEqualTo(HttpStatusCode.InternalServerError)
+        assertThat(response.body<ErrorDto>().message).isEqualTo("The request body was cut off")
     }
 
     @Test
